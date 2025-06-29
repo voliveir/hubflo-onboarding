@@ -1,0 +1,156 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  Puzzle,
+  ChevronDown,
+  ChevronRight,
+  Building2,
+  Wrench,
+  Rocket,
+} from "lucide-react"
+
+const navigation = [
+  {
+    name: "Dashboard",
+    href: "/admin",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Clients",
+    icon: Users,
+    children: [
+      { name: "All Clients", href: "/admin/clients" },
+      { name: "Add New Client", href: "/admin/clients/new" },
+    ],
+  },
+  {
+    name: "Features",
+    href: "/admin/features",
+    icon: Rocket,
+  },
+  {
+    name: "Integrations",
+    href: "/admin/integrations",
+    icon: Puzzle,
+  },
+  {
+    name: "Setup",
+    href: "/admin/setup",
+    icon: Wrench,
+  },
+  {
+    name: "Settings",
+    href: "/admin/settings",
+    icon: Settings,
+  },
+]
+
+export function AdminSidebar() {
+  const pathname = usePathname()
+  const [expandedItems, setExpandedItems] = useState<string[]>(["Clients"])
+
+  const toggleExpanded = (name: string) => {
+    setExpandedItems((prev) => (prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name]))
+  }
+
+  return (
+    <div className="flex h-full w-64 flex-col bg-[#010124] border-r border-[#ECB22D]">
+      <div className="flex h-16 items-center px-6 border-b border-[#ECB22D]">
+        <Building2 className="h-8 w-8 text-[#ECB22D]" />
+        <span className="ml-2 text-xl font-bold text-white">Hubflo Admin</span>
+      </div>
+
+      <ScrollArea className="flex-1 px-3 py-4">
+        <nav className="space-y-1">
+          {navigation.map((item) => {
+            const isExpanded = expandedItems.includes(item.name)
+            const hasChildren = item.children && item.children.length > 0
+
+            if (hasChildren) {
+              return (
+                <div key={item.name}>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-start px-3 py-2 text-left font-normal text-white",
+                      "hover:bg-[#ECB22D] hover:text-[#010124]",
+                    )}
+                    onClick={() => toggleExpanded(item.name)}
+                  >
+                    <item.icon className="mr-3 h-4 w-4" />
+                    {item.name}
+                    {isExpanded ? (
+                      <ChevronDown className="ml-auto h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="ml-auto h-4 w-4" />
+                    )}
+                  </Button>
+
+                  {isExpanded && (
+                    <div className="ml-6 mt-1 space-y-1">
+                      {item.children.map((child) => (
+                        <Button
+                          key={child.href}
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start px-3 py-2 text-left font-normal text-sm",
+                            pathname === child.href
+                              ? "bg-[#ECB22D] text-[#010124]"
+                              : "text-gray-300 hover:bg-[#ECB22D] hover:text-[#010124]",
+                          )}
+                          asChild
+                        >
+                          <Link href={child.href}>{child.name}</Link>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
+            return (
+              <Button
+                key={item.name}
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start px-3 py-2 text-left font-normal",
+                  pathname === item.href
+                    ? "bg-[#ECB22D] text-[#010124]"
+                    : "text-white hover:bg-[#ECB22D] hover:text-[#010124]",
+                )}
+                asChild
+              >
+                <Link href={item.href}>
+                  <item.icon className="mr-3 h-4 w-4" />
+                  {item.name}
+                </Link>
+              </Button>
+            )
+          })}
+        </nav>
+      </ScrollArea>
+
+      <div className="border-t border-[#ECB22D] p-4">
+        <div className="flex items-center">
+          <div className="h-8 w-8 rounded-full bg-[#ECB22D] flex items-center justify-center">
+            <span className="text-sm font-medium text-[#010124]">A</span>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium text-white">Admin User</p>
+            <p className="text-xs text-gray-300">admin@hubflo.com</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

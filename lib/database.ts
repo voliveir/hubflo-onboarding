@@ -1,0 +1,1501 @@
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
+import type {
+  Client,
+  PlatformSettings,
+  Integration,
+  ClientIntegration,
+  ProjectTask,
+  ChecklistItem,
+  TaskCompletion,
+  Feature,
+  ClientFeature,
+} from "./types"
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error(
+    "Missing Supabase environment variables. Please check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  )
+}
+
+const supabase = createSupabaseClient(supabaseUrl, supabaseKey)
+
+// Helper functions to convert between UI and database values
+const convertCustomAppToDb = (uiValue: string): string => {
+  const mapping: Record<string, string> = {
+    "Gray Label": "gray_label",
+    "White Label": "white_label",
+    "Not Applicable": "not_applicable",
+  }
+  return mapping[uiValue] || "not_applicable"
+}
+
+const convertCustomAppFromDb = (dbValue: string): string => {
+  const mapping: Record<string, string> = {
+    gray_label: "Gray Label",
+    white_label: "White Label",
+    not_applicable: "Not Applicable",
+  }
+  return mapping[dbValue] || "Not Applicable"
+}
+
+const convertBillingTypeToDb = (uiValue: string): string => {
+  return uiValue.toLowerCase()
+}
+
+const convertBillingTypeFromDb = (dbValue: string): string => {
+  const mapping: Record<string, string> = {
+    monthly: "Monthly",
+    quarterly: "Quarterly",
+    annually: "Annually",
+  }
+  return mapping[dbValue] || "Monthly"
+}
+
+// Helper function to transform client data from database
+const transformClientFromDb = (client: any): Client => {
+  if (!client) return client
+
+  return {
+    ...client,
+    custom_app: convertCustomAppFromDb(client.custom_app),
+    billing_type: convertBillingTypeFromDb(client.billing_type),
+  }
+}
+
+// Helper function to transform client data for database
+const transformClientForDb = (clientData: any): any => {
+  const transformed = { ...clientData }
+
+  if (transformed.custom_app) {
+    transformed.custom_app = convertCustomAppToDb(transformed.custom_app)
+  }
+
+  if (transformed.billing_type) {
+    transformed.billing_type = convertBillingTypeToDb(transformed.billing_type)
+  }
+
+  return transformed
+}
+
+// Export the createClient function that the form component expects
+export async function createClient(formData: any): Promise<Client> {
+  try {
+    // Map form data to database schema with required fields
+    const clientData = {
+      name: formData.name,
+      slug: formData.slug,
+      email: formData.email || null,
+      success_package: formData.success_package,
+      billing_type: convertBillingTypeToDb(formData.billing_type),
+      number_of_users: formData.number_of_users,
+      logo_url: formData.logo_url || null,
+      welcome_message: formData.welcome_message || null,
+      video_url: formData.video_url || null,
+      show_zapier_integrations: formData.show_zapier_integrations || false,
+      projects_enabled: formData.projects_enabled !== false,
+      status: formData.status || "active",
+      // Required fields with defaults
+      plan_type: formData.plan_type || "pro", // Use form data or default to pro
+      revenue_amount: 0, // Default revenue
+      custom_app: convertCustomAppToDb(formData.custom_app || "Not Applicable"),
+      notes: null, // Optional notes
+      // Initialize project tracking fields
+      calls_scheduled: 0,
+      calls_completed: 0,
+      forms_setup: 0,
+      smartdocs_setup: 0,
+      zapier_integrations_setup: 0,
+      migration_completed: false,
+      slack_access_granted: false,
+      project_completion_percentage: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+
+    const { data, error } = await supabase.from("clients").insert([clientData]).select().single()
+
+    if (error) {
+      console.error("Error creating client:", error)
+      throw new Error(`Failed to create client: ${error.message}`)
+    }
+
+    return transformClientFromDb(data)
+  } catch (error) {
+    console.error("Error in createClient:", error)
+    throw error
+  }
+}
+
+export async function getAllClients(): Promise<Client[]> {
+  try {
+    const { data, error } = await supabase.from("clients").select("*").order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching clients:", error)
+      return []
+    }
+
+    return (data || []).map(transformClientFromDb)
+  } catch (error) {
+    console.error("Error in getAllClients:", error)
+    return []
+  }
+}
+
+export async function getClients(): Promise<Client[]> {
+  return getAllClients()
+}
+
+export async function getClient(identifier: string): Promise<Client | null> {
+  try {
+    let query = supabase.from("clients").select("*")
+
+    // Check if identifier looks like a UUID
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier)
+
+    if (isUUID) {
+      query = query.eq("id", identifier)
+    } else {
+      query = query.eq("slug", identifier)
+    }
+
+    const { data, error } = await query.single()
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return null // No rows returned
+      }
+      throw error
+    }
+
+    return transformClientFromDb(data)
+  } catch (error) {
+    console.error("Error fetching client:", error)
+    return null
+  }
+}
+
+export async function getClientBySlug(slug: string): Promise<Client | null> {
+  try {
+    const { data, error } = await supabase.from("clients").select("*").eq("slug", slug).single()
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return null // No rows returned
+      }
+      console.error("Error fetching client:", error)
+      return null
+    }
+
+    return transformClientFromDb(data)
+  } catch (error) {
+    console.error("Error in getClientBySlug:", error)
+    return null
+  }
+}
+
+export async function getClientById(id: string): Promise<Client | null> {
+  try {
+    const { data, error } = await supabase.from("clients").select("*").eq("id", id).single()
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return null
+      }
+      throw error
+    }
+
+    return transformClientFromDb(data)
+  } catch (error) {
+    console.error("Error fetching client by ID:", error)
+    throw error
+  }
+}
+
+export async function addClient(clientData: Partial<Client>): Promise<Client | null> {
+  try {
+    const transformedData = transformClientForDb(clientData)
+    const { data, error } = await supabase.from("clients").insert([transformedData]).select().single()
+
+    if (error) {
+      console.error("Error adding client:", error)
+      return null
+    }
+
+    return transformClientFromDb(data)
+  } catch (error) {
+    console.error("Error in addClient:", error)
+    return null
+  }
+}
+
+export async function updateClient(id: string, updates: Partial<Client>): Promise<Client | null> {
+  try {
+    const transformedUpdates = transformClientForDb(updates)
+    const { data, error } = await supabase.from("clients").update(transformedUpdates).eq("id", id).select().single()
+
+    if (error) {
+      console.error("Error updating client:", error)
+      return null
+    }
+
+    return transformClientFromDb(data)
+  } catch (error) {
+    console.error("Error in updateClient:", error)
+    return null
+  }
+}
+
+export async function deleteClient(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from("clients").delete().eq("id", id)
+
+    if (error) {
+      console.error("Error deleting client:", error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error("Error in deleteClient:", error)
+    return false
+  }
+}
+
+export async function isSlugAvailable(slug: string, excludeId?: string): Promise<boolean> {
+  try {
+    let query = supabase.from("clients").select("id").eq("slug", slug)
+
+    if (excludeId) {
+      query = query.neq("id", excludeId)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error("Error checking slug availability:", error)
+      throw new Error(`Failed to check slug availability: ${error.message}`)
+    }
+
+    return data.length === 0
+  } catch (error) {
+    console.error("Error in isSlugAvailability:", error)
+    throw error
+  }
+}
+
+export async function checkSlugAvailability(slug: string): Promise<boolean> {
+  return isSlugAvailable(slug)
+}
+
+export async function getClientStats() {
+  try {
+    const { data, error } = await supabase.from("clients").select("success_package, status")
+
+    if (error) {
+      console.error("Error fetching client stats:", error)
+      throw new Error(`Failed to fetch client statistics: ${error.message}`)
+    }
+
+    const stats = {
+      total: data.length,
+      active: data.filter((c) => c.status === "active").length,
+      premium: data.filter((c) => c.success_package === "premium").length,
+      gold: data.filter((c) => c.success_package === "gold").length,
+      elite: data.filter((c) => c.success_package === "elite").length,
+      light: data.filter((c) => c.success_package === "light").length,
+      starter: data.filter((c) => c.success_package === "starter").length,
+      professional: data.filter((c) => c.success_package === "professional").length,
+      enterprise: data.filter((c) => c.success_package === "enterprise").length,
+      draft: data.filter((c) => c.status === "draft").length,
+    }
+
+    return stats
+  } catch (error) {
+    console.error("Error in getClientStats:", error)
+    throw error
+  }
+}
+
+// Robust checklist functions that handle schema issues gracefully
+export async function getClientChecklist(clientId: string): Promise<ChecklistItem[]> {
+  try {
+    // Try to query the table and handle any schema issues
+    const { data, error } = await supabase
+      .from("client_checklists")
+      .select("*")
+      .eq("client_id", clientId)
+      .order("created_at")
+
+    if (error) {
+      console.error("Database error in getClientChecklist:", error)
+      // Return empty array for any database errors
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error("Error fetching client checklist:", error)
+    return []
+  }
+}
+
+export async function getClientChecklists(clientId: string): Promise<ChecklistItem[]> {
+  return getClientChecklist(clientId)
+}
+
+export async function updateChecklistItem(itemId: string, isCompleted: boolean): Promise<void> {
+  try {
+    const updates: any = {
+      is_completed: isCompleted,
+      updated_at: new Date().toISOString(),
+    }
+
+    if (isCompleted) {
+      updates.completed_at = new Date().toISOString()
+    } else {
+      updates.completed_at = null
+    }
+
+    const { error } = await supabase.from("client_checklists").update(updates).eq("id", itemId)
+
+    if (error) {
+      console.error("Database error in updateChecklistItem:", error)
+      throw error
+    }
+  } catch (error) {
+    console.error("Error updating checklist item:", error)
+    throw error
+  }
+}
+
+export async function createChecklistItem(
+  clientId: string,
+  title: string,
+  isCompleted = false,
+  clientName?: string,
+  clientEmail?: string,
+): Promise<ChecklistItem> {
+  try {
+    // If clientName or clientEmail is not provided, try to get it from the database
+    let finalClientName = clientName
+    let finalClientEmail = clientEmail
+
+    if (!finalClientName || !finalClientEmail) {
+      const client = await getClientById(clientId)
+      finalClientName = finalClientName || client?.name || "Unknown Client"
+      finalClientEmail = finalClientEmail || client?.email || null
+    }
+
+    const itemData = {
+      client_id: clientId,
+      client_name: finalClientName,
+      client_email: finalClientEmail,
+      title: title,
+      is_completed: isCompleted,
+      completed_at: isCompleted ? new Date().toISOString() : null,
+    }
+
+    const { data, error } = await supabase.from("client_checklists").insert([itemData]).select("*").single()
+
+    if (error) {
+      console.error("Database error in createChecklistItem:", error)
+      throw error
+    }
+
+    return data
+  } catch (error) {
+    console.error("Error creating checklist item:", error)
+    throw error
+  }
+}
+
+export async function addChecklistItem(
+  item: Omit<ChecklistItem, "id" | "created_at" | "updated_at">,
+): Promise<ChecklistItem> {
+  const { data, error } = await supabase.from("client_checklists").insert([item]).select().single()
+
+  if (error) {
+    console.error("Error adding checklist item:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function deleteChecklistItem(id: string): Promise<void> {
+  const { error } = await supabase.from("client_checklists").delete().eq("id", id)
+
+  if (error) {
+    console.error("Error deleting checklist item:", error)
+    throw error
+  }
+}
+
+// Enhanced Task Completion Functions for Webhook Integration
+export async function getTaskCompletions(clientId: string): Promise<Record<string, boolean>> {
+  try {
+    const response = await supabase.from("task_completions").select("task_id, is_completed").eq("client_id", clientId)
+
+    const { data, error } = response
+
+    if (error) {
+      console.error("Error fetching task completions:", error)
+      return {}
+    }
+
+    // Convert array to object for easy lookup
+    const completions: Record<string, boolean> = {}
+    data?.forEach((item) => {
+      completions[item.task_id] = item.is_completed
+    })
+
+    return completions
+  } catch (error) {
+    console.error("Error in getTaskCompletions:", error)
+    return {}
+  }
+}
+
+export async function updateTaskCompletion(
+  clientId: string,
+  taskId: string,
+  isCompleted: boolean,
+  taskTitle?: string,
+): Promise<TaskCompletion> {
+  try {
+    const completedAt = isCompleted ? new Date().toISOString() : null
+
+    // Get client information for webhook data
+    const client = await getClientById(clientId)
+
+    // Use upsert to handle both insert and update cases
+    const response = await supabase
+      .from("task_completions")
+      .upsert(
+        {
+          client_id: clientId,
+          client_name: client?.name || "Unknown Client",
+          client_email: client?.email || null,
+          task_id: taskId,
+          task_title: taskTitle || taskId, // Use taskId as fallback if no title provided
+          is_completed: isCompleted,
+          completed_at: completedAt,
+          updated_at: new Date().toISOString(),
+          // Reset webhook status when completion changes
+          webhook_sent: false,
+          webhook_sent_at: null,
+        },
+        {
+          onConflict: "client_id,task_id",
+        },
+      )
+      .select()
+      .single()
+
+    const { data, error } = response
+
+    if (error) {
+      console.error("Error updating task completion:", error)
+      throw error
+    }
+
+    return data
+  } catch (error) {
+    console.error("Error in updateTaskCompletion:", error)
+    throw error
+  }
+}
+
+export async function getTaskCompletion(clientId: string, taskId: string): Promise<boolean> {
+  try {
+    const response = await supabase
+      .from("task_completions")
+      .select("is_completed")
+      .eq("client_id", clientId)
+      .eq("task_id", taskId)
+      .single()
+
+    const { data, error } = response
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return false // No record found, default to incomplete
+      }
+      console.error("Error fetching task completion:", error)
+      return false
+    }
+
+    return data?.is_completed || false
+  } catch (error) {
+    console.error("Error in getTaskCompletion:", error)
+    return false
+  }
+}
+
+export async function getPendingWebhooks(): Promise<TaskCompletion[]> {
+  try {
+    const { data, error } = await supabase
+      .from("task_completions")
+      .select("*")
+      .eq("is_completed", true)
+      .or("webhook_sent.is.null,webhook_sent.eq.false")
+      .order("completed_at", { ascending: true })
+
+    if (error) {
+      console.error("Error fetching pending webhooks:", error)
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error("Error in getPendingWebhooks:", error)
+    return []
+  }
+}
+
+export async function markWebhookSent(taskCompletionId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("task_completions")
+      .update({
+        webhook_sent: true,
+        webhook_sent_at: new Date().toISOString(),
+      })
+      .eq("id", taskCompletionId)
+
+    if (error) {
+      console.error("Error marking webhook as sent:", error)
+      throw error
+    }
+  } catch (error) {
+    console.error("Error in markWebhookSent:", error)
+    throw error
+  }
+}
+
+export async function getWebhookData(clientId?: string): Promise<TaskCompletion[]> {
+  try {
+    let query = supabase.from("task_completions").select("*").eq("is_completed", true)
+
+    if (clientId) {
+      query = query.eq("client_id", clientId)
+    }
+
+    const { data, error } = await query.order("completed_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching webhook data:", error)
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error("Error in getWebhookData:", error)
+    return []
+  }
+}
+
+export async function updateProjectTracking(clientId: string, tracking: any): Promise<Client> {
+  try {
+    const { data, error } = await supabase
+      .from("clients")
+      .update({
+        calls_scheduled: tracking.calls_scheduled,
+        calls_completed: tracking.calls_completed,
+        forms_setup: tracking.forms_setup,
+        smartdocs_setup: tracking.smartdocs_setup,
+        zapier_integrations_setup: tracking.zapier_integrations_setup,
+        migration_completed: tracking.migration_completed,
+        slack_access_granted: tracking.slack_access_granted,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", clientId)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return transformClientFromDb(data)
+  } catch (error) {
+    console.error("Error updating project tracking:", error)
+    throw error
+  }
+}
+
+export async function calculateProjectCompletion(clientId: string): Promise<void> {
+  try {
+    const client = await getClientById(clientId)
+    if (!client) return
+
+    // Calculate completion based on package limits
+    const limits = {
+      light: { calls: 1, forms: 0, zapier: 0, migration: false, slack: false },
+      premium: { calls: 2, forms: 2, zapier: 1, migration: false, slack: false },
+      gold: { calls: 3, forms: 4, zapier: 2, migration: false, slack: false },
+      elite: { calls: 999, forms: 999, zapier: 999, migration: true, slack: true },
+      starter: { calls: 1, forms: 1, zapier: 0, migration: false, slack: false },
+      professional: { calls: 3, forms: 5, zapier: 3, migration: false, slack: true },
+      enterprise: { calls: 999, forms: 999, zapier: 999, migration: true, slack: true },
+    }
+
+    const packageLimits = limits[client.success_package] || limits.premium
+    let totalTasks = 0
+    let completedTasks = 0
+
+    // Count calls
+    if (packageLimits.calls > 0) {
+      totalTasks += packageLimits.calls === 999 ? client.calls_scheduled : packageLimits.calls
+      completedTasks += Math.min(
+        client.calls_completed,
+        packageLimits.calls === 999 ? client.calls_scheduled : packageLimits.calls,
+      )
+    }
+
+    // Count forms and smartdocs
+    if (packageLimits.forms > 0) {
+      totalTasks += packageLimits.forms * 2 // forms + smartdocs
+      completedTasks += Math.min(client.forms_setup + client.smartdocs_setup, packageLimits.forms * 2)
+    }
+
+    // Count zapier integrations
+    if (packageLimits.zapier > 0) {
+      totalTasks += packageLimits.zapier === 999 ? Math.max(client.zapier_integrations_setup, 1) : packageLimits.zapier
+      completedTasks += Math.min(
+        client.zapier_integrations_setup,
+        packageLimits.zapier === 999 ? Math.max(client.zapier_integrations_setup, 1) : packageLimits.zapier,
+      )
+    }
+
+    // Count elite features
+    if (packageLimits.migration) {
+      totalTasks += 1
+      if (client.migration_completed) completedTasks += 1
+    }
+
+    if (packageLimits.slack) {
+      totalTasks += 1
+      if (client.slack_access_granted) completedTasks += 1
+    }
+
+    const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+
+    await supabase.from("clients").update({ project_completion_percentage: percentage }).eq("id", clientId)
+  } catch (error) {
+    console.error("Error calculating project completion:", error)
+    throw error
+  }
+}
+
+// Integration functions
+export async function getMasterIntegrations(): Promise<Integration[]> {
+  try {
+    const { data, error } = await supabase
+      .from("integrations")
+      .select("*")
+      .eq("is_active", true)
+      .order("category")
+      .order("title")
+
+    if (error) {
+      if (error.code === "42P01") {
+        return []
+      }
+      throw error
+    }
+
+    return (data || []).map((integration: any) => ({
+      id: integration.id,
+      title: integration.title || "Unknown Integration",
+      description: integration.description || "",
+      category: integration.category || "General",
+      integration_type: integration.integration_type || "zapier",
+      external_url: integration.external_url || integration.url || "",
+      documentation_url: integration.documentation_url || "",
+      icon_url: integration.icon_url || "",
+      icon_name: integration.icon_name || "",
+      tags: integration.tags || [],
+      is_active: integration.is_active !== false,
+      created_at: integration.created_at || "",
+      updated_at: integration.updated_at || "",
+    }))
+  } catch (error) {
+    console.error("Error fetching master integrations:", error)
+    return []
+  }
+}
+
+export async function getIntegrations(): Promise<Integration[]> {
+  return getMasterIntegrations()
+}
+
+export async function getAllIntegrations(): Promise<Integration[]> {
+  try {
+    const { data, error } = await supabase.from("integrations").select("*").order("category").order("title")
+
+    if (error) {
+      if (error.code === "42P01") {
+        return []
+      }
+      throw error
+    }
+
+    return (data || []).map((integration: any) => ({
+      id: integration.id,
+      title: integration.title || "Unknown Integration",
+      description: integration.description || "",
+      category: integration.category || "General",
+      integration_type: integration.integration_type || "zapier",
+      external_url: integration.external_url || integration.url || "",
+      documentation_url: integration.documentation_url || "",
+      icon_url: integration.icon_url || "",
+      icon_name: integration.icon_name || "",
+      tags: integration.tags || [],
+      is_active: integration.is_active !== false,
+      created_at: integration.created_at || "",
+      updated_at: integration.updated_at || "",
+    }))
+  } catch (error) {
+    console.error("Error fetching all integrations:", error)
+    return []
+  }
+}
+
+export async function getClientIntegrations(clientId: string): Promise<ClientIntegration[]> {
+  try {
+    if (!clientId || clientId === "undefined") {
+      console.error("Invalid client ID provided to getClientIntegrations")
+      return []
+    }
+
+    const { data, error } = await supabase
+      .from("client_integrations")
+      .select(`
+        *,
+        integration:integrations(*)
+      `)
+      .eq("client_id", clientId)
+      .order("sort_order", { ascending: true })
+
+    if (error) {
+      console.error("Error fetching client integrations:", error)
+      return []
+    }
+
+    return (data || []).map((item: any) => ({
+      id: item.id,
+      client_id: item.client_id,
+      integration_id: item.integration_id,
+      is_enabled: item.is_enabled,
+      is_featured: item.is_featured,
+      sort_order: item.sort_order,
+      title: item.integration?.title || "Unknown Integration",
+      description: item.integration?.description || "",
+      category: item.integration?.category || "General",
+      integration_type: item.integration?.integration_type || "zapier",
+      external_url: item.integration?.external_url || "",
+      documentation_url: item.integration?.documentation_url || "",
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      integration: item.integration,
+    }))
+  } catch (error) {
+    console.error("Error in getClientIntegrations:", error)
+    return []
+  }
+}
+
+export async function addIntegrationToClient(
+  clientId: string,
+  integrationId: string,
+  options: {
+    is_featured?: boolean
+    sort_order?: number
+    is_enabled?: boolean
+  } = {},
+): Promise<ClientIntegration> {
+  try {
+    // Validate inputs
+    if (!clientId || clientId === "undefined" || !integrationId || integrationId === "undefined") {
+      throw new Error("Invalid clientId or integrationId")
+    }
+
+    // First check if the integration already exists for this client
+    const { data: existing, error: checkError } = await supabase
+      .from("client_integrations")
+      .select("id")
+      .eq("client_id", clientId)
+      .eq("integration_id", integrationId)
+      .maybeSingle()
+
+    if (existing) {
+      throw new Error("Integration already exists for this client")
+    }
+
+    // Insert the new client integration
+    const insertData = {
+      client_id: clientId,
+      integration_id: integrationId,
+      is_featured: options.is_featured || false,
+      sort_order: options.sort_order || 1,
+      is_enabled: options.is_enabled !== false, // Default to true
+    }
+
+    const { data, error } = await supabase
+      .from("client_integrations")
+      .insert(insertData)
+      .select(`
+        id,
+        client_id,
+        integration_id,
+        is_featured,
+        is_enabled,
+        sort_order,
+        created_at,
+        updated_at
+      `)
+      .single()
+
+    if (error) throw error
+
+    // Get the integration details separately to avoid column issues
+    const { data: integration, error: integrationError } = await supabase
+      .from("integrations")
+      .select("*")
+      .eq("id", integrationId)
+      .single()
+
+    if (integrationError) throw integrationError
+
+    return {
+      id: data.id,
+      client_id: data.client_id,
+      integration_id: data.integration_id,
+      is_featured: data.is_featured,
+      is_enabled: data.is_enabled,
+      sort_order: data.sort_order,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      title: integration.title || "Unknown Integration",
+      description: integration.description || "",
+      category: integration.category || "General",
+      integration_type: integration.integration_type || "zapier",
+      external_url: integration.external_url || "",
+      documentation_url: integration.documentation_url || "",
+      integration: {
+        id: integration.id,
+        title: integration.title || "Unknown Integration",
+        description: integration.description || "",
+        category: integration.category || "General",
+        integration_type: integration.integration_type || "zapier",
+        external_url: integration.external_url || integration.url || "",
+        documentation_url: integration.documentation_url || "",
+        icon_url: integration.icon_url || "",
+        is_active: integration.is_active !== false,
+        created_at: integration.created_at || "",
+        updated_at: integration.updated_at || "",
+      },
+    }
+  } catch (error) {
+    console.error("Error adding integration to client:", error)
+    throw error
+  }
+}
+
+export async function addClientIntegration(
+  clientIntegration: Omit<ClientIntegration, "id" | "created_at" | "updated_at">,
+): Promise<ClientIntegration> {
+  const { data, error } = await supabase.from("client_integrations").insert([clientIntegration]).select().single()
+
+  if (error) {
+    console.error("Error adding client integration:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function removeIntegrationFromClient(clientIntegrationId: string): Promise<void> {
+  try {
+    const { error } = await supabase.from("client_integrations").delete().eq("id", clientIntegrationId)
+
+    if (error) throw error
+  } catch (error) {
+    console.error("Error removing integration from client:", error)
+    throw error
+  }
+}
+
+export async function updateClientIntegration(
+  clientIntegrationId: string,
+  updates: {
+    is_featured?: boolean
+    sort_order?: number
+    is_enabled?: boolean
+  },
+): Promise<ClientIntegration> {
+  try {
+    const { data, error } = await supabase
+      .from("client_integrations")
+      .update(updates)
+      .eq("id", clientIntegrationId)
+      .select(`
+        id,
+        client_id,
+        integration_id,
+        is_featured,
+        is_enabled,
+        sort_order,
+        created_at,
+        updated_at
+      `)
+      .single()
+
+    if (error) throw error
+
+    // Get the integration details separately
+    const { data: integration, error: integrationError } = await supabase
+      .from("integrations")
+      .select("*")
+      .eq("id", data.integration_id)
+      .single()
+
+    if (integrationError) throw integrationError
+
+    return {
+      id: data.id,
+      client_id: data.client_id,
+      integration_id: data.integration_id,
+      is_featured: data.is_featured,
+      is_enabled: data.is_enabled,
+      sort_order: data.sort_order,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      title: integration.title || "Unknown Integration",
+      description: integration.description || "",
+      category: integration.category || "General",
+      integration_type: integration.integration_type || "zapier",
+      external_url: integration.external_url || "",
+      documentation_url: integration.documentation_url || "",
+      integration: {
+        id: integration.id,
+        title: integration.title || "Unknown Integration",
+        description: integration.description || "",
+        category: integration.category || "General",
+        integration_type: integration.integration_type || "zapier",
+        external_url: integration.external_url || integration.url || "",
+        documentation_url: integration.documentation_url || "",
+        icon_url: integration.icon_url || "",
+        is_active: integration.is_active !== false,
+        created_at: integration.created_at || "",
+        updated_at: integration.updated_at || "",
+      },
+    }
+  } catch (error) {
+    console.error("Error updating client integration:", error)
+    throw error
+  }
+}
+
+export async function deleteClientIntegration(clientIntegrationId: string): Promise<void> {
+  return removeIntegrationFromClient(clientIntegrationId)
+}
+
+// Project tracking functions
+export async function getProjectTasks(clientId: string): Promise<ProjectTask[]> {
+  const { data, error } = await supabase
+    .from("project_tasks")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Error fetching project tasks:", error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function createProjectTask(
+  task: Omit<ProjectTask, "id" | "created_at" | "updated_at">,
+): Promise<ProjectTask> {
+  const { data, error } = await supabase.from("project_tasks").insert([task]).select().single()
+
+  if (error) {
+    console.error("Error creating project task:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function addProjectTask(
+  task: Omit<ProjectTask, "id" | "created_at" | "updated_at">,
+): Promise<ProjectTask> {
+  return createProjectTask(task)
+}
+
+export async function updateProjectTask(id: string, updates: Partial<ProjectTask>): Promise<ProjectTask> {
+  const { data, error } = await supabase
+    .from("project_tasks")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Error updating project task:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function deleteProjectTask(id: string): Promise<void> {
+  const { error } = await supabase.from("project_tasks").delete().eq("id", id)
+
+  if (error) {
+    console.error("Error deleting project task:", error)
+    throw error
+  }
+}
+
+// Dashboard stats
+export async function getDashboardStats() {
+  try {
+    const [clientsResult, integrationsResult, tasksResult] = await Promise.all([
+      supabase.from("clients").select("status"),
+      supabase.from("client_integrations").select("status"),
+      supabase.from("project_tasks").select("status"),
+    ])
+
+    const clients = clientsResult.data || []
+    const integrations = integrationsResult.data || []
+    const tasks = tasksResult.data || []
+
+    return {
+      totalClients: clients.length,
+      activeClients: clients.filter((c) => c.status === "active").length,
+      pendingClients: clients.filter((c) => c.status === "pending").length,
+      totalIntegrations: integrations.length,
+      completedIntegrations: integrations.filter((i) => i.status === "completed").length,
+      pendingIntegrations: integrations.filter((i) => i.status === "pending").length,
+      totalTasks: tasks.length,
+      completedTasks: tasks.filter((t) => t.status === "completed").length,
+      pendingTasks: tasks.filter((t) => t.status === "pending").length,
+    }
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error)
+    throw error
+  }
+}
+
+// Settings functions
+export async function getSettings(): Promise<PlatformSettings | null> {
+  try {
+    const { data, error } = await supabase.from("platform_settings").select("*").single()
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return null // No settings found
+      }
+      console.error("Error fetching settings:", error)
+      throw error
+    }
+
+    return data
+  } catch (error) {
+    console.error("Error in getSettings:", error)
+    return null
+  }
+}
+
+export async function getPlatformSettings(): Promise<PlatformSettings | null> {
+  return getSettings()
+}
+
+export async function updateSettings(settings: PlatformSettings): Promise<PlatformSettings> {
+  try {
+    const { data: existingData } = await supabase.from("platform_settings").select("id").single()
+
+    if (existingData) {
+      // Update existing settings
+      const { data, error } = await supabase
+        .from("platform_settings")
+        .update({ ...settings, updated_at: new Date().toISOString() })
+        .eq("id", existingData.id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error("Error updating settings:", error)
+        throw error
+      }
+
+      return data
+    } else {
+      // Create new settings
+      const { data, error } = await supabase.from("platform_settings").insert([settings]).select().single()
+
+      if (error) {
+        console.error("Error creating settings:", error)
+        throw error
+      }
+
+      return data
+    }
+  } catch (error) {
+    console.error("Error in updateSettings:", error)
+    throw error
+  }
+}
+
+export async function updatePlatformSettings(settings: Partial<PlatformSettings>): Promise<PlatformSettings> {
+  return updateSettings(settings as PlatformSettings)
+}
+
+export async function testEmailConnection(settings: PlatformSettings): Promise<boolean> {
+  try {
+    // This would typically test the SMTP connection
+    // For now, we'll simulate a test based on whether required fields are filled
+    return !!(settings.smtp_host && settings.smtp_username && settings.smtp_password)
+  } catch (error) {
+    console.error("Error testing email connection:", error)
+    return false
+  }
+}
+
+export async function testDatabaseConnection(): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.from("clients").select("count").limit(1)
+
+    return !error
+  } catch (error) {
+    console.error("Error testing database connection:", error)
+    return false
+  }
+}
+
+export async function createIntegration(
+  integrationData: Omit<Integration, "id" | "created_at" | "updated_at">,
+): Promise<Integration> {
+  try {
+    // Prepare data for insertion, ensuring both url and external_url are set
+    const insertData = {
+      ...integrationData,
+      url: integrationData.external_url, // Set both fields to the same value
+      external_url: integrationData.external_url,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+
+    const { data, error } = await supabase.from("integrations").insert([insertData]).select().single()
+
+    if (error) throw error
+
+    return {
+      id: data.id,
+      title: data.title || "Unknown Integration",
+      description: data.description || "",
+      category: data.category || "General",
+      integration_type: data.integration_type || "zapier",
+      external_url: data.external_url || data.url || "",
+      documentation_url: data.documentation_url || "",
+      icon_url: data.icon_url || "",
+      icon_name: data.icon_name || "",
+      tags: data.tags || [],
+      is_active: data.is_active !== false,
+      created_at: data.created_at || "",
+      updated_at: data.updated_at || "",
+    }
+  } catch (error) {
+    console.error("Error creating integration:", error)
+    throw error
+  }
+}
+
+export async function addIntegration(
+  integration: Omit<Integration, "id" | "created_at" | "updated_at">,
+): Promise<Integration> {
+  return createIntegration(integration)
+}
+
+export async function updateIntegration(id: string, updates: Partial<Integration>): Promise<Integration> {
+  try {
+    // Remove id from updates and ensure proper field mapping
+    const { id: _, ...updateData } = updates as any
+
+    // Ensure both url and external_url are updated
+    if (updateData.external_url) {
+      updateData.url = updateData.external_url
+    }
+
+    const { data, error } = await supabase
+      .from("integrations")
+      .update({
+        ...updateData,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return {
+      id: data.id,
+      title: data.title || "Unknown Integration",
+      description: data.description || "",
+      category: data.category || "General",
+      integration_type: data.integration_type || "zapier",
+      external_url: data.external_url || data.url || "",
+      documentation_url: data.documentation_url || "",
+      icon_url: data.icon_url || "",
+      icon_name: data.icon_name || "",
+      tags: data.tags || [],
+      is_active: data.is_active !== false,
+      created_at: data.created_at || "",
+      updated_at: data.updated_at || "",
+    }
+  } catch (error) {
+    console.error("Error updating integration:", error)
+    throw error
+  }
+}
+
+export async function deleteIntegration(id: string): Promise<void> {
+  try {
+    const { error } = await supabase.from("integrations").delete().eq("id", id)
+
+    if (error) throw error
+  } catch (error) {
+    console.error("Error deleting integration:", error)
+    throw error
+  }
+}
+
+export async function createClientIntegration(
+  clientId: string,
+  integrationId: string,
+  options: {
+    is_featured?: boolean
+    sort_order?: number
+    is_enabled?: boolean
+  } = {},
+): Promise<ClientIntegration> {
+  return addIntegrationToClient(clientId, integrationId, options)
+}
+
+// Features functions
+export async function getAllFeatures(): Promise<Feature[]> {
+  try {
+    const { data, error } = await supabase.from("features").select("*").order("category").order("title")
+
+    if (error) {
+      if (error.code === "42P01") {
+        return []
+      }
+      throw error
+    }
+
+    return data || []
+  } catch (error) {
+    console.error("Error fetching all features:", error)
+    return []
+  }
+}
+
+export async function getFeatureById(id: string): Promise<Feature | null> {
+  const { data, error } = await supabase.from("features").select("*").eq("id", id).single()
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null
+    }
+    console.error("Error fetching feature:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function createFeature(featureData: Omit<Feature, "id" | "created_at" | "updated_at">): Promise<Feature> {
+  try {
+    const insertData = {
+      ...featureData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+
+    const { data, error } = await supabase.from("features").insert([insertData]).select().single()
+
+    if (error) throw error
+
+    return data
+  } catch (error) {
+    console.error("Error creating feature:", error)
+    throw error
+  }
+}
+
+export async function addFeature(feature: Omit<Feature, "id" | "created_at" | "updated_at">): Promise<Feature> {
+  return createFeature(feature)
+}
+
+export async function updateFeature(id: string, updates: Partial<Feature>): Promise<Feature> {
+  try {
+    const { data, error } = await supabase
+      .from("features")
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return data
+  } catch (error) {
+    console.error("Error updating feature:", error)
+    throw error
+  }
+}
+
+export async function deleteFeature(id: string): Promise<void> {
+  try {
+    const { error } = await supabase.from("features").delete().eq("id", id)
+
+    if (error) throw error
+  } catch (error) {
+    console.error("Error deleting feature:", error)
+    throw error
+  }
+}
+
+// Client Features functions
+export async function getClientFeatures(clientId: string): Promise<ClientFeature[]> {
+  try {
+    const { data, error } = await supabase
+      .from("client_features")
+      .select(`
+        *,
+        feature:features(*)
+      `)
+      .eq("client_id", clientId)
+      .order("proposed_date", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching client features:", error)
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error("Error in getClientFeatures:", error)
+    return []
+  }
+}
+
+export async function proposeFeatureToClient(
+  clientId: string,
+  featureId: string,
+  salesPerson: string,
+  customNotes?: string,
+): Promise<ClientFeature> {
+  try {
+    const insertData = {
+      client_id: clientId,
+      feature_id: featureId,
+      status: "proposed",
+      sales_person: salesPerson,
+      custom_notes: customNotes,
+      proposed_date: new Date().toISOString(),
+    }
+
+    const { data, error } = await supabase.from("client_features").insert([insertData]).select().single()
+
+    if (error) throw error
+
+    return data
+  } catch (error) {
+    console.error("Error proposing feature to client:", error)
+    throw error
+  }
+}
+
+export async function updateClientFeature(
+  clientFeatureId: string,
+  updates: Partial<ClientFeature>,
+): Promise<ClientFeature> {
+  try {
+    const updateData = {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    }
+
+    // Set appropriate timestamps based on status
+    if (updates.status === "approved" && !updates.approved_date) {
+      updateData.approved_date = new Date().toISOString()
+    }
+    if (updates.status === "implementing" && !updates.implementation_date) {
+      updateData.implementation_date = new Date().toISOString()
+    }
+    if (updates.status === "completed" && !updates.completed_date) {
+      updateData.completed_date = new Date().toISOString()
+    }
+
+    const { data, error } = await supabase
+      .from("client_features")
+      .update(updateData)
+      .eq("id", clientFeatureId)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return data
+  } catch (error) {
+    console.error("Error updating client feature:", error)
+    throw error
+  }
+}
+
+export async function deleteClientFeature(id: string): Promise<void> {
+  const { error } = await supabase.from("client_features").delete().eq("id", id)
+
+  if (error) {
+    console.error("Error deleting client feature:", error)
+    throw error
+  }
+}
+
+export async function getClientFeaturesForPortal(clientId: string): Promise<ClientFeature[]> {
+  try {
+    const { data, error } = await supabase
+      .from("client_features")
+      .select(`
+        *,
+        feature:features(*)
+      `)
+      .eq("client_id", clientId)
+      .eq("is_enabled", true)
+      .not("status", "eq", "declined")
+      .order("sort_order", { ascending: true })
+
+    if (error) {
+      console.error("Error fetching client features for portal:", error)
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error("Error in getClientFeaturesForPortal:", error)
+    return []
+  }
+}
