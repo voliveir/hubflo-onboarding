@@ -30,6 +30,7 @@ import { ClientFeaturesSection } from "@/components/client-features-section"
 import { getClientBySlug, getClientIntegrations, getClientFeaturesForPortal } from "@/lib/database"
 import Image from "next/image"
 import type { ClientIntegration, ClientFeature } from "@/lib/types"
+import { IndustryWorkflows } from "@/components/industry-workflows"
 
 interface ClientPageProps {
   params: {
@@ -211,18 +212,6 @@ export default async function ClientPage({ params }: ClientPageProps) {
         </section>
       )}
 
-      {/* Implementation Progress Section - RESTORED */}
-      <section className="py-16 px-4 bg-white">
-        <div className="container mx-auto">
-          <div className="max-w-6xl mx-auto">
-            <ClientImplementationProgress client={client} />
-          </div>
-        </div>
-      </section>
-
-      {/* Onboarding Access Guide - NEW SECTION */}
-      <OnboardingAccessGuide clientName={clientName} />
-
       {/* Package-Specific Features */}
       <section className="py-16 px-4 bg-gray-50">
         <div className="container mx-auto">
@@ -347,6 +336,21 @@ export default async function ClientPage({ params }: ClientPageProps) {
           </div>
         </div>
       </section>
+
+      {/* Implementation Progress Section - RESTORED */}
+      <section className="py-16 px-4 bg-white">
+        <div className="container mx-auto">
+          <div className="max-w-6xl mx-auto">
+            <ClientImplementationProgress client={client} />
+          </div>
+        </div>
+      </section>
+
+      {/* Onboarding Access Guide - NEW SECTION */}
+      <OnboardingAccessGuide clientName={clientName} />
+
+      {/* Visual Workflows Section - move here before Next Steps */}
+      <IndustryWorkflows />
 
       {/* Next Steps */}
       <section className="py-16 px-4 bg-white">

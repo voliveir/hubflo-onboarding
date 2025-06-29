@@ -18,7 +18,7 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
       subtitle: "Look for your onboarding invitation",
       description:
         `You'll receive an email invitation from Hubflo with an "Activate my account" button. This invitation gives you access to your sample client portal, located at hubflo-onboarding.hubflo.com — a guided example of what your own clients will experience. We use this portal to walk you through essential onboarding tasks and give you a hands-on feel for the Hubflo client experience.`,
-      note: "❗ Note: This is not your admin portal. Your actual Hubflo admin login is at app.hubflo.com — you'll use that to manage your account and real client workspaces.",
+      note: "Note: This is not your admin portal. Your actual Hubflo admin login is at app.hubflo.com — you'll use that to manage your account and real client workspaces.",
       icon: <Mail className="h-6 w-6 text-[#010124]" />,
       screenshot: "/email-invitation-screenshot.png",
       tips: [
@@ -35,7 +35,7 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
       subtitle: "Access your sample client experience",
       description:
         `After clicking the activation link from your invitation email, you'll be taken to the onboarding example client portal at hubflo-onboarding.hubflo.com. Use your email and create a password — this login will let you access your assigned onboarding tasks and preview how clients will experience their portal.`,
-      note: "🔒 This portal is only used for onboarding and training purposes. To access your actual Hubflo admin account, go to app.hubflo.com.",
+      note: "This portal is only used for onboarding and training purposes. To access your actual Hubflo admin account, go to app.hubflo.com.",
       icon: <LogIn className="h-6 w-6 text-[#010124]" />,
       screenshot: "/login-screen-screenshot.png",
       tips: [
@@ -52,7 +52,7 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
       subtitle: "Work through your personalized onboarding checklist",
       description:
         `Once logged into your onboarding client portal, you'll find a curated set of tasks, resources, and helpful tools designed to guide your Hubflo setup. These tasks not only show you how Hubflo portals work from a client's perspective — they also help us gather key info and tailor the platform to your needs.`,
-      note: "📝 This portal is both a training ground and a setup checklist — everything you complete here helps move your implementation forward.",
+      note: "This portal is both a training ground and a setup checklist — everything you complete here helps move your implementation forward.",
       icon: <Layout className="h-6 w-6 text-[#010124]" />,
       screenshot: "/portal-overview-screenshot.png",
       tips: [
@@ -60,8 +60,8 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
         "Each task includes resources, videos, or tutorials to walk you through it",
         "Your progress is automatically saved as you go"
       ],
-      ctaText: "Need support as you work through tasks?",
-      ctaAction: <a href="https://calendly.com/vanessa-hubflo/30min" target="_blank" rel="noopener noreferrer">Schedule Success Call</a>,
+      ctaText: "Need help?",
+      ctaAction: <a href="https://calendly.com/vanessa-hubflo/30min" target="_blank" rel="noopener noreferrer">Contact Success</a>,
     },
   ]
 
@@ -100,29 +100,30 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
         </div>
 
         {/* Detailed Steps */}
-        <div className="max-w-6xl mx-auto space-y-12">
-          {steps.map((step, index) => (
-            <Card key={step.id} className="border-2 border-[#ECB22D] overflow-hidden">
-              <CardHeader className="bg-[#010124] text-white">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-[#ECB22D] rounded-full flex items-center justify-center">
-                    {step.icon}
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-3 mb-2">
-                      <Badge variant="secondary" className="bg-[#ECB22D] text-[#010124]">
-                        Step {step.id}
-                      </Badge>
-                      <CardTitle className="text-xl">{step.title}</CardTitle>
+        <div className="max-w-6xl mx-auto w-full pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {steps.map((step, index) => (
+              <Card
+                key={step.id}
+                className="border-2 border-[#ECB22D] flex flex-col h-full min-h-[700px]"
+              >
+                {/* Top Bar */}
+                <div className="bg-[#010124] text-white flex items-center px-6 py-4 rounded-t-md" style={{minHeight: 80}}>
+                  <div className="flex items-center space-x-4 w-full">
+                    <div className="w-10 h-10 bg-[#ECB22D] rounded-full flex items-center justify-center text-[#010124] font-bold text-2xl">
+                      {step.id}
                     </div>
-                    <p className="text-gray-300">{step.subtitle}</p>
+                    <div className="flex-1">
+                      <div className="flex items-center mb-1">
+                        <CardTitle className="text-xl text-white font-bold mb-0">{step.title}</CardTitle>
+                      </div>
+                      <p className="text-gray-300 text-sm mb-0">{step.subtitle}</p>
+                    </div>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className={`grid ${index % 2 === 0 ? "lg:grid-cols-2" : "lg:grid-cols-2"} gap-0`}>
-                  {/* Content Side */}
-                  <div className={`p-8 ${index % 2 === 1 ? "lg:order-2" : ""}`}>
+                {/* Card Content */}
+                <div className="flex flex-col flex-1 justify-between p-8 bg-white">
+                  <div>
                     <p className="text-gray-700 text-lg mb-6 leading-relaxed">{step.description}</p>
                     {step.note && (
                       <div className="mt-6 mb-4 p-4 bg-white border-l-4 border-[#ECB22D] shadow-sm flex items-start gap-3 rounded">
@@ -133,7 +134,6 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
                         </span>
                       </div>
                     )}
-
                     {/* Tips Section */}
                     <div className="bg-yellow-50 rounded-lg p-6 mb-6 border border-[#ECB22D]">
                       <div className="flex items-center mb-3">
@@ -149,96 +149,61 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
                         ))}
                       </ul>
                     </div>
-
-                    {/* Call to Action */}
-                    <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4 border">
-                      <span className="text-sm font-medium text-[#010124]">{step.ctaText}</span>
-                      <Button size="sm" className="bg-[#010124] hover:bg-[#020135] text-white" asChild>
-                        {step.id === 1 ? (
-                          <a href="https://calendly.com/vanessa-hubflo/30min" target="_blank" rel="noopener noreferrer">
-                            {step.ctaAction}
-                          </a>
-                        ) : step.id === 2 ? (
-                          <a href="https://hubflo-onboarding.hubflo.com" target="_blank" rel="noopener noreferrer">
-                            {step.ctaAction}
-                          </a>
-                        ) : (
-                          <a
-                            href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {step.ctaAction}
-                          </a>
-                        )}
-                      </Button>
-                    </div>
                   </div>
-
-                  {/* Screenshot Side */}
-                  <div
-                    className={`bg-gray-100 p-8 flex items-center justify-center ${index % 2 === 1 ? "lg:order-1" : ""}`}
-                  >
-                    <div className="w-full max-w-md">
-                      <div className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-[#ECB22D]">
-                        <div className="bg-[#ECB22D] px-4 py-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          </div>
-                        </div>
-                        <div className="aspect-[4/3] relative">
-                          <Image
-                            src={step.screenshot || "/placeholder.svg"}
-                            alt={`Screenshot of ${step.title}`}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      </div>
-                      <p className="text-center text-sm text-gray-600 mt-3">
-                        {step.id === 1 && "Example invitation email"}
-                        {step.id === 2 && "Hubflo client portal login screen"}
-                        {step.id === 3 && "Your personalized onboarding portal"}
-                      </p>
-                    </div>
+                  {/* CTA Button */}
+                  <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4 border mt-4">
+                    <span className="text-sm font-medium text-[#010124]">{step.ctaText}</span>
+                    <Button size="sm" className="bg-[#010124] hover:bg-[#020135] text-white" asChild>
+                      {step.id === 1 ? (
+                        <a href="https://calendly.com/vanessa-hubflo/30min" target="_blank" rel="noopener noreferrer">
+                          {step.ctaAction}
+                        </a>
+                      ) : step.id === 2 ? (
+                        <a href="https://hubflo-onboarding.hubflo.com" target="_blank" rel="noopener noreferrer">
+                          {step.ctaAction}
+                        </a>
+                      ) : (
+                        <a
+                          href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {step.ctaAction}
+                        </a>
+                      )}
+                    </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Final Call to Action */}
-        <div className="max-w-4xl mx-auto mt-16">
-          <Card className="bg-gradient-to-r from-[#010124] to-[#020135] text-white border-[#ECB22D] border-2">
-            <CardContent className="py-12 text-center">
-              <h3 className="text-2xl font-bold mb-4">Ready to Get Started, {clientName}?</h3>
-              <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-                Your personalized onboarding experience is waiting for you. Access your admin portal now and begin your
-                journey with Hubflo.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-[#ECB22D] hover:bg-[#d4a029] text-[#010124] font-semibold px-8" asChild>
-                  <a href="https://app.hubflo.com" target="_blank" rel="noopener noreferrer">
-                    Access Your Admin Portal
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </a>
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-[#ECB22D] text-[#ECB22D] hover:bg-[#ECB22D] hover:text-[#010124] px-8 bg-transparent"
-                  asChild
-                >
-                  <a href="https://calendly.com/vanessa-hubflo/30min" target="_blank" rel="noopener noreferrer">
-                    Need Help? Contact Success
-                  </a>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                {/* Screenshot Side - always at the bottom */}
+                <div className="bg-gray-100 p-8 flex items-center justify-center rounded-b-md border-t border-[#ECB22D]">
+                  <div className="w-full max-w-md">
+                    <div className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-[#ECB22D]">
+                      <div className="bg-[#ECB22D] px-4 py-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        </div>
+                      </div>
+                      <div className="aspect-[4/3] relative">
+                        <Image
+                          src={step.screenshot || "/placeholder.svg"}
+                          alt={`Screenshot of ${step.title}`}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-center text-sm text-gray-600 mt-3">
+                      {step.id === 1 && "Example invitation email"}
+                      {step.id === 2 && "Hubflo client portal login screen"}
+                      {step.id === 3 && "Your personalized onboarding portal"}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     </section>
