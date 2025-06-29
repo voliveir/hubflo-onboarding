@@ -20,6 +20,9 @@ import {
   Star,
   CheckCircle,
   TrendingUp,
+  Mail,
+  Layout,
+  Calendar,
 } from "lucide-react"
 import { OnboardingAccessGuide } from "@/components/onboarding-access-guide"
 import { ClientIntegrationsSection } from "@/components/client-integrations-section"
@@ -355,21 +358,23 @@ export default async function ClientPage({ params }: ClientPageProps) {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div
+            className={`grid gap-6 max-w-6xl mx-auto ${successPackage.toLowerCase() === "light" ? "md:grid-cols-2 justify-center" : "md:grid-cols-3"}`}
+          >
             {/* Card 1: Access Workspace */}
             <Card className="hover:shadow-lg transition-shadow flex flex-col h-full border-[#ECB22D] border">
               <CardHeader className="flex-shrink-0">
-                <div className="flex items-center space-x-3 mb-2">
-                  <div className="w-8 h-8 bg-[#ECB22D] rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-[#010124] font-bold">1</span>
+                <div className="flex flex-col items-center mb-2">
+                  <div className="w-10 h-10 bg-[#ECB22D] rounded-full flex items-center justify-center mb-2">
+                    <Mail className="h-6 w-6 text-[#010124]" />
                   </div>
-                  <CardTitle className="text-lg leading-tight text-[#010124]">
+                  <CardTitle className="text-lg leading-tight text-[#010124] text-center">
                     Access your Hubflo Admin Workspace
                   </CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="flex flex-col flex-grow">
-                <p className="text-gray-600 mb-6 flex-grow">
+              <CardContent className="flex flex-col flex-1">
+                <p className="text-gray-600 mb-6 flex-grow text-center">
                   Log into your Hubflo Admin Workspace and start exploring!
                 </p>
                 <Button className="w-full bg-[#010124] hover:bg-[#020135] text-white mt-auto" asChild>
@@ -383,17 +388,18 @@ export default async function ClientPage({ params }: ClientPageProps) {
             {/* Card 2: Complete Setup */}
             <Card className="hover:shadow-lg transition-shadow flex flex-col h-full border-[#ECB22D] border">
               <CardHeader className="flex-shrink-0">
-                <div className="flex items-center space-x-3 mb-2">
-                  <div className="w-8 h-8 bg-[#ECB22D] rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-[#010124] font-bold">2</span>
+                <div className="flex flex-col items-center mb-2">
+                  <div className="w-10 h-10 bg-[#ECB22D] rounded-full flex items-center justify-center mb-2">
+                    <Layout className="h-6 w-6 text-[#010124]" />
                   </div>
-                  <CardTitle className="text-lg leading-tight text-[#010124]">Complete Onboarding Checklist</CardTitle>
+                  <CardTitle className="text-lg leading-tight text-[#010124] text-center">
+                    Complete Onboarding Checklist
+                  </CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="flex flex-col flex-grow">
-                <p className="text-gray-600 mb-6 flex-grow">
-                  Work through the essential setup tasks to get your Hubflo workspace ready for your business needs
-                  (either here or in the example client portal!).
+              <CardContent className="flex flex-col flex-1">
+                <p className="text-gray-600 mb-6 flex-grow text-center">
+                  Work through the essential setup tasks to get your Hubflo workspace ready for your business needs!
                 </p>
                 <Button className="w-full bg-[#ECB22D] hover:bg-[#d4a029] text-[#010124] font-semibold mt-auto" asChild>
                   <a href="https://hubflo-onboarding.hubflo.com/" target="_blank" rel="noopener noreferrer">
@@ -403,35 +409,37 @@ export default async function ClientPage({ params }: ClientPageProps) {
               </CardContent>
             </Card>
 
-            {/* Card 3: Schedule Call */}
-            <Card className="hover:shadow-lg transition-shadow flex flex-col h-full border-[#ECB22D] border">
-              <CardHeader className="flex-shrink-0">
-                <div className="flex items-center space-x-3 mb-2">
-                  <div className="w-8 h-8 bg-[#ECB22D] rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-[#010124] font-bold">3</span>
+            {/* Card 3: Schedule Call - only show if not light package */}
+            {successPackage.toLowerCase() !== "light" && (
+              <Card className="hover:shadow-lg transition-shadow flex flex-col h-full border-[#ECB22D] border">
+                <CardHeader className="flex-shrink-0">
+                  <div className="flex flex-col items-center mb-2">
+                    <div className="w-10 h-10 bg-[#ECB22D] rounded-full flex items-center justify-center mb-2">
+                      <Calendar className="h-6 w-6 text-[#010124]" />
+                    </div>
+                    <CardTitle className="text-lg leading-tight text-[#010124] text-center">
+                      Schedule Your Next Onboarding Call
+                    </CardTitle>
                   </div>
-                  <CardTitle className="text-lg leading-tight text-[#010124]">
-                    Schedule Your Next Onboarding Call
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col flex-grow">
-                <p className="text-gray-600 mb-6 flex-grow">
-                  Book your next onboarding call once you've completed your tasks and are ready to proceed to
-                  automations and integrations (as well as any questions lingering from your initial play around in
-                  Hubflo!)
-                </p>
-                <Button className="w-full bg-[#010124] hover:bg-[#020135] text-white mt-auto" asChild>
-                  <a
-                    href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Schedule Call
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="flex flex-col flex-1">
+                  <p className="text-gray-600 mb-6 flex-grow text-center">
+                    Book your next onboarding call once you've completed your tasks and are ready to proceed to
+                    automations and integrations (as well as any questions lingering from your initial play around in
+                    Hubflo!)
+                  </p>
+                  <Button className="w-full bg-[#010124] hover:bg-[#020135] text-white mt-auto" asChild>
+                    <a
+                      href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Schedule Call
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </section>
@@ -443,6 +451,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
           clientName={clientName}
           integrations={integrationsError ? undefined : integrations}
           showDefault={true}
+          successPackage={successPackage}
         />
       )}
 
@@ -472,55 +481,53 @@ export default async function ClientPage({ params }: ClientPageProps) {
               </div>
 
               {customApp === "Gray Label" && (
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="grid md:grid-cols-2 gap-8 items-stretch">
                   {/* Apple App Store */}
-                  <Card className="text-center border-[#ECB22D] border hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Smartphone className="h-8 w-8 text-[#010124]" />
+                  <Card className="flex flex-col h-full min-h-[400px] text-center border-[#ECB22D] border hover:shadow-lg transition-shadow">
+                    <CardContent className="flex flex-col flex-1 justify-between p-6">
+                      <div>
+                        <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Smartphone className="h-8 w-8 text-[#010124]" />
+                        </div>
+                        <div className="text-xl text-[#010124] font-bold mb-1">iOS App Store</div>
+                        <div className="text-gray-600 mb-2">Download for iPhone and iPad</div>
+                        <div className="text-sm text-gray-600 mb-6">
+                          Your Gray Label Hubflo app is available on the Apple App Store. Please share this link with your clients to give them mobile access to their projects.
+                        </div>
                       </div>
-                      <CardTitle className="text-xl text-[#010124]">iOS App Store</CardTitle>
-                      <CardDescription>Download for iPhone and iPad</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-sm text-gray-600">
-                        Your Gray Label Hubflo app is available on the Apple App Store. Please share this link with your
-                        clients to give them mobile access to their projects.
-                      </p>
-                      <Button
-                        className="w-full bg-[#ECB22D] hover:bg-[#d4a029] text-[#010124] font-semibold mt-auto"
-                        asChild
-                      >
-                        <a
-                          href="https://apps.apple.com/us/app/client-portal-by-hubflo/id6740039450"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <ExternalLink className="mr-2 h-4 w-4" />
-                          View on App Store
-                        </a>
-                      </Button>
+                      <div>
+                        <Button className="w-full bg-[#ECB22D] hover:bg-[#d4a029] text-[#010124] font-semibold" asChild>
+                          <a
+                            href="https://apps.apple.com/us/app/client-portal-by-hubflo/id6740039450"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            View on App Store
+                          </a>
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
-
                   {/* Google Play Store */}
-                  <Card className="text-center border-[#ECB22D] border hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Smartphone className="h-8 w-8 text-gray-500" />
+                  <Card className="flex flex-col h-full min-h-[400px] text-center border-[#ECB22D] border hover:shadow-lg transition-shadow">
+                    <CardContent className="flex flex-col flex-1 justify-between p-6">
+                      <div>
+                        <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Smartphone className="h-8 w-8 text-gray-500" />
+                        </div>
+                        <div className="text-xl text-gray-600 font-bold mb-1">Google Play Store</div>
+                        <div className="text-gray-500 mb-2">Android app coming soon</div>
+                        <div className="text-sm text-gray-600 mb-6">
+                          The Android version of your branded Hubflo app is currently in development and will be available soon.
+                        </div>
                       </div>
-                      <CardTitle className="text-xl text-gray-600">Google Play Store</CardTitle>
-                      <CardDescription>Android app coming soon</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-sm text-gray-600">
-                        The Android version of your branded Hubflo app is currently in development and will be available
-                        soon.
-                      </p>
-                      <Button className="w-full bg-gray-300 text-gray-500 cursor-not-allowed" disabled>
-                        <Clock className="mr-2 h-4 w-4" />
-                        Coming Soon
-                      </Button>
+                      <div>
+                        <Button className="w-full bg-gray-300 text-gray-500 cursor-not-allowed" disabled>
+                          <Clock className="mr-2 h-4 w-4" />
+                          Coming Soon
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
@@ -600,134 +607,102 @@ export default async function ClientPage({ params }: ClientPageProps) {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-8 items-stretch">
               {/* Mobile App */}
-              <Card className="border-[#ECB22D] border hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center">
-                  <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Smartphone className="h-8 w-8 text-[#010124]" />
-                  </div>
-                  <CardTitle className="text-xl text-[#010124]">Hubflo Mobile App</CardTitle>
-                  <CardDescription>
-                    Stay connected with your clients, tasks, and files—anytime, anywhere.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-4">With the mobile app, you can:</p>
-                    <ul className="text-sm text-gray-600 space-y-2 text-left">
-                      <li className="flex items-start">
-                        <span className="text-[#ECB22D] mr-2">•</span>
-                        View and manage client workspaces
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-[#ECB22D] mr-2">•</span>
-                        Create contacts and tasks on the go
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-[#ECB22D] mr-2">•</span>
-                        Record expenses with receipt photos
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-[#ECB22D] mr-2">•</span>
-                        Track invoice statuses
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-[#ECB22D] mr-2">•</span>
-                        Take meeting notes or upload files quickly
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="text-center bg-white rounded-lg p-4 border">
-                    <p className="text-sm text-gray-600 mb-3">
-                      Scan this QR code to download the app directly to your phone:
-                    </p>
-                    <div className="flex justify-center">
-                      <Image
-                        src="/hubflo-mobile-qr.png"
-                        alt="QR Code to download Hubflo Mobile App"
-                        width={120}
-                        height={120}
-                        className="border rounded-lg"
-                      />
+              <Card className="flex flex-col h-full min-h-[400px] border-[#ECB22D] border hover:shadow-lg transition-shadow text-center">
+                <CardContent className="flex flex-col flex-1 justify-between p-6">
+                  <div>
+                    <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Smartphone className="h-8 w-8 text-[#010124]" />
+                    </div>
+                    <div className="text-xl text-[#010124] font-bold mb-1">Hubflo Mobile App</div>
+                    <div className="text-gray-600 mb-2">Stay connected with your clients, tasks, and files—anytime, anywhere.</div>
+                    <div className="text-sm text-gray-600 mb-6">
+                      <div className="mb-2">With the mobile app, you can:</div>
+                      <ul className="text-left ml-4">
+                        <li className="mb-1">• View and manage client workspaces</li>
+                        <li className="mb-1">• Create contacts and tasks on the go</li>
+                        <li className="mb-1">• Record expenses with receipt photos</li>
+                        <li className="mb-1">• Track invoice statuses</li>
+                        <li className="mb-1">• Take meeting notes or upload files quickly</li>
+                      </ul>
+                      <div className="text-center bg-white rounded-lg p-4 border mt-4">
+                        <p className="text-sm text-gray-600 mb-3">
+                          Scan this QR code to download the app directly to your phone:
+                        </p>
+                        <div className="flex justify-center">
+                          <Image
+                            src="/hubflo-mobile-qr.png"
+                            alt="QR Code to download Hubflo Mobile App"
+                            width={120}
+                            height={120}
+                            className="border rounded-lg"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
+                  <div></div> {/* No button for mobile app */}
                 </CardContent>
               </Card>
-
               {/* Desktop App */}
-              <Card className="border-[#ECB22D] border hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center">
-                  <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Monitor className="h-8 w-8 text-[#010124]" />
+              <Card className="flex flex-col h-full min-h-[400px] border-[#ECB22D] border hover:shadow-lg transition-shadow text-center">
+                <CardContent className="flex flex-col flex-1 justify-between p-6">
+                  <div>
+                    <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Monitor className="h-8 w-8 text-[#010124]" />
+                    </div>
+                    <div className="text-xl text-[#010124] font-bold mb-1">Hubflo Desktop App</div>
+                    <div className="text-gray-600 mb-2">Too many tabs open? Can't find Hubflo when you need it?</div>
+                    <div className="text-sm text-gray-600 mb-6">
+                      <div className="mb-2">Download the Hubflo Desktop App to:</div>
+                      <ul className="text-left ml-4">
+                        <li className="mb-1">• Keep Hubflo in its own dedicated window</li>
+                        <li className="mb-1">• Use all the same features as the web app—without browser clutter</li>
+                        <li className="mb-1">• Stay organized while managing multiple projects and clients</li>
+                      </ul>
+                    </div>
                   </div>
-                  <CardTitle className="text-xl text-[#010124]">Hubflo Desktop App</CardTitle>
-                  <CardDescription>{"Too many tabs open? Can't find Hubflo when you need it?"}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-4">Download the Hubflo Desktop App to:</p>
-                    <ul className="text-sm text-gray-600 space-y-2 text-left">
-                      <li className="flex items-start">
-                        <span className="text-[#ECB22D] mr-2">•</span>
-                        Keep Hubflo in its own dedicated window
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-[#ECB22D] mr-2">•</span>
-                        Use all the same features as the web app—without browser clutter
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-[#ECB22D] mr-2">•</span>
-                        Stay organized while managing multiple projects and clients
-                      </li>
-                    </ul>
+                  <div>
+                    <Button className="w-full bg-[#010124] hover:bg-[#020135] text-white" asChild>
+                      <a href="https://dl.todesktop.com/230531188e234vd" target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Download Desktop App
+                      </a>
+                    </Button>
                   </div>
-                  <Button className="w-full bg-[#010124] hover:bg-[#020135] text-white" asChild>
-                    <a href="https://dl.todesktop.com/230531188e234vd" target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      Download Desktop App
-                    </a>
-                  </Button>
                 </CardContent>
               </Card>
-
               {/* Chrome Extension */}
-              <Card className="border-[#ECB22D] border hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center">
-                  <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Chrome className="h-8 w-8 text-[#010124]" />
+              <Card className="flex flex-col h-full min-h-[400px] border-[#ECB22D] border hover:shadow-lg transition-shadow text-center">
+                <CardContent className="flex flex-col flex-1 justify-between p-6">
+                  <div>
+                    <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Chrome className="h-8 w-8 text-[#010124]" />
+                    </div>
+                    <div className="text-xl text-[#010124] font-bold mb-1">Hubflo Chrome Extension</div>
+                    <div className="text-gray-600 mb-2">Create contacts and capture information from anywhere on the web.</div>
+                    <div className="text-sm text-gray-600 mb-6">
+                      <div className="mb-2">With the Chrome extension, you can:</div>
+                      <ul className="text-left ml-4">
+                        <li className="mb-1">• Create contacts from LinkedIn, Gmail, or Outlook</li>
+                        <li className="mb-1">• Quickly add contacts with a right-click on any email address</li>
+                        <li className="mb-1">• Instantly pull people into your Hubflo workspace from across the web</li>
+                      </ul>
+                    </div>
                   </div>
-                  <CardTitle className="text-xl text-[#010124]">Hubflo Chrome Extension</CardTitle>
-                  <CardDescription>Create contacts and capture information from anywhere on the web.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-4">With the Chrome extension, you can:</p>
-                    <ul className="text-sm text-gray-600 space-y-2 text-left">
-                      <li className="flex items-start">
-                        <span className="text-[#ECB22D] mr-2">•</span>
-                        Create contacts from LinkedIn, Gmail, or Outlook
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-[#ECB22D] mr-2">•</span>
-                        Quickly add contacts with a right-click on any email address
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-[#ECB22D] mr-2">•</span>
-                        Instantly pull people into your Hubflo workspace from across the web
-                      </li>
-                    </ul>
+                  <div>
+                    <Button className="w-full bg-[#010124] hover:bg-[#020135] text-white" asChild>
+                      <a
+                        href="https://chrome.google.com/webstore/detail/hubflo-clipper/miionnbpcoinccnhekjjjloiknalhhfh/related?hl=fr"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Add to Chrome
+                      </a>
+                    </Button>
                   </div>
-                  <Button className="w-full bg-[#010124] hover:bg-[#020135] text-white" asChild>
-                    <a
-                      href="https://chrome.google.com/webstore/detail/hubflo-clipper/miionnbpcoinccnhekjjjloiknalhhfh/related?hl=fr"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      Add to Chrome
-                    </a>
-                  </Button>
                 </CardContent>
               </Card>
             </div>

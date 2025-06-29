@@ -15,50 +15,53 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
     {
       id: 1,
       title: "Check Your Email",
-      subtitle: "Look for your invitation email",
+      subtitle: "Look for your onboarding invitation",
       description:
-        "You'll receive an email invitation from Hubflo with an 'Activate my account' button. This email contains your secure access link to the client portal.",
+        `You'll receive an email invitation from Hubflo with an "Activate my account" button. This invitation gives you access to your sample client portal, located at hubflo-onboarding.hubflo.com — a guided example of what your own clients will experience. We use this portal to walk you through essential onboarding tasks and give you a hands-on feel for the Hubflo client experience.`,
+      note: "❗ Note: This is not your admin portal. Your actual Hubflo admin login is at app.hubflo.com — you'll use that to manage your account and real client workspaces.",
       icon: <Mail className="h-6 w-6 text-[#010124]" />,
       screenshot: "/email-invitation-screenshot.png",
       tips: [
-        "Check your spam/junk folder if you don't see the email",
-        "The email will come from a Hubflo team member",
-        "Click the 'Activate my account' button to get started",
+        "Check your spam/junk folder if you don't see the invitation.",
+        "The email will come from hello@hubflo.com.",
+        "Click 'Activate my account' to access your onboarding tasks."
       ],
-      ctaText: "Expecting an email?",
-      ctaAction: "Contact Support",
+      ctaText: "Need help?",
+      ctaAction: <a href="https://calendly.com/vanessa-hubflo/30min" target="_blank" rel="noopener noreferrer">Contact Success</a>,
     },
     {
       id: 2,
-      title: "Login to Your Portal",
-      subtitle: "Access your secure client portal",
+      title: "Log In to Your Onboarding Client Portal",
+      subtitle: "Access your sample client experience",
       description:
-        "After clicking the activation link, you'll be taken to the Hubflo client portal login screen. Enter your email and the password you created during activation.",
+        `After clicking the activation link from your invitation email, you'll be taken to the onboarding example client portal at hubflo-onboarding.hubflo.com. Use your email and create a password — this login will let you access your assigned onboarding tasks and preview how clients will experience their portal.`,
+      note: "🔒 This portal is only used for onboarding and training purposes. To access your actual Hubflo admin account, go to app.hubflo.com.",
       icon: <LogIn className="h-6 w-6 text-[#010124]" />,
       screenshot: "/login-screen-screenshot.png",
       tips: [
-        "Use the same email address from your invitation",
-        "Your password was set when you first activated your account",
-        "Use 'Forgot your password?' if you need to reset it",
+        "Use the same email address you received the invitation on.",
+        "You'll create your password during activation and use it for future logins.",
+        "If needed, use 'Forgot your password?' to reset access."
       ],
-      ctaText: "Ready to login?",
-      ctaAction: "Access Portal",
+      ctaText: "Ready to log in?",
+      ctaAction: <a href="https://hubflo-onboarding.hubflo.com" target="_blank" rel="noopener noreferrer">Access Portal</a>,
     },
     {
       id: 3,
       title: "Complete Your Tasks",
-      subtitle: "Work through your onboarding checklist",
+      subtitle: "Work through your personalized onboarding checklist",
       description:
-        "Once logged in, you'll see your personalized onboarding portal with tasks, resources, and everything you need to get started with Hubflo.",
+        `Once logged into your onboarding client portal, you'll find a curated set of tasks, resources, and helpful tools designed to guide your Hubflo setup. These tasks not only show you how Hubflo portals work from a client's perspective — they also help us gather key info and tailor the platform to your needs.`,
+      note: "📝 This portal is both a training ground and a setup checklist — everything you complete here helps move your implementation forward.",
       icon: <Layout className="h-6 w-6 text-[#010124]" />,
       screenshot: "/portal-overview-screenshot.png",
       tips: [
-        "Tasks are organized by priority and section",
-        "Each task includes helpful resources and tutorials",
-        "Your progress is automatically saved as you work",
+        "Tasks are grouped by priority and section to keep you focused",
+        "Each task includes resources, videos, or tutorials to walk you through it",
+        "Your progress is automatically saved as you go"
       ],
-      ctaText: "Need help with tasks?",
-      ctaAction: "Schedule Support Call",
+      ctaText: "Need support as you work through tasks?",
+      ctaAction: <a href="https://calendly.com/vanessa-hubflo/30min" target="_blank" rel="noopener noreferrer">Schedule Success Call</a>,
     },
   ]
 
@@ -121,6 +124,15 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
                   {/* Content Side */}
                   <div className={`p-8 ${index % 2 === 1 ? "lg:order-2" : ""}`}>
                     <p className="text-gray-700 text-lg mb-6 leading-relaxed">{step.description}</p>
+                    {step.note && (
+                      <div className="mt-6 mb-4 p-4 bg-white border-l-4 border-[#ECB22D] shadow-sm flex items-start gap-3 rounded">
+                        <span className="text-[#ECB22D] text-xl font-bold" style={{lineHeight: 1}}>❗</span>
+                        <span>
+                          <span className="font-semibold text-[#010124]">Note:</span>{" "}
+                          <span className="text-[#444]">{step.note.replace(/^.*Note:\s?/, '')}</span>
+                        </span>
+                      </div>
+                    )}
 
                     {/* Tips Section */}
                     <div className="bg-yellow-50 rounded-lg p-6 mb-6 border border-[#ECB22D]">
@@ -147,7 +159,7 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
                             {step.ctaAction}
                           </a>
                         ) : step.id === 2 ? (
-                          <a href="https://app.hubflo.com" target="_blank" rel="noopener noreferrer">
+                          <a href="https://hubflo-onboarding.hubflo.com" target="_blank" rel="noopener noreferrer">
                             {step.ctaAction}
                           </a>
                         ) : (
@@ -204,13 +216,13 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
             <CardContent className="py-12 text-center">
               <h3 className="text-2xl font-bold mb-4">Ready to Get Started, {clientName}?</h3>
               <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-                Your personalized onboarding experience is waiting for you. Access your portal now and begin your
+                Your personalized onboarding experience is waiting for you. Access your admin portal now and begin your
                 journey with Hubflo.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" className="bg-[#ECB22D] hover:bg-[#d4a029] text-[#010124] font-semibold px-8" asChild>
                   <a href="https://app.hubflo.com" target="_blank" rel="noopener noreferrer">
-                    Access Your Portal
+                    Access Your Admin Portal
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </a>
                 </Button>
@@ -221,7 +233,7 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
                   asChild
                 >
                   <a href="https://calendly.com/vanessa-hubflo/30min" target="_blank" rel="noopener noreferrer">
-                    Need Help? Contact Support
+                    Need Help? Contact Success
                   </a>
                 </Button>
               </div>

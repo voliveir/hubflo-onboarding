@@ -23,6 +23,7 @@ interface ClientIntegrationsSectionProps {
   clientName: string
   integrations?: Integration[]
   showDefault?: boolean
+  successPackage?: string
 }
 
 export function ClientIntegrationsSection({
@@ -30,6 +31,7 @@ export function ClientIntegrationsSection({
   clientName,
   integrations: providedIntegrations,
   showDefault = false,
+  successPackage = "premium",
 }: ClientIntegrationsSectionProps) {
   const [integrations, setIntegrations] = useState<Integration[]>([])
   const [loading, setLoading] = useState(true)
@@ -303,26 +305,40 @@ export function ClientIntegrationsSection({
           )}
 
           {/* Help Section */}
-          <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
-            <CardContent className="p-8 text-center">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Need Help Setting These Up?</h3>
-              <p className="text-gray-600 mb-6">
-                Our implementation team can help configure these integrations during your onboarding calls.
-              </p>
-              <p className="text-sm text-gray-500 mb-6">
-                <strong>Note:</strong> Advanced integration setup is included with Premium, Gold, and Elite packages.
-              </p>
-              <Button className="bg-[#010124] hover:bg-[#020135] text-white" asChild>
-                <a
-                  href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Schedule Integration Call
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
+          {successPackage.toLowerCase() === "light" ? (
+            <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
+              <CardContent className="p-8 text-center">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Need More Help?</h3>
+                <p className="text-gray-600 mb-6">
+                  If you need hands-on help setting up integrations, you'll need to upgrade your success package to <strong>Premium</strong>, <strong>Gold</strong>, or <strong>Elite</strong>.
+                </p>
+                <p className="text-sm text-gray-500 mb-6">
+                  <strong>Contact support</strong> to discuss upgrading and unlocking advanced onboarding support.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
+              <CardContent className="p-8 text-center">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Need Help Setting These Up?</h3>
+                <p className="text-gray-600 mb-6">
+                  Our implementation team can help configure these integrations during your onboarding calls.
+                </p>
+                <p className="text-sm text-gray-500 mb-6">
+                  <strong>Note:</strong> Advanced integration setup is included with Premium, Gold, and Elite packages.
+                </p>
+                <Button className="bg-[#010124] hover:bg-[#020135] text-white" asChild>
+                  <a
+                    href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Schedule Integration Call
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </section>
