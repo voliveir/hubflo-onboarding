@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState, useRef } from "react"
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -24,19 +24,37 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, FileText, Calendar, ClipboardList, Users, FileSignature, UploadCloud, Zap, ListChecks, Bell, UserCheck, GitBranch, Flag, HelpCircle } from "lucide-react"
+import isEqual from "lodash.isequal"
 
 export interface WorkflowBuilderProps {
   clientId: string
+  initialNodes?: any[]
+  initialEdges?: any[]
+  onChange?: (nodes: any[], edges: any[]) => void
+  isTemplateMode?: boolean
+  onSaveTemplate?: (nodes: any[], edges: any[]) => void
+  onLoadTemplate?: () => void
+  showSaveAsTemplate?: boolean
 }
 
-// Custom node components
+// Move getNodeStyle to the very top of the file, before all node components and nodeTypes
+function getNodeStyle(type: string, selected: boolean) {
+  if (!selected) return {};
+  return {
+    boxShadow: '0 0 0 4px #ECB22D',
+    border: '2px solid #ECB22D',
+    zIndex: 10,
+  };
+}
+
+// Move all node component definitions to the very top of the file, before nodeTypes and WorkflowBuilder
 function TaskNode({ data, selected }: any) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-4 rounded-lg bg-[#FBC02D] text-white shadow border-2 border-[#F9A825]" style={getNodeStyle('task', selected)}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
       <CheckCircle className="mb-1" />
-      <div className="font-bold text-base">{data.label}</div>
+      <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
     </div>
   )
 }
@@ -72,7 +90,7 @@ function MeetingNode({ data, selected }: any) {
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
       <Calendar className="mb-1" />
-      <div className="font-bold text-base">{data.label}</div>
+      <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
     </div>
   )
 }
@@ -82,7 +100,7 @@ function FormNode({ data, selected }: any) {
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
       <ClipboardList className="mb-1" />
-      <div className="font-bold text-base">{data.label}</div>
+      <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
       <div style={{ position: 'absolute', top: 0, right: 0, width: 28, height: 28, background: '#6D1B7B', borderTopRightRadius: 12, clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }} />
     </div>
   )
@@ -93,7 +111,7 @@ function DocNode({ data, selected }: any) {
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
       <FileText className="mb-1" />
-      <div className="font-bold text-base">{data.label}</div>
+      <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
     </div>
   )
 }
@@ -114,15 +132,15 @@ function FileUploadNode({ data, selected }: any) {
 }
 function AutomationNode({ data, selected }: any) {
   return (
-    <div style={{ width: 120, height: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', ...getNodeStyle('automation', selected) }}>
+    <div style={{ width: 180, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', ...getNodeStyle('automation', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
-      <svg width="100" height="60" viewBox="0 0 100 60">
-        <polygon points="25,5 75,5 100,30 75,55 25,55 0,30" fill="#00B8D4" stroke="#00838F" strokeWidth="4" />
+      <svg width="160" height="90" viewBox="0 0 160 90">
+        <polygon points="40,10 120,10 150,45 120,80 40,80 10,45" fill="#00B8D4" stroke="#00838F" strokeWidth="5" />
       </svg>
-      <div style={{ position: 'absolute', top: 12, left: 0, width: '100%', textAlign: 'center', color: 'white' }}>
+      <div style={{ position: 'absolute', top: 28, left: 0, width: '100%', textAlign: 'center', color: 'white', pointerEvents: 'none' }}>
         <Zap className="mb-1 mx-auto" />
-        <div className="font-bold text-base">{data.label}</div>
+        <div className="font-bold text-base whitespace-pre-line" style={{ lineHeight: 1.1 }}>{data.label}</div>
       </div>
     </div>
   )
@@ -133,7 +151,7 @@ function ChecklistNode({ data, selected }: any) {
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
       <ListChecks className="mb-1" />
-      <div className="font-bold text-base">{data.label}</div>
+      <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
     </div>
   )
 }
@@ -197,7 +215,7 @@ function DecisionNode({ data, selected }: any) {
         position: 'relative',
       }}>
         <div style={{ transform: 'rotate(-45deg)', width: '100%', textAlign: 'center' }}>
-          <GitBranch className="mb-1 mx-auto" />
+          <HelpCircle className="mb-1 mx-auto" />
           <div className="font-bold text-base">{data.label}</div>
         </div>
       </div>
@@ -206,15 +224,32 @@ function DecisionNode({ data, selected }: any) {
 }
 function MilestoneNode({ data, selected }: any) {
   return (
-    <div style={{ width: 70, height: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('milestone', selected) }}>
+    <div style={{ width: 120, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('milestone', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
-      <Flag color="#FFD600" size={48} stroke="#FFAB00" strokeWidth={2} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.10))' }} />
-      <div style={{ position: 'absolute', top: 54, width: 120, textAlign: 'center', fontWeight: 700, color: '#222' }}>{data.label}</div>
+      <div style={{
+        width: 90,
+        height: 90,
+        background: '#1976D2',
+        color: 'white',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+        border: '2px solid #1565C0',
+        transform: 'rotate(45deg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+      }}>
+        <div style={{ transform: 'rotate(-45deg)', width: '100%', textAlign: 'center' }}>
+          <Flag className="mb-1 mx-auto" />
+          <div className="font-bold text-base">{data.label}</div>
+        </div>
+      </div>
     </div>
   )
 }
 
+// Move nodeTypes definition outside the component to avoid recreating it on every render
 const nodeTypes = {
   task: TaskNode,
   approval: ApprovalNode,
@@ -243,19 +278,13 @@ const typeColors: Record<string, string> = {
   default: "#BDBDBD",   // gray
 }
 
-// Add selected node highlight
-function getNodeStyle(type: string, selected: boolean) {
-  if (!selected) return {}
-  return {
-    boxShadow: '0 0 0 4px #ECB22D',
-    border: '2px solid #ECB22D',
-    zIndex: 10,
-  }
-}
+// Add stable constants for ReactFlow props
+const DEFAULT_VIEWPORT = { x: 0, y: 0, zoom: 0.5 };
+const SNAP_GRID: [number, number] = [20, 20];
 
-export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange, isTemplateMode, onSaveTemplate, onLoadTemplate, showSaveAsTemplate = true }: WorkflowBuilderProps) {
+  const [nodes, setNodes, onNodesChangeRaw] = useNodesState(initialNodes || [])
+  const [edges, setEdges, onEdgesChangeRaw] = useEdgesState(initialEdges || [])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -264,6 +293,21 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
   const [userInitiatedEdit, setUserInitiatedEdit] = useState(false)
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
   const [selectedEdgeIds, setSelectedEdgeIds] = useState<string[]>([])
+  const [clipboard, setClipboard] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null)
+  const [templateModal, setTemplateModal] = useState<null | 'save' | 'load'>(null)
+  const [templateName, setTemplateName] = useState("")
+  const [templates, setTemplates] = useState<{ name: string; nodes: Node[]; edges: Edge[] }[]>([])
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("")
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [workflowKey, setWorkflowKey] = useState(0)
+
+  // When initialNodes or initialEdges change, update workflowKey and set state
+  useEffect(() => {
+    setNodes(initialNodes || [])
+    setEdges(initialEdges || [])
+    setWorkflowKey(Date.now())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialNodes, initialEdges])
 
   // Track selected nodes
   useEffect(() => {
@@ -292,8 +336,100 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [selectedNodeIds, selectedEdgeIds, setNodes, setEdges])
 
-  // Fetch workflow on mount
+  // Load templates from localStorage on mount
   useEffect(() => {
+    const stored = localStorage.getItem("workflowTemplates")
+    if (stored) {
+      setTemplates(JSON.parse(stored))
+    }
+  }, [])
+
+  // Save templates to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem("workflowTemplates", JSON.stringify(templates))
+  }, [templates])
+
+  // Keyboard shortcuts for copy, paste, duplicate
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+        // Copy selected nodes/edges
+        const selectedNodes = nodes.filter(n => n.selected)
+        const selectedNodeIds = selectedNodes.map(n => n.id)
+        const selectedEdges = edges.filter(e => selectedNodeIds.includes(e.source) && selectedNodeIds.includes(e.target))
+        setClipboard({ nodes: selectedNodes, edges: selectedEdges })
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+        // Paste nodes/edges from clipboard
+        if (clipboard && clipboard.nodes.length > 0) {
+          // Map old IDs to new IDs
+          const idMap: Record<string, string> = {}
+          const newNodes = clipboard.nodes.map((n) => {
+            const newId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+            idMap[n.id] = newId
+            return {
+              ...n,
+              id: newId,
+              position: { x: n.position.x + 40, y: n.position.y + 40 },
+              selected: false,
+            }
+          })
+          const newEdges = clipboard.edges.map((e) => ({
+            ...e,
+            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            source: idMap[e.source] || e.source,
+            target: idMap[e.target] || e.target,
+            selected: false,
+          }))
+          setNodes(nds => [...nds, ...newNodes])
+          setEdges(eds => [...eds, ...newEdges])
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
+        // Duplicate selected nodes/edges
+        const selectedNodes = nodes.filter(n => n.selected)
+        const selectedNodeIds = selectedNodes.map(n => n.id)
+        const selectedEdges = edges.filter(e => selectedNodeIds.includes(e.source) && selectedNodeIds.includes(e.target))
+        if (selectedNodes.length > 0) {
+          // Map old IDs to new IDs
+          const idMap: Record<string, string> = {}
+          const newNodes = selectedNodes.map((n) => {
+            const newId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+            idMap[n.id] = newId
+            return {
+              ...n,
+              id: newId,
+              position: { x: n.position.x + 40, y: n.position.y + 40 },
+              selected: false,
+            }
+          })
+          const newEdges = selectedEdges.map((e) => ({
+            ...e,
+            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            source: idMap[e.source] || e.source,
+            target: idMap[e.target] || e.target,
+            selected: false,
+          }))
+          setNodes(nds => [...nds, ...newNodes])
+          setEdges(eds => [...eds, ...newEdges])
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [nodes, edges, clipboard])
+
+  // In template mode, call onChange when nodes/edges change
+  useEffect(() => {
+    if (isTemplateMode && onChange) {
+      onChange(nodes, edges)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodes, edges])
+
+  // Only fetch workflow from Supabase if not in template mode
+  useEffect(() => {
+    if (isTemplateMode) return
     async function fetchWorkflow() {
       setLoading(true)
       setMessage(null)
@@ -307,8 +443,22 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
         setLoading(false)
         return
       }
-      const workflow = data?.workflow || { nodes: [], edges: [] }
-      setNodes(workflow.nodes || [])
+      let workflow = data?.workflow
+      // Defensive: handle empty or corrupt data
+      if (!workflow || typeof workflow !== 'object' || !Array.isArray(workflow.nodes) || !Array.isArray(workflow.edges)) {
+        workflow = { nodes: [], edges: [] }
+      }
+      // Debug logging
+      console.log("Loaded workflow:", workflow)
+      // Defensive: ensure all nodes have a valid type
+      setNodes((workflow.nodes || []).map((n: any) => ({
+        ...n,
+        type: n.data?.type || 'task',
+        data: {
+          ...n.data,
+          type: n.data?.type || 'task',
+        },
+      })))
       setEdges(workflow.edges || [])
       setEditingNode(null)
       setEditData(null)
@@ -318,8 +468,16 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
     }
     fetchWorkflow()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clientId])
+  }, [clientId, isTemplateMode])
 
+  // Set loading to false immediately in template mode so buttons are enabled
+  useEffect(() => {
+    if (isTemplateMode) setLoading(false)
+  }, [isTemplateMode])
+
+  // Memoize handler functions for ReactFlow
+  const onNodesChange = useCallback(onNodesChangeRaw, [])
+  const onEdgesChange = useCallback(onEdgesChangeRaw, [])
   const onConnect = useCallback(
     (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
@@ -327,7 +485,8 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
 
   // Add node button (adds a new node at a random position)
   const addNode = () => {
-    const id = (nodes.length + 1).toString()
+    // Generate a unique, stable ID for each new node
+    const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     setNodes((nds) => [
       ...nds,
       {
@@ -335,7 +494,7 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
         type: "default",
         position: { x: Math.random() * 400 + 50, y: Math.random() * 200 + 50 },
         data: {
-          label: `New Step ${id}`,
+          label: `New Step`,
           type: "task",
           description: "",
           link: "",
@@ -395,11 +554,60 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
     },
   }))
 
+  // Template save
+  const saveAsTemplate = () => {
+    if (!templateName.trim()) return
+    setTemplates(ts => [...ts, { name: templateName.trim(), nodes, edges }])
+    setTemplateModal(null)
+    setTemplateName("")
+  }
+  // Template load
+  const loadTemplate = () => {
+    const t = templates.find(t => t.name === selectedTemplate)
+    if (t) {
+      // Map old IDs to new IDs
+      const idMap: Record<string, string> = {}
+      const newNodes = t.nodes.map((n) => {
+        const newId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        idMap[n.id] = newId
+        return {
+          ...n,
+          id: newId,
+          position: { x: n.position.x + 60, y: n.position.y + 60 },
+          selected: false,
+        }
+      })
+      const newEdges = t.edges.map((e) => ({
+        ...e,
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        source: idMap[e.source] || e.source,
+        target: idMap[e.target] || e.target,
+        selected: false,
+      }))
+      setNodes(nds => [...nds, ...newNodes])
+      setEdges(eds => [...eds, ...newEdges])
+      setTemplateModal(null)
+      setSelectedTemplate("")
+    }
+  }
+
   return (
-    <section className="py-16 px-4 bg-transparent">
-      <div className="container mx-auto flex flex-col items-center">
-        <div className="w-full max-w-7xl">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-visible">
+    <section
+      className={isTemplateMode ? undefined : "py-16 px-4 bg-transparent"}
+      style={isTemplateMode ? { width: '100%', background: 'transparent', padding: 0, margin: 0 } : undefined}
+    >
+      <div
+        className={isTemplateMode ? undefined : "container mx-auto flex flex-col items-center"}
+        style={isTemplateMode ? { width: '100%', padding: 0, margin: 0, display: 'block' } : undefined}
+      >
+        <div
+          className={isTemplateMode ? undefined : "w-full max-w-7xl"}
+          style={isTemplateMode ? { width: '100%', maxWidth: '1200px', margin: '40px auto 0 auto' } : undefined}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-visible"
+            style={isTemplateMode ? { width: '100%', display: 'block', padding: 0 } : undefined}
+          >
             <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-[#ECB22D]/30 to-[#FFFBEA] rounded-t-2xl">
               <h2 className="text-2xl font-bold text-[#010124]">Workflow Builder</h2>
               <div className="flex gap-2">
@@ -417,9 +625,38 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
                 >
                   {saving ? "Saving..." : "Save Workflow"}
                 </button>
+                <button
+                  onClick={() => {
+                    if (isTemplateMode && onSaveTemplate) {
+                      onSaveTemplate(nodes, edges)
+                    } else {
+                      setTemplateModal('save')
+                    }
+                  }}
+                  className="bg-[#ECB22D] hover:bg-[#d4a029] text-[#010124] font-semibold px-5 py-2 rounded shadow border border-[#ECB22D] transition"
+                  style={{ display: showSaveAsTemplate ? undefined : 'none' }}
+                >
+                  Save as Template
+                </button>
+                {(onLoadTemplate) && (
+                  <button
+                    onClick={() => {
+                      if (isTemplateMode && onLoadTemplate) {
+                        onLoadTemplate()
+                      } else if (onLoadTemplate) {
+                        onLoadTemplate()
+                      } else {
+                        setTemplateModal('load')
+                      }
+                    }}
+                    className="bg-[#010124] hover:bg-[#22223b] text-[#ECB22D] font-semibold px-5 py-2 rounded shadow border border-[#010124] transition"
+                  >
+                    Load Template
+                  </button>
+                )}
               </div>
             </div>
-            <div className="px-8 pt-6 pb-8">
+            <div className={isTemplateMode ? undefined : "px-8 pt-6 pb-8"} style={isTemplateMode ? { padding: 24 } : undefined}>
               <p className="text-gray-600 text-lg mb-4 text-center">
                 Collaboratively design your onboarding and service workflows here.
               </p>
@@ -435,8 +672,14 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
                 <span><b>Zoom/Pan:</b> Use controls</span>
               </div>
               {message && <div className="mb-4 text-center text-lg font-medium text-green-700">{message}</div>}
-              <div style={{ height: 500, width: '100%', maxWidth: 1200, margin: '0 auto', background: "#f9fafb", borderRadius: 12, pointerEvents: 'auto' }} className="overflow-hidden">
+              <div
+                style={isTemplateMode
+                  ? { width: '100%', height: '600px', background: "#f9fafb", borderRadius: 12, pointerEvents: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }
+                  : { height: 500, width: '100%', maxWidth: 1200, margin: '0 auto', background: "#f9fafb", borderRadius: 12, pointerEvents: 'auto' }}
+                className="overflow-hidden"
+              >
                 <ReactFlow
+                  key={workflowKey}
                   nodes={coloredNodes}
                   edges={edges}
                   onNodesChange={onNodesChange}
@@ -445,12 +688,12 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
                   nodeTypes={nodeTypes}
                   fitView
                   onNodeDoubleClick={onNodeDoubleClick}
-                  defaultViewport={{ x: 0, y: 0, zoom: 0.5 }}
+                  defaultViewport={DEFAULT_VIEWPORT}
                   selectNodesOnDrag={true}
                   panOnDrag={false}
                   connectionMode={ConnectionMode.Loose}
                   snapToGrid={true}
-                  snapGrid={[20, 20]}
+                  snapGrid={SNAP_GRID}
                 >
                   <MiniMap />
                   <Controls />
@@ -514,6 +757,49 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
                 <div className="flex justify-end gap-2 mt-6">
                   <Button variant="outline" onClick={() => { setEditingNode(null); setUserInitiatedEdit(false); }}>Cancel</Button>
                   <Button onClick={saveNodeEdit}>Save</Button>
+                </div>
+              </div>
+            </div>
+          </Dialog>
+        )}
+        {/* Template Modals */}
+        {templateModal === 'save' && (
+          <Dialog open={true} onOpenChange={open => { if (!open) setTemplateModal(null) }}>
+            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
+              <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+                <h3 className="text-xl font-bold mb-4">Save as Template</h3>
+                <Input
+                  placeholder="Template Name"
+                  value={templateName}
+                  onChange={e => setTemplateName(e.target.value)}
+                  className="mb-4"
+                />
+                <div className="flex justify-end gap-2 mt-6">
+                  <Button variant="outline" onClick={() => setTemplateModal(null)}>Cancel</Button>
+                  <Button onClick={saveAsTemplate} disabled={!templateName.trim()}>Save</Button>
+                </div>
+              </div>
+            </div>
+          </Dialog>
+        )}
+        {templateModal === 'load' && (
+          <Dialog open={true} onOpenChange={open => { if (!open) setTemplateModal(null) }}>
+            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
+              <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+                <h3 className="text-xl font-bold mb-4">Load Template</h3>
+                <select
+                  className="w-full border rounded px-3 py-2 mb-4"
+                  value={selectedTemplate}
+                  onChange={e => setSelectedTemplate(e.target.value)}
+                >
+                  <option value="">Select a template...</option>
+                  {templates.map(t => (
+                    <option key={t.name} value={t.name}>{t.name}</option>
+                  ))}
+                </select>
+                <div className="flex justify-end gap-2 mt-6">
+                  <Button variant="outline" onClick={() => setTemplateModal(null)}>Cancel</Button>
+                  <Button onClick={loadTemplate} disabled={!selectedTemplate}>Load</Button>
                 </div>
               </div>
             </div>
