@@ -37,6 +37,150 @@ export interface WorkflowBuilderProps {
   showSaveAsTemplate?: boolean
 }
 
+// Software database with logos and categories
+const SOFTWARE_DATABASE = {
+  // CRM & Sales Tools
+  "HubSpot": { name: "HubSpot", logo: "🟠", category: "CRM & Sales" },
+  "Salesforce": { name: "Salesforce", logo: "🔵", category: "CRM & Sales" },
+  "GoHighLevel": { name: "GoHighLevel", logo: "🟢", category: "CRM & Sales" },
+  "Pipedrive": { name: "Pipedrive", logo: "🔴", category: "CRM & Sales" },
+  "Zoho CRM": { name: "Zoho CRM", logo: "🟣", category: "CRM & Sales" },
+  "Copper": { name: "Copper", logo: "🟡", category: "CRM & Sales" },
+  "Close.com": { name: "Close.com", logo: "🔵", category: "CRM & Sales" },
+  "Keap": { name: "Keap (Infusionsoft)", logo: "🟢", category: "CRM & Sales" },
+  "Nimble": { name: "Nimble", logo: "🟠", category: "CRM & Sales" },
+  "ActiveCampaign": { name: "ActiveCampaign", logo: "🔵", category: "CRM & Sales" },
+
+  // Proposals, Contracts, & E-Signature
+  "Better Proposals": { name: "Better Proposals", logo: "📄", category: "Proposals & Contracts" },
+  "PandaDoc": { name: "PandaDoc", logo: "🐼", category: "Proposals & Contracts" },
+  "DocuSign": { name: "DocuSign", logo: "✍️", category: "Proposals & Contracts" },
+  "HelloSign": { name: "HelloSign (Dropbox Sign)", logo: "📝", category: "Proposals & Contracts" },
+  "Jotform Sign": { name: "Jotform Sign", logo: "📋", category: "Proposals & Contracts" },
+  "Adobe Sign": { name: "Adobe Sign", logo: "🔷", category: "Proposals & Contracts" },
+  "Qwilr": { name: "Qwilr", logo: "📊", category: "Proposals & Contracts" },
+  "Proposify": { name: "Proposify", logo: "📋", category: "Proposals & Contracts" },
+  "Concord": { name: "Concord", logo: "📄", category: "Proposals & Contracts" },
+  "Zohosign": { name: "Zohosign", logo: "📝", category: "Proposals & Contracts" },
+
+  // Invoicing, Payments & Accounting
+  "Xero": { name: "Xero", logo: "💚", category: "Invoicing & Accounting" },
+  "QuickBooks Online": { name: "QuickBooks Online", logo: "💙", category: "Invoicing & Accounting" },
+  "QuickBooks Desktop": { name: "QuickBooks Desktop", logo: "💙", category: "Invoicing & Accounting" },
+  "FreshBooks": { name: "FreshBooks", logo: "🟢", category: "Invoicing & Accounting" },
+  "Stripe": { name: "Stripe", logo: "💳", category: "Invoicing & Accounting" },
+  "Square": { name: "Square", logo: "⬜", category: "Invoicing & Accounting" },
+  "PayPal": { name: "PayPal", logo: "🔵", category: "Invoicing & Accounting" },
+  "GoCardless": { name: "GoCardless", logo: "🟠", category: "Invoicing & Accounting" },
+  "Wave": { name: "Wave", logo: "🌊", category: "Invoicing & Accounting" },
+  "Sage Accounting": { name: "Sage Accounting", logo: "🟢", category: "Invoicing & Accounting" },
+  "Intuit": { name: "Intuit", logo: "💙", category: "Invoicing & Accounting" },
+
+  // Scheduling & Meeting Tools
+  "Calendly": { name: "Calendly", logo: "📅", category: "Scheduling & Meetings" },
+  "Acuity Scheduling": { name: "Acuity Scheduling", logo: "📆", category: "Scheduling & Meetings" },
+  "Google Calendar": { name: "Google Calendar", logo: "📅", category: "Scheduling & Meetings" },
+  "Outlook Calendar": { name: "Outlook/Exchange Calendar", logo: "📧", category: "Scheduling & Meetings" },
+  "YouCanBook.me": { name: "YouCanBook.me", logo: "📚", category: "Scheduling & Meetings" },
+  "SavvyCal": { name: "SavvyCal", logo: "🧠", category: "Scheduling & Meetings" },
+  "Zoom": { name: "Zoom", logo: "🎥", category: "Scheduling & Meetings" },
+  "Microsoft Teams": { name: "Microsoft Teams", logo: "💬", category: "Scheduling & Meetings" },
+  "Google Meet": { name: "Google Meet", logo: "🎥", category: "Scheduling & Meetings" },
+
+  // File Sharing & Cloud Storage
+  "Google Drive": { name: "Google Drive", logo: "☁️", category: "File Sharing & Storage" },
+  "Dropbox": { name: "Dropbox", logo: "📦", category: "File Sharing & Storage" },
+  "OneDrive": { name: "OneDrive", logo: "☁️", category: "File Sharing & Storage" },
+  "Box": { name: "Box", logo: "📦", category: "File Sharing & Storage" },
+  "pCloud": { name: "pCloud", logo: "☁️", category: "File Sharing & Storage" },
+  "Notion": { name: "Notion (as a file hub)", logo: "📝", category: "File Sharing & Storage" },
+  "Egnyte": { name: "Egnyte", logo: "📁", category: "File Sharing & Storage" },
+
+  // Task & Project Management
+  "ClickUp": { name: "ClickUp", logo: "⬆️", category: "Task & Project Management" },
+  "Asana": { name: "Asana", logo: "📋", category: "Task & Project Management" },
+  "Monday.com": { name: "Monday.com", logo: "📅", category: "Task & Project Management" },
+  "Trello": { name: "Trello", logo: "📋", category: "Task & Project Management" },
+  "Basecamp": { name: "Basecamp", logo: "🏕️", category: "Task & Project Management" },
+  "Wrike": { name: "Wrike", logo: "⚡", category: "Task & Project Management" },
+  "Teamwork": { name: "Teamwork", logo: "👥", category: "Task & Project Management" },
+  "Smartsheet": { name: "Smartsheet", logo: "📊", category: "Task & Project Management" },
+  "Airtable": { name: "Airtable", logo: "📊", category: "Task & Project Management" },
+
+  // Automation & API Tools
+  "Zapier": { name: "Zapier", logo: "⚡", category: "Automation & API" },
+  "Make": { name: "Make (Integromat)", logo: "🔧", category: "Automation & API" },
+  "n8n": { name: "n8n", logo: "🔄", category: "Automation & API" },
+  "Pipedream": { name: "Pipedream", logo: "🌊", category: "Automation & API" },
+  "Tray.io": { name: "Tray.io", logo: "📦", category: "Automation & API" },
+  "Workato": { name: "Workato", logo: "🔧", category: "Automation & API" },
+  "Retool": { name: "Retool", logo: "🛠️", category: "Automation & API" },
+
+  // Design, Creative, & Feedback
+  "Figma": { name: "Figma", logo: "🎨", category: "Design & Creative" },
+  "Adobe XD": { name: "Adobe XD", logo: "🎨", category: "Design & Creative" },
+  "Adobe Creative Cloud": { name: "Adobe Creative Cloud", logo: "🎨", category: "Design & Creative" },
+  "Canva": { name: "Canva", logo: "🎨", category: "Design & Creative" },
+  "Sketch": { name: "Sketch", logo: "✏️", category: "Design & Creative" },
+  "InVision": { name: "InVision", logo: "👁️", category: "Design & Creative" },
+  "Bubbles": { name: "Bubbles (video + comment feedback)", logo: "💬", category: "Design & Creative" },
+
+  // Video & Media Tools
+  "Loom": { name: "Loom", logo: "🎥", category: "Video & Media" },
+  "Frame.io": { name: "Frame.io", logo: "🎬", category: "Video & Media" },
+  "Vimeo": { name: "Vimeo", logo: "🎥", category: "Video & Media" },
+  "YouTube": { name: "YouTube", logo: "📺", category: "Video & Media" },
+  "Wistia": { name: "Wistia", logo: "🎥", category: "Video & Media" },
+  "Descript": { name: "Descript", logo: "📝", category: "Video & Media" },
+  "Vidyard": { name: "Vidyard", logo: "🎥", category: "Video & Media" },
+  "Veed.io": { name: "Veed.io", logo: "🎬", category: "Video & Media" },
+
+  // Forms, Surveys & Intake
+  "Typeform": { name: "Typeform", logo: "📝", category: "Forms & Surveys" },
+  "Tally": { name: "Tally", logo: "📊", category: "Forms & Surveys" },
+  "Google Forms": { name: "Google Forms", logo: "📋", category: "Forms & Surveys" },
+  "Formless": { name: "Formless", logo: "📝", category: "Forms & Surveys" },
+  "Paperform": { name: "Paperform", logo: "📄", category: "Forms & Surveys" },
+  "Jotform": { name: "Jotform", logo: "📋", category: "Forms & Surveys" },
+  "Gravity Forms": { name: "Gravity Forms (WordPress)", logo: "⚖️", category: "Forms & Surveys" },
+  "Cognito Forms": { name: "Cognito Forms", logo: "🧠", category: "Forms & Surveys" },
+  "Wufoo": { name: "Wufoo", logo: "📝", category: "Forms & Surveys" },
+
+  // Analytics & Reporting
+  "Google Analytics": { name: "Google Analytics", logo: "📊", category: "Analytics & Reporting" },
+  "Looker Studio": { name: "Looker Studio (Data Studio)", logo: "📈", category: "Analytics & Reporting" },
+  "Mode Analytics": { name: "Mode Analytics", logo: "📊", category: "Analytics & Reporting" },
+  "Tableau": { name: "Tableau", logo: "📊", category: "Analytics & Reporting" },
+  "Klipfolio": { name: "Klipfolio", logo: "📊", category: "Analytics & Reporting" },
+  "Power BI": { name: "Power BI", logo: "📊", category: "Analytics & Reporting" },
+  "Metabase": { name: "Metabase", logo: "📊", category: "Analytics & Reporting" },
+
+  // Client Portals & Documentation Tools
+  "SuiteDash": { name: "SuiteDash", logo: "🏠", category: "Client Portals & Docs" },
+  "Portal.io": { name: "Portal.io", logo: "🚪", category: "Client Portals & Docs" },
+  "Moxo": { name: "Moxo", logo: "📱", category: "Client Portals & Docs" },
+  "Clinked": { name: "Clinked", logo: "🔗", category: "Client Portals & Docs" },
+  "Confluence": { name: "Confluence", logo: "📚", category: "Client Portals & Docs" },
+  "HelpDocs": { name: "HelpDocs", logo: "❓", category: "Client Portals & Docs" },
+  "Intercom Articles": { name: "Intercom Articles", logo: "📖", category: "Client Portals & Docs" },
+}
+
+// Helper function to get software by category
+const getSoftwareByCategory = () => {
+  const categories: Record<string, Array<{ key: string; name: string; logo: string }>> = {}
+  Object.entries(SOFTWARE_DATABASE).forEach(([key, software]) => {
+    if (!categories[software.category]) {
+      categories[software.category] = []
+    }
+    categories[software.category].push({
+      key,
+      name: software.name,
+      logo: software.logo
+    })
+  })
+  return categories
+}
+
 // Move getNodeStyle to the very top of the file, before all node components and nodeTypes
 function getNodeStyle(type: string, selected: boolean) {
   if (!selected) return {};
@@ -49,16 +193,26 @@ function getNodeStyle(type: string, selected: boolean) {
 
 // Move all node component definitions to the very top of the file, before nodeTypes and WorkflowBuilder
 function TaskNode({ data, selected }: any) {
+  const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div className="flex flex-col items-center justify-center px-6 py-4 rounded-lg bg-[#FBC02D] text-white shadow border-2 border-[#F9A825]" style={getNodeStyle('task', selected)}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
-      <CheckCircle className="mb-1" />
+      <div className="flex items-center gap-2 mb-1">
+        <CheckCircle />
+        {software && <span className="text-lg">{software.logo}</span>}
+      </div>
       <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
+      {software && (
+        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center' }}>
+          {software.name}
+        </div>
+      )}
     </div>
   )
 }
 function ApprovalNode({ data, selected }: any) {
+  const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div style={{ width: 120, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('approval', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
@@ -77,45 +231,81 @@ function ApprovalNode({ data, selected }: any) {
         position: 'relative',
       }}>
         <div style={{ transform: 'rotate(-45deg)', width: '100%', textAlign: 'center' }}>
-          <FileSignature className="mb-1 mx-auto" />
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <FileSignature />
+            {software && <span className="text-lg">{software.logo}</span>}
+          </div>
           <div className="font-bold text-base">{data.label}</div>
+          {software && (
+            <div className="text-xs opacity-80 mt-1">
+              {software.name}
+            </div>
+          )}
         </div>
       </div>
     </div>
   )
 }
 function MeetingNode({ data, selected }: any) {
+  const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div className="flex flex-col items-center justify-center px-6 py-4 rounded-xl bg-[#1976D2] text-white shadow border-2 border-[#1565C0]" style={getNodeStyle('meeting', selected)}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
-      <Calendar className="mb-1" />
+      <div className="flex items-center gap-2 mb-1">
+        <Calendar />
+        {software && <span className="text-lg">{software.logo}</span>}
+      </div>
       <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
+      {software && (
+        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center' }}>
+          {software.name}
+        </div>
+      )}
     </div>
   )
 }
 function FormNode({ data, selected }: any) {
+  const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div style={{ position: 'relative', width: 140, height: 70, background: '#8E24AA', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.10)', border: '2px solid #6D1B7B', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('form', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
-      <ClipboardList className="mb-1" />
+      <div className="flex items-center gap-1 mb-1">
+        <ClipboardList />
+        {software && <span className="text-lg">{software.logo}</span>}
+      </div>
       <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
+      {software && (
+        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center' }}>
+          {software.name}
+        </div>
+      )}
       <div style={{ position: 'absolute', top: 0, right: 0, width: 28, height: 28, background: '#6D1B7B', borderTopRightRadius: 12, clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }} />
     </div>
   )
 }
 function DocNode({ data, selected }: any) {
+  const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div className="flex flex-col items-center justify-center px-6 py-4 rounded-lg bg-[#F4511E] text-white shadow border-2 border-[#BF360C]" style={getNodeStyle('doc', selected)}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
-      <FileText className="mb-1" />
+      <div className="flex items-center gap-2 mb-1">
+        <FileText />
+        {software && <span className="text-lg">{software.logo}</span>}
+      </div>
       <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
+      {software && (
+        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center' }}>
+          {software.name}
+        </div>
+      )}
     </div>
   )
 }
 function FileUploadNode({ data, selected }: any) {
+  const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div style={{ width: 120, height: 70, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('file_upload', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
@@ -124,13 +314,22 @@ function FileUploadNode({ data, selected }: any) {
         <path d="M10 30 Q10 10 30 10 H90 Q110 10 110 30 V60 Q110 65 105 65 H15 Q10 65 10 60 Z" fill="#0288D1" stroke="#01579B" strokeWidth="3" />
       </svg>
       <div style={{ position: 'absolute', top: 18, left: 0, width: '100%', textAlign: 'center', color: 'white' }}>
-        <UploadCloud className="mb-1 mx-auto" />
+        <div className="flex items-center justify-center gap-1 mb-1">
+          <UploadCloud />
+          {software && <span className="text-lg">{software.logo}</span>}
+        </div>
         <div className="font-bold text-base">{data.label}</div>
+        {software && (
+          <div className="text-xs opacity-80 mt-1">
+            {software.name}
+          </div>
+        )}
       </div>
     </div>
   )
 }
 function AutomationNode({ data, selected }: any) {
+  const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div style={{ width: 180, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', ...getNodeStyle('automation', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
@@ -139,23 +338,41 @@ function AutomationNode({ data, selected }: any) {
         <polygon points="40,10 120,10 150,45 120,80 40,80 10,45" fill="#00B8D4" stroke="#00838F" strokeWidth="5" />
       </svg>
       <div style={{ position: 'absolute', top: 28, left: 0, width: '100%', textAlign: 'center', color: 'white', pointerEvents: 'none' }}>
-        <Zap className="mb-1 mx-auto" />
+        <div className="flex items-center justify-center gap-1 mb-1">
+          <Zap />
+          {software && <span className="text-lg">{software.logo}</span>}
+        </div>
         <div className="font-bold text-base whitespace-pre-line" style={{ lineHeight: 1.1 }}>{data.label}</div>
+        {software && (
+          <div className="text-xs opacity-80 mt-1">
+            {software.name}
+          </div>
+        )}
       </div>
     </div>
   )
 }
 function ChecklistNode({ data, selected }: any) {
+  const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div className="flex flex-col items-center justify-center px-6 py-4 rounded-lg bg-[#43A047] text-white shadow border-2 border-[#2E7D32]" style={getNodeStyle('checklist', selected)}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
-      <ListChecks className="mb-1" />
+      <div className="flex items-center gap-2 mb-1">
+        <ListChecks />
+        {software && <span className="text-lg">{software.logo}</span>}
+      </div>
       <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
+      {software && (
+        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center' }}>
+          {software.name}
+        </div>
+      )}
     </div>
   )
 }
 function DueDateNode({ data, selected }: any) {
+  const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div style={{ width: 90, height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', ...getNodeStyle('due_date', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
@@ -164,13 +381,22 @@ function DueDateNode({ data, selected }: any) {
         <circle cx="45" cy="45" r="40" fill="#F9A825" stroke="#FBC02D" strokeWidth="4" />
       </svg>
       <div style={{ position: 'absolute', top: 22, left: 0, width: '100%', textAlign: 'center', color: 'white' }}>
-        <Bell className="mb-1 mx-auto" />
+        <div className="flex items-center justify-center gap-1 mb-1">
+          <Bell />
+          {software && <span className="text-lg">{software.logo}</span>}
+        </div>
         <div className="font-bold text-base">{data.label}</div>
+        {software && (
+          <div className="text-xs opacity-80 mt-1">
+            {software.name}
+          </div>
+        )}
       </div>
     </div>
   )
 }
 function ClientActionNode({ data, selected }: any) {
+  const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div style={{ width: 120, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('client_action', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
@@ -189,14 +415,21 @@ function ClientActionNode({ data, selected }: any) {
         position: 'relative',
       }}>
         <div style={{ transform: 'rotate(-45deg)', width: '100%', textAlign: 'center' }}>
-          <UserCheck className="mb-1 mx-auto" />
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <UserCheck />
+            {software && <span className="text-lg">{software.logo}</span>}
+          </div>
           <div className="font-bold text-base">{data.label}</div>
+          {software && (
+            <div className="text-xs opacity-80 mt-1">{software.name}</div>
+          )}
         </div>
       </div>
     </div>
   )
 }
 function DecisionNode({ data, selected }: any) {
+  const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div style={{ width: 120, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('decision', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
@@ -215,14 +448,21 @@ function DecisionNode({ data, selected }: any) {
         position: 'relative',
       }}>
         <div style={{ transform: 'rotate(-45deg)', width: '100%', textAlign: 'center' }}>
-          <HelpCircle className="mb-1 mx-auto" />
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <HelpCircle />
+            {software && <span className="text-lg">{software.logo}</span>}
+          </div>
           <div className="font-bold text-base">{data.label}</div>
+          {software && (
+            <div className="text-xs opacity-80 mt-1">{software.name}</div>
+          )}
         </div>
       </div>
     </div>
   )
 }
 function MilestoneNode({ data, selected }: any) {
+  const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div style={{ width: 120, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('milestone', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
@@ -241,8 +481,14 @@ function MilestoneNode({ data, selected }: any) {
         position: 'relative',
       }}>
         <div style={{ transform: 'rotate(-45deg)', width: '100%', textAlign: 'center' }}>
-          <Flag className="mb-1 mx-auto" />
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Flag />
+            {software && <span className="text-lg">{software.logo}</span>}
+          </div>
           <div className="font-bold text-base">{data.label}</div>
+          {software && (
+            <div className="text-xs opacity-80 mt-1">{software.name}</div>
+          )}
         </div>
       </div>
     </div>
@@ -668,6 +914,9 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
                 <span><b>Drag:</b> Drag node(s)</span>
                 <span><b>Edit:</b> Double-click node</span>
                 <span><b>Connect:</b> Drag from connector</span>
+                <span><b>Copy:</b> <kbd className="px-1 py-0.5 bg-white border rounded">Ctrl</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Cmd</kbd> + <kbd className="px-1 py-0.5 bg-white border rounded">C</kbd></span>
+                <span><b>Paste:</b> <kbd className="px-1 py-0.5 bg-white border rounded">Ctrl</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Cmd</kbd> + <kbd className="px-1 py-0.5 bg-white border rounded">V</kbd></span>
+                <span><b>Duplicate:</b> <kbd className="px-1 py-0.5 bg-white border rounded">Ctrl</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Cmd</kbd> + <kbd className="px-1 py-0.5 bg-white border rounded">D</kbd></span>
                 <span><b>Delete:</b> Select, then <kbd className="px-1 py-0.5 bg-white border rounded">Delete</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Backspace</kbd></span>
                 <span><b>Zoom/Pan:</b> Use controls</span>
               </div>
@@ -737,6 +986,25 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
                       <option value="client_action">Client To-Do</option>
                       <option value="decision">Decision Point</option>
                       <option value="milestone">Milestone</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Software/Tool (optional)</label>
+                    <select
+                      className="w-full border rounded px-3 py-2"
+                      value={editData?.software || ""}
+                      onChange={e => setEditData((d: any) => ({ ...d, software: e.target.value }))}
+                    >
+                      <option value="">None</option>
+                      {Object.entries(getSoftwareByCategory()).map(([category, softwares]) => (
+                        <optgroup key={category} label={category}>
+                          {softwares.map(software => (
+                            <option key={software.key} value={software.key}>
+                              {software.logo} {software.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
                     </select>
                   </div>
                   <div>
