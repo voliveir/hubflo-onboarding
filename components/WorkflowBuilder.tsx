@@ -12,6 +12,10 @@ import ReactFlow, {
   Edge,
   Connection,
   NodeTypes,
+  useReactFlow,
+  Handle,
+  Position,
+  ConnectionMode,
 } from "reactflow"
 import "reactflow/dist/style.css"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
@@ -19,12 +23,212 @@ import { Dialog } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { CheckCircle, FileText, Calendar, ClipboardList, Users, FileSignature, UploadCloud, Zap, ListChecks, Bell, UserCheck, GitBranch, Flag, HelpCircle } from "lucide-react"
 
 export interface WorkflowBuilderProps {
   clientId: string
 }
 
-const nodeTypes: NodeTypes = {}
+// Custom node components
+function TaskNode({ data, selected }: any) {
+  return (
+    <div className="flex flex-col items-center justify-center px-6 py-4 rounded-lg bg-[#FBC02D] text-white shadow border-2 border-[#F9A825]" style={getNodeStyle('task', selected)}>
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <CheckCircle className="mb-1" />
+      <div className="font-bold text-base">{data.label}</div>
+    </div>
+  )
+}
+function ApprovalNode({ data, selected }: any) {
+  return (
+    <div style={{ width: 120, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('approval', selected) }}>
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <div style={{
+        width: 90,
+        height: 90,
+        background: '#43A047',
+        color: 'white',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+        border: '2px solid #388E3C',
+        transform: 'rotate(45deg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+      }}>
+        <div style={{ transform: 'rotate(-45deg)', width: '100%', textAlign: 'center' }}>
+          <FileSignature className="mb-1 mx-auto" />
+          <div className="font-bold text-base">{data.label}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+function MeetingNode({ data, selected }: any) {
+  return (
+    <div className="flex flex-col items-center justify-center px-6 py-4 rounded-xl bg-[#1976D2] text-white shadow border-2 border-[#1565C0]" style={getNodeStyle('meeting', selected)}>
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <Calendar className="mb-1" />
+      <div className="font-bold text-base">{data.label}</div>
+    </div>
+  )
+}
+function FormNode({ data, selected }: any) {
+  return (
+    <div style={{ position: 'relative', width: 140, height: 70, background: '#8E24AA', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.10)', border: '2px solid #6D1B7B', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('form', selected) }}>
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <ClipboardList className="mb-1" />
+      <div className="font-bold text-base">{data.label}</div>
+      <div style={{ position: 'absolute', top: 0, right: 0, width: 28, height: 28, background: '#6D1B7B', borderTopRightRadius: 12, clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }} />
+    </div>
+  )
+}
+function DocNode({ data, selected }: any) {
+  return (
+    <div className="flex flex-col items-center justify-center px-6 py-4 rounded-lg bg-[#F4511E] text-white shadow border-2 border-[#BF360C]" style={getNodeStyle('doc', selected)}>
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <FileText className="mb-1" />
+      <div className="font-bold text-base">{data.label}</div>
+    </div>
+  )
+}
+function FileUploadNode({ data, selected }: any) {
+  return (
+    <div style={{ width: 120, height: 70, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('file_upload', selected) }}>
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <svg width="120" height="70">
+        <path d="M10 30 Q10 10 30 10 H90 Q110 10 110 30 V60 Q110 65 105 65 H15 Q10 65 10 60 Z" fill="#0288D1" stroke="#01579B" strokeWidth="3" />
+      </svg>
+      <div style={{ position: 'absolute', top: 18, left: 0, width: '100%', textAlign: 'center', color: 'white' }}>
+        <UploadCloud className="mb-1 mx-auto" />
+        <div className="font-bold text-base">{data.label}</div>
+      </div>
+    </div>
+  )
+}
+function AutomationNode({ data, selected }: any) {
+  return (
+    <div style={{ width: 120, height: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', ...getNodeStyle('automation', selected) }}>
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <svg width="100" height="60" viewBox="0 0 100 60">
+        <polygon points="25,5 75,5 100,30 75,55 25,55 0,30" fill="#00B8D4" stroke="#00838F" strokeWidth="4" />
+      </svg>
+      <div style={{ position: 'absolute', top: 12, left: 0, width: '100%', textAlign: 'center', color: 'white' }}>
+        <Zap className="mb-1 mx-auto" />
+        <div className="font-bold text-base">{data.label}</div>
+      </div>
+    </div>
+  )
+}
+function ChecklistNode({ data, selected }: any) {
+  return (
+    <div className="flex flex-col items-center justify-center px-6 py-4 rounded-lg bg-[#43A047] text-white shadow border-2 border-[#2E7D32]" style={getNodeStyle('checklist', selected)}>
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <ListChecks className="mb-1" />
+      <div className="font-bold text-base">{data.label}</div>
+    </div>
+  )
+}
+function DueDateNode({ data, selected }: any) {
+  return (
+    <div style={{ width: 90, height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', ...getNodeStyle('due_date', selected) }}>
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <svg width="90" height="90">
+        <circle cx="45" cy="45" r="40" fill="#F9A825" stroke="#FBC02D" strokeWidth="4" />
+      </svg>
+      <div style={{ position: 'absolute', top: 22, left: 0, width: '100%', textAlign: 'center', color: 'white' }}>
+        <Bell className="mb-1 mx-auto" />
+        <div className="font-bold text-base">{data.label}</div>
+      </div>
+    </div>
+  )
+}
+function ClientActionNode({ data, selected }: any) {
+  return (
+    <div style={{ width: 120, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('client_action', selected) }}>
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <div style={{
+        width: 90,
+        height: 90,
+        background: '#D84315',
+        color: 'white',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+        border: '2px solid #BF360C',
+        transform: 'rotate(45deg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+      }}>
+        <div style={{ transform: 'rotate(-45deg)', width: '100%', textAlign: 'center' }}>
+          <UserCheck className="mb-1 mx-auto" />
+          <div className="font-bold text-base">{data.label}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+function DecisionNode({ data, selected }: any) {
+  return (
+    <div style={{ width: 120, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('decision', selected) }}>
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <div style={{
+        width: 90,
+        height: 90,
+        background: '#6D4C41',
+        color: 'white',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+        border: '2px solid #3E2723',
+        transform: 'rotate(45deg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+      }}>
+        <div style={{ transform: 'rotate(-45deg)', width: '100%', textAlign: 'center' }}>
+          <GitBranch className="mb-1 mx-auto" />
+          <div className="font-bold text-base">{data.label}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+function MilestoneNode({ data, selected }: any) {
+  return (
+    <div style={{ width: 70, height: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('milestone', selected) }}>
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <Flag color="#FFD600" size={48} stroke="#FFAB00" strokeWidth={2} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.10))' }} />
+      <div style={{ position: 'absolute', top: 54, width: 120, textAlign: 'center', fontWeight: 700, color: '#222' }}>{data.label}</div>
+    </div>
+  )
+}
+
+const nodeTypes = {
+  task: TaskNode,
+  approval: ApprovalNode,
+  meeting: MeetingNode,
+  form: FormNode,
+  doc: DocNode,
+  file_upload: FileUploadNode,
+  automation: AutomationNode,
+  checklist: ChecklistNode,
+  due_date: DueDateNode,
+  client_action: ClientActionNode,
+  decision: DecisionNode,
+  milestone: MilestoneNode,
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -39,6 +243,16 @@ const typeColors: Record<string, string> = {
   default: "#BDBDBD",   // gray
 }
 
+// Add selected node highlight
+function getNodeStyle(type: string, selected: boolean) {
+  if (!selected) return {}
+  return {
+    boxShadow: '0 0 0 4px #ECB22D',
+    border: '2px solid #ECB22D',
+    zIndex: 10,
+  }
+}
+
 export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
@@ -48,6 +262,35 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
   const [editingNode, setEditingNode] = useState<Node | null>(null)
   const [editData, setEditData] = useState<any>(null)
   const [userInitiatedEdit, setUserInitiatedEdit] = useState(false)
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
+  const [selectedEdgeIds, setSelectedEdgeIds] = useState<string[]>([])
+
+  // Track selected nodes
+  useEffect(() => {
+    setSelectedNodeIds(nodes.filter(n => n.selected).map(n => n.id))
+  }, [nodes])
+
+  // Track selected edges
+  useEffect(() => {
+    setSelectedEdgeIds(edges.filter(e => e.selected).map(e => e.id))
+  }, [edges])
+
+  // Keyboard shortcut for delete (nodes & edges)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace')) {
+        if (selectedNodeIds.length > 0) {
+          setNodes(nds => nds.filter(n => !selectedNodeIds.includes(n.id)))
+          setEdges(eds => eds.filter(e => !selectedNodeIds.includes(e.source) && !selectedNodeIds.includes(e.target)))
+        }
+        if (selectedEdgeIds.length > 0) {
+          setEdges(eds => eds.filter(e => !selectedEdgeIds.includes(e.id)))
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedNodeIds, selectedEdgeIds, setNodes, setEdges])
 
   // Fetch workflow on mount
   useEffect(() => {
@@ -118,8 +361,7 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
   }
 
   // Node click handler
-  const onNodeClick = (_: any, node: Node) => {
-    console.log("Node clicked:", node)
+  const onNodeDoubleClick = (_event: any, node: Node) => {
     setEditingNode(node)
     setEditData({ ...node.data })
     setUserInitiatedEdit(true)
@@ -128,10 +370,11 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
   // Save node edits
   const saveNodeEdit = () => {
     if (!editingNode) return
+    const label = editData?.label && editData.label.trim() !== "" ? editData.label : "Untitled Step"
     setNodes((nds) =>
       nds.map((n) =>
         n.id === editingNode.id
-          ? { ...n, data: { ...editData } }
+          ? { ...n, data: { ...editData, label } }
           : n
       )
     )
@@ -139,10 +382,11 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
     setEditData(null)
   }
 
-  // Color code nodes by type
+  // Color code nodes by type (for default fallback)
   const coloredNodes = nodes.map((node) => ({
     ...node,
-    style: {
+    type: node.data?.type || 'task',
+    style: node.data?.type ? {} : {
       ...node.style,
       background: typeColors[node.data?.type] || typeColors.default,
       color: "#fff",
@@ -179,8 +423,19 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
               <p className="text-gray-600 text-lg mb-4 text-center">
                 Collaboratively design your onboarding and service workflows here.
               </p>
+              {/* Instructions Box */}
+              <div className="mb-2 max-w-3xl text-xs text-gray-500 flex flex-wrap gap-x-4 gap-y-1 items-center justify-start">
+                <span className="font-semibold text-gray-600 mr-2">Shortcuts:</span>
+                <span><b>Pan:</b> <kbd className="px-1 py-0.5 bg-white border rounded">Space</kbd> + drag</span>
+                <span><b>Select:</b> Click, <kbd className="px-1 py-0.5 bg-white border rounded">Ctrl</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Cmd</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Shift</kbd> + click, or drag box</span>
+                <span><b>Drag:</b> Drag node(s)</span>
+                <span><b>Edit:</b> Double-click node</span>
+                <span><b>Connect:</b> Drag from connector</span>
+                <span><b>Delete:</b> Select, then <kbd className="px-1 py-0.5 bg-white border rounded">Delete</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Backspace</kbd></span>
+                <span><b>Zoom/Pan:</b> Use controls</span>
+              </div>
               {message && <div className="mb-4 text-center text-lg font-medium text-green-700">{message}</div>}
-              <div style={{ height: 500, width: '100%', maxWidth: 1200, margin: '0 auto', background: "#f9fafb", borderRadius: 12 }} className="overflow-hidden">
+              <div style={{ height: 500, width: '100%', maxWidth: 1200, margin: '0 auto', background: "#f9fafb", borderRadius: 12, pointerEvents: 'auto' }} className="overflow-hidden">
                 <ReactFlow
                   nodes={coloredNodes}
                   edges={edges}
@@ -189,8 +444,13 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
                   onConnect={onConnect}
                   nodeTypes={nodeTypes}
                   fitView
-                  onNodeClick={onNodeClick}
+                  onNodeDoubleClick={onNodeDoubleClick}
                   defaultViewport={{ x: 0, y: 0, zoom: 0.5 }}
+                  selectNodesOnDrag={true}
+                  panOnDrag={false}
+                  connectionMode={ConnectionMode.Loose}
+                  snapToGrid={true}
+                  snapGrid={[20, 20]}
                 >
                   <MiniMap />
                   <Controls />
@@ -223,10 +483,17 @@ export function WorkflowBuilder({ clientId }: WorkflowBuilderProps) {
                       onChange={e => setEditData((d: any) => ({ ...d, type: e.target.value }))}
                     >
                       <option value="task">Task</option>
-                      <option value="approval">Approval</option>
-                      <option value="meeting">Meeting</option>
-                      <option value="form">Form</option>
-                      <option value="doc">Doc</option>
+                      <option value="approval">Approval Required</option>
+                      <option value="meeting">Meeting/Call</option>
+                      <option value="form">Client Form</option>
+                      <option value="doc">Document</option>
+                      <option value="file_upload">Upload/Deliverable</option>
+                      <option value="automation">Automation / Integration</option>
+                      <option value="checklist">Checklist</option>
+                      <option value="due_date">Due Date / Reminder</option>
+                      <option value="client_action">Client To-Do</option>
+                      <option value="decision">Decision Point</option>
+                      <option value="milestone">Milestone</option>
                     </select>
                   </div>
                   <div>
