@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DatabaseStatusCheck } from "@/components/database-status-check"
 import { ImplementationManagerDashboard } from "@/components/implementation-manager-dashboard"
-import { getAllClients } from "@/lib/database"
+import { getAllClients, getDueClientFollowUps, markClientFollowUpDone } from "@/lib/database"
 import { Users, Package, TrendingUp, AlertCircle, Plus } from "lucide-react"
 import Link from "next/link"
+import { format, parseISO, isBefore } from "date-fns"
+import type { ClientFollowUp } from "@/lib/types"
 
 interface DashboardStats {
   totalClients: number
@@ -31,9 +33,13 @@ export function AdminDashboard() {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [followUps, setFollowUps] = useState<ClientFollowUp[]>([])
+  const [loadingFollowUps, setLoadingFollowUps] = useState(true)
+  const [marking, setMarking] = useState<string | null>(null)
 
   useEffect(() => {
     fetchDashboardData()
+    fetchFollowUps()
   }, [])
 
   const fetchDashboardData = async () => {
@@ -65,6 +71,25 @@ export function AdminDashboard() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchFollowUps = async () => {
+    setLoadingFollowUps(true)
+    try {
+      const due = await getDueClientFollowUps({ daysAhead: 7 })
+      setFollowUps(due)
+    } catch (err) {
+      setFollowUps([])
+    } finally {
+      setLoadingFollowUps(false)
+    }
+  }
+
+  const handleMarkDone = async (id: string) => {
+    setMarking(id)
+    await markClientFollowUpDone(id)
+    await fetchFollowUps()
+    setMarking(null)
   }
 
   if (loading) {
@@ -238,6 +263,44 @@ export function AdminDashboard() {
 
       {/* Implementation Manager Dashboard */}
       {stats.totalClients > 0 && <ImplementationManagerDashboard />}
+
+      {/* Follow-up Reminders Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Follow-up Reminders</CardTitle>
+          <CardDescription>Clients due for follow-up in the next 7 days</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingFollowUps ? (
+            <div className="text-gray-500">Loading follow-ups...</div>
+          ) : followUps.length === 0 ? (
+            <div className="text-green-600">No follow-ups due this week!</div>
+          ) : (
+            <div className="space-y-3">
+              {followUps.map((fu) => (
+                <div key={fu.id} className="flex items-center justify-between border-b pb-2 last:border-b-0 last:pb-0">
+                  <div>
+                    <div className="font-medium text-[#010124]">
+                      {fu.type === "sale" ? "Sale" : "Graduation"} {fu.milestone}-Day Follow-up
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Due: {format(parseISO(fu.due_date), "MMM d, yyyy")} {isBefore(parseISO(fu.due_date), new Date()) ? <span className="text-red-600">(Overdue)</span> : null}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={marking === fu.id}
+                    onClick={() => handleMarkDone(fu.id)}
+                  >
+                    {marking === fu.id ? "Marking..." : "Mark Done"}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -32,6 +32,7 @@ import {
   Settings,
   Puzzle,
   Calendar as CalendarIcon,
+  Archive,
 } from "lucide-react"
 import Link from "next/link"
 import {
@@ -41,12 +42,15 @@ import {
   createKanbanActivity,
   initializeKanbanSystem,
   updateClient,
+  createClientFollowUp,
+  getUpcomingClientFollowUps,
 } from "@/lib/database"
 import {
   type KanbanWorkflow,
   type ClientWithStage,
 } from "@/lib/types"
 import { Calendar as KanbanDatePicker } from "@/components/ui/calendar"
+import { addDays, format } from "date-fns"
 
 interface KanbanBoardProps {
   initialPackage?: "light" | "premium" | "gold" | "elite"
@@ -70,7 +74,7 @@ type StageKey =
   | "integrations"
   | "verification"
 
-function getStageIcon(stageKey: StageKey) {
+function getStageIcon(stageKey: StageKey | "archived") {
   switch (stageKey) {
     case "new":
       return <UserPlus className="h-4 w-4" />
@@ -89,6 +93,8 @@ function getStageIcon(stageKey: StageKey) {
       return <CheckCircle className="h-4 w-4" />
     case "graduation":
       return <GraduationCap className="h-4 w-4" />
+    case "archived":
+      return <Archive className="h-4 w-4" />
     default:
       return <Info className="h-4 w-4" />
   }
@@ -157,6 +163,7 @@ function ClientCard({ client, workflow, onMoveClient, onViewClient }: ClientCard
     { value: "integrations", label: "Integrations" },
     { value: "verification", label: "Verification" },
     { value: "graduation", label: "Graduation" },
+    { value: "archived", label: "Archived" },
   ]
   const defaultStages = [
     { value: "new", label: "New Client" },
@@ -165,6 +172,7 @@ function ClientCard({ client, workflow, onMoveClient, onViewClient }: ClientCard
     { value: "second_call", label: "2nd Onboarding Call" },
     { value: "third_call", label: "3rd Onboarding Call" },
     { value: "graduation", label: "Graduation" },
+    { value: "archived", label: "Archived" },
   ]
   const stageOptions = client.success_package === "elite" ? eliteStages : defaultStages
 
@@ -222,6 +230,25 @@ function ClientCard({ client, workflow, onMoveClient, onViewClient }: ClientCard
               <span>Calls: {client.calls_completed}/{client.calls_scheduled}</span>
               <span>Created: {new Date(client.created_at).toLocaleDateString()}</span>
             </div>
+            {client.graduation_date && (
+              <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                <span>Graduated: {new Date(client.graduation_date).toLocaleDateString()}</span>
+                {client.created_at && (
+                  <span>
+                    Time to Graduate: {
+                      Math.max(1, Math.ceil((new Date(client.graduation_date).getTime() - new Date(client.created_at).getTime()) / (1000 * 60 * 60 * 24)))
+                    } days
+                  </span>
+                )}
+              </div>
+            )}
+            {client.stage?.current_stage === "graduation" && (
+              <div className="flex justify-end mt-2">
+                <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onMoveClient(client.id, "archived") }}>
+                  <Archive className="h-4 w-4 mr-1" /> Archive
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -338,6 +365,15 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
   const [editingDate, setEditingDate] = useState(false)
   const [newCreatedAt, setNewCreatedAt] = useState<Date | null>(null)
   const [savingDate, setSavingDate] = useState(false)
+  const [editingGraduationDate, setEditingGraduationDate] = useState(false)
+  const [newGraduationDate, setNewGraduationDate] = useState<Date | null>(null)
+  const [savingGraduationDate, setSavingGraduationDate] = useState(false)
+  const [showFollowUpModal, setShowFollowUpModal] = useState(false)
+  const [followUpDays, setFollowUpDays] = useState<number | "custom">(7)
+  const [customFollowUpDate, setCustomFollowUpDate] = useState<Date | null>(null)
+  const [followUpTitle, setFollowUpTitle] = useState("")
+  const [followUpNotes, setFollowUpNotes] = useState("")
+  const [creatingFollowUp, setCreatingFollowUp] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -417,6 +453,26 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
       toast.error("Failed to update date")
     } finally {
       setSavingDate(false)
+    }
+  }
+
+  const handleEditGraduationDate = () => {
+    setEditingGraduationDate(true)
+    setNewGraduationDate(selectedClient?.graduation_date ? new Date(selectedClient.graduation_date) : null)
+  }
+
+  const handleSaveGraduationDate = async () => {
+    if (!selectedClient) return
+    setSavingGraduationDate(true)
+    try {
+      await updateClient(selectedClient.id, { graduation_date: newGraduationDate ? newGraduationDate.toISOString().slice(0, 10) : null })
+      setSelectedClient({ ...selectedClient, graduation_date: newGraduationDate ? newGraduationDate.toISOString().slice(0, 10) : null })
+      setEditingGraduationDate(false)
+      toast.success("Graduation date updated!")
+    } catch (error) {
+      toast.error("Failed to update graduation date")
+    } finally {
+      setSavingGraduationDate(false)
     }
   }
 
@@ -553,8 +609,133 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
                   </div>
                 )}
               </div>
+
+              <div>
+                <Label>Graduation Date</Label>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">{selectedClient.graduation_date ? new Date(selectedClient.graduation_date).toLocaleDateString() : "-"}</span>
+                  <Button size="sm" variant="ghost" onClick={handleEditGraduationDate}>
+                    <CalendarIcon className="h-4 w-4" /> Edit
+                  </Button>
+                </div>
+                {editingGraduationDate && (
+                  <div className="mt-2 space-y-2">
+                    <KanbanDatePicker
+                      mode="single"
+                      selected={newGraduationDate || undefined}
+                      onSelect={(date) => setNewGraduationDate(date ?? null)}
+                      initialFocus
+                    />
+                    <div className="flex space-x-2">
+                      <Button size="sm" variant="outline" onClick={() => setEditingGraduationDate(false)} disabled={savingGraduationDate}>Cancel</Button>
+                      <Button size="sm" onClick={handleSaveGraduationDate} disabled={savingGraduationDate}>{savingGraduationDate ? "Saving..." : "Save Date"}</Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6">
+                <Button variant="outline" onClick={() => setShowFollowUpModal(true)}>
+                  + Create Follow-up
+                </Button>
+              </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showFollowUpModal} onOpenChange={setShowFollowUpModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Follow-up for {selectedClient?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input value={followUpTitle} onChange={e => setFollowUpTitle(e.target.value)} placeholder="Follow-up title (e.g. Check-in call)" />
+            </div>
+            <div>
+              <Label>Due In</Label>
+              <Select value={String(followUpDays)} onValueChange={v => setFollowUpDays(v === "custom" ? "custom" : Number(v))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select days" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">7 days</SelectItem>
+                  <SelectItem value="30">30 days</SelectItem>
+                  <SelectItem value="60">60 days</SelectItem>
+                  <SelectItem value="90">90 days</SelectItem>
+                  <SelectItem value="custom">Custom date</SelectItem>
+                </SelectContent>
+              </Select>
+              {followUpDays === "custom" && (
+                <div className="mt-2">
+                  <KanbanDatePicker
+                    mode="single"
+                    selected={customFollowUpDate || undefined}
+                    onSelect={date => setCustomFollowUpDate(date ?? null)}
+                    initialFocus
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <Label>Notes (optional)</Label>
+              <Textarea value={followUpNotes} onChange={e => setFollowUpNotes(e.target.value)} placeholder="Add any notes for this follow-up..." rows={3} />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowFollowUpModal(false)} disabled={creatingFollowUp}>Cancel</Button>
+              <Button
+                onClick={async () => {
+                  if (!selectedClient) return
+                  setCreatingFollowUp(true)
+                  let dueDate: string
+                  let milestone: number | null
+                  if (followUpDays === "custom") {
+                    if (!customFollowUpDate) {
+                      toast.error("Please select a custom date")
+                      setCreatingFollowUp(false)
+                      return
+                    }
+                    dueDate = format(customFollowUpDate, "yyyy-MM-dd")
+                    milestone = null
+                  } else {
+                    dueDate = format(addDays(new Date(), followUpDays), "yyyy-MM-dd")
+                    milestone = followUpDays
+                  }
+                  // Check for duplicate
+                  const existing = await getUpcomingClientFollowUps({ daysAhead: 30, includeCompleted: true }) as Array<{ client_id: string, type?: string, milestone?: number, due_date: string }>
+                  const duplicate = existing.find(fu => fu.client_id === selectedClient.id && fu.type === "manual" && fu.milestone === milestone && fu.due_date === dueDate)
+                  if (duplicate) {
+                    toast.error("A follow-up for this client, milestone, and date already exists.")
+                    setCreatingFollowUp(false)
+                    return
+                  }
+                  const result = await createClientFollowUp({
+                    client_id: selectedClient.id,
+                    title: followUpTitle || "Follow-up",
+                    due_date: dueDate,
+                    notes: followUpNotes,
+                    milestone,
+                  })
+                  if (result) {
+                    toast.success("Follow-up created!")
+                    setShowFollowUpModal(false)
+                    setFollowUpTitle("")
+                    setFollowUpNotes("")
+                    setFollowUpDays(7)
+                    setCustomFollowUpDate(null)
+                  } else {
+                    toast.error("Failed to create follow-up")
+                  }
+                  setCreatingFollowUp(false)
+                }}
+                disabled={creatingFollowUp || (!followUpTitle && !followUpNotes)}
+              >
+                {creatingFollowUp ? "Creating..." : "Create Follow-up"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

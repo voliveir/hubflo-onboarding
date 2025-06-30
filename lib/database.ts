@@ -13,7 +13,9 @@ import type {
   ClientStage,
   ClientWithStage,
   KanbanActivity,
+  ClientFollowUp,
 } from "./types"
+import { addDays, startOfDay, endOfDay, isWithinInterval, parseISO } from "date-fns"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -1610,6 +1612,9 @@ export async function moveClientToStage(clientId: string, newStage: string, note
     throw new Error(`Invalid stage ${newStage} for package ${client.success_package}`)
   }
 
+  // Get the current stage
+  const currentStage = await getClientStage(clientId)
+
   // Update the client stage
   await updateClientStage(clientId, {
     current_stage: newStage,
@@ -1620,12 +1625,21 @@ export async function moveClientToStage(clientId: string, newStage: string, note
 
   // If moving to graduation, mark the previous stage as completed
   if (newStage === "graduation") {
-    const currentStage = await getClientStage(clientId)
     if (currentStage && currentStage.current_stage !== "graduation") {
       await updateClientStage(clientId, {
         stage_completed_at: new Date().toISOString(),
       })
     }
+  }
+
+  // If moving to archived, set client status to completed
+  if (newStage === "archived") {
+    await updateClient(clientId, { status: "completed" })
+  }
+
+  // If moving from archived to any other stage, set status to active
+  if (currentStage?.current_stage === "archived" && newStage !== "archived") {
+    await updateClient(clientId, { status: "active" })
   }
 }
 
@@ -1637,7 +1651,7 @@ export async function getClientsByStage(successPackage: string, stageKey: string
       stage:client_stages(*)
     `)
     .eq("success_package", successPackage)
-    .eq("status", "active")
+    .in("status", ["active", "completed"])
     .eq("client_stages.current_stage", stageKey)
 
   if (error) {
@@ -1655,7 +1669,7 @@ export async function getAllClientsWithStages(): Promise<ClientWithStage[]> {
       *,
       stage:client_stages(*)
     `)
-    .eq("status", "active")
+    .in("status", ["active", "completed"])
     .order("created_at", { ascending: false })
 
   if (error) {
@@ -1778,4 +1792,68 @@ export async function initializeKanbanSystem(): Promise<void> {
   } catch (error) {
     console.log("Kanban system initialization check failed:", error)
   }
+}
+
+/**
+ * Create a new client follow-up
+ */
+export async function createClientFollowUp({ client_id, title, due_date, notes, milestone }: { client_id: string, title: string, due_date: string, notes?: string, milestone: number | null }): Promise<ClientFollowUp | null> {
+  const { data, error } = await supabase
+    .from("client_follow_ups")
+    .insert([{ client_id, title, due_date, notes: notes || null, type: "manual", milestone }])
+    .select()
+    .single()
+  if (error) {
+    console.error("Error creating client follow-up:", error, JSON.stringify(error, null, 2))
+    return null
+  }
+  return data as ClientFollowUp
+}
+
+/**
+ * Get all client follow-ups due in the next 7 days (optionally filter by completion), including client info
+ */
+export async function getUpcomingClientFollowUps({ daysAhead = 7, includeCompleted = false } = {}): Promise<(ClientFollowUp & { client_name?: string, client_email?: string, client_package?: string })[]> {
+  const today = new Date()
+  const end = new Date()
+  end.setDate(today.getDate() + daysAhead)
+  let query = supabase
+    .from("client_follow_ups")
+    .select("*, client:clients(name,email,success_package)")
+    .gte("due_date", today.toISOString().slice(0, 10))
+    .lte("due_date", end.toISOString().slice(0, 10))
+    .order("due_date", { ascending: true })
+  if (!includeCompleted) {
+    query = query.eq("is_completed", false)
+  }
+  const { data, error } = await query
+  if (error) {
+    console.error("Error fetching upcoming client follow-ups:", error)
+    return []
+  }
+  // Map client fields for easier access
+  return (data || []).map((fu: any) => ({
+    ...fu,
+    client_name: fu.client?.name,
+    client_email: fu.client?.email,
+    client_package: fu.client?.success_package,
+  }))
+}
+
+/**
+ * Mark a client follow-up as complete
+ */
+export async function completeClientFollowUp(id: string): Promise<ClientFollowUp | null> {
+  const completedAt = new Date().toISOString()
+  const { data, error } = await supabase
+    .from("client_follow_ups")
+    .update({ is_completed: true, completed_at: completedAt, updated_at: completedAt })
+    .eq("id", id)
+    .select()
+    .single()
+  if (error) {
+    console.error("Error completing client follow-up:", error)
+    return null
+  }
+  return data as ClientFollowUp
 }

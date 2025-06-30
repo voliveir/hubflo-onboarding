@@ -50,34 +50,38 @@ CREATE TABLE IF NOT EXISTS kanban_activities (
 );
 
 -- Insert workflow stages for each success package
--- Light Package: New -> Call -> Graduation
+-- Light Package: New -> Call -> Graduation -> Archived
 INSERT INTO kanban_workflows (success_package, stage_key, stage_name, stage_description, stage_order, is_final_stage, color, icon_name) VALUES
 ('light', 'new', 'New Client', 'Client has signed up and needs initial contact', 1, FALSE, '#10B981', 'UserPlus'),
 ('light', 'call', 'Onboarding Call', 'Initial Zoom call with product specialist', 2, FALSE, '#3B82F6', 'Phone'),
-('light', 'graduation', 'Graduation', 'Client has completed onboarding and is ready', 3, TRUE, '#8B5CF6', 'GraduationCap');
+('light', 'graduation', 'Graduation', 'Client has completed onboarding and is ready', 3, FALSE, '#8B5CF6', 'GraduationCap'),
+('light', 'archived', 'Archived', 'Client is archived', 4, TRUE, '#6B7280', 'Archive');
 
--- Premium Package: New -> 1st Call -> 2nd Call -> Graduation
+-- Premium Package: New -> 1st Call -> 2nd Call -> Graduation -> Archived
 INSERT INTO kanban_workflows (success_package, stage_key, stage_name, stage_description, stage_order, is_final_stage, color, icon_name) VALUES
 ('premium', 'new', 'New Client', 'Client has signed up and needs initial contact', 1, FALSE, '#10B981', 'UserPlus'),
 ('premium', 'first_call', '1st Onboarding Call', 'Initial discovery and requirements gathering', 2, FALSE, '#3B82F6', 'Phone'),
 ('premium', 'second_call', '2nd Onboarding Call', 'Workflow mapping and workspace structuring', 3, FALSE, '#F59E0B', 'PhoneCall'),
-('premium', 'graduation', 'Graduation', 'Client has completed onboarding and is ready', 4, TRUE, '#8B5CF6', 'GraduationCap');
+('premium', 'graduation', 'Graduation', 'Client has completed onboarding and is ready', 4, FALSE, '#8B5CF6', 'GraduationCap'),
+('premium', 'archived', 'Archived', 'Client is archived', 5, TRUE, '#6B7280', 'Archive');
 
--- Gold Package: New -> 1st Call -> 2nd Call -> 3rd Call -> Graduation
+-- Gold Package: New -> 1st Call -> 2nd Call -> 3rd Call -> Graduation -> Archived
 INSERT INTO kanban_workflows (success_package, stage_key, stage_name, stage_description, stage_order, is_final_stage, color, icon_name) VALUES
 ('gold', 'new', 'New Client', 'Client has signed up and needs initial contact', 1, FALSE, '#10B981', 'UserPlus'),
 ('gold', 'first_call', '1st Onboarding Call', 'Initial discovery and requirements gathering', 2, FALSE, '#3B82F6', 'Phone'),
 ('gold', 'second_call', '2nd Onboarding Call', 'Advanced workflow setup and integrations', 3, FALSE, '#F59E0B', 'PhoneCall'),
 ('gold', 'third_call', '3rd Onboarding Call', 'Advanced integrations and optimization', 4, FALSE, '#EF4444', 'PhoneIncoming'),
-('gold', 'graduation', 'Graduation', 'Client has completed onboarding and is ready', 5, TRUE, '#8B5CF6', 'GraduationCap');
+('gold', 'graduation', 'Graduation', 'Client has completed onboarding and is ready', 5, FALSE, '#8B5CF6', 'GraduationCap'),
+('gold', 'archived', 'Archived', 'Client is archived', 6, TRUE, '#6B7280', 'Archive');
 
--- Elite Package: New -> 1st Call -> 2nd Call -> 3rd Call -> Graduation (similar to Gold but with unlimited calls)
+-- Elite Package: New -> 1st Call -> 2nd Call -> 3rd Call -> Graduation -> Archived
 INSERT INTO kanban_workflows (success_package, stage_key, stage_name, stage_description, stage_order, is_final_stage, color, icon_name) VALUES
 ('elite', 'new', 'New Client', 'Client has signed up and needs initial contact', 1, FALSE, '#10B981', 'UserPlus'),
 ('elite', 'first_call', '1st Onboarding Call', 'Initial discovery and requirements gathering', 2, FALSE, '#3B82F6', 'Phone'),
 ('elite', 'second_call', '2nd Onboarding Call', 'Advanced workflow setup and integrations', 3, FALSE, '#F59E0B', 'PhoneCall'),
 ('elite', 'third_call', '3rd Onboarding Call', 'Advanced integrations and optimization', 4, FALSE, '#EF4444', 'PhoneIncoming'),
-('elite', 'graduation', 'Graduation', 'Client has completed onboarding and is ready', 5, TRUE, '#8B5CF6', 'GraduationCap');
+('elite', 'graduation', 'Graduation', 'Client has completed onboarding and is ready', 5, FALSE, '#8B5CF6', 'GraduationCap'),
+('elite', 'archived', 'Archived', 'Client is archived', 6, TRUE, '#6B7280', 'Archive');
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_client_stages_client_id ON client_stages(client_id);

@@ -29,6 +29,11 @@ const navigation = [
     icon: LayoutDashboard,
   },
   {
+    name: "Client Follow-ups",
+    href: "/admin/client-follow-ups",
+    icon: BarChart3,
+  },
+  {
     name: "Clients",
     icon: Users,
     children: [

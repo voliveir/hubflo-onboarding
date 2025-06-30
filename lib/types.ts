@@ -26,6 +26,7 @@ export interface Client {
   project_completion_percentage: number
   created_at: string
   updated_at: string
+  graduation_date?: string | null
 }
 
 export interface Integration {
@@ -378,4 +379,16 @@ export interface KanbanActivity {
 export interface ClientWithStage extends Client {
   stage?: ClientStage
   workflow_stages?: KanbanWorkflow[]
+}
+
+export interface ClientFollowUp {
+  id: string
+  client_id: string
+  title: string
+  due_date: string // ISO date string
+  is_completed: boolean
+  completed_at?: string | null
+  notes?: string | null
+  created_at: string
+  updated_at: string
 }
