@@ -27,6 +27,8 @@ export interface Client {
   created_at: string
   updated_at: string
   graduation_date?: string | null
+  workflow_builder_enabled: boolean
+  workflow?: any // JSON object for workflow builder data
 }
 
 export interface Integration {

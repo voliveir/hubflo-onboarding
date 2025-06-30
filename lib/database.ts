@@ -89,6 +89,9 @@ function transformClientFromDb(data: any): Client {
     project_completion_percentage: data.project_completion_percentage || 0,
     created_at: data.created_at,
     updated_at: data.updated_at,
+    graduation_date: data.graduation_date || undefined,
+    workflow_builder_enabled: data.workflow_builder_enabled || false,
+    workflow: data.workflow || undefined,
   }
 }
 
@@ -102,6 +105,10 @@ const transformClientForDb = (clientData: any): any => {
 
   if (transformed.billing_type) {
     transformed.billing_type = convertBillingTypeToDb(transformed.billing_type)
+  }
+
+  if (typeof transformed.workflow_builder_enabled !== "undefined") {
+    transformed.workflow_builder_enabled = !!transformed.workflow_builder_enabled
   }
 
   return transformed
@@ -140,6 +147,7 @@ export async function createClient(formData: any): Promise<Client> {
       project_completion_percentage: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      workflow_builder_enabled: formData.workflow_builder_enabled || false,
     }
 
     const { data, error } = await supabase.from("clients").insert([clientData]).select().single()
@@ -1856,4 +1864,17 @@ export async function completeClientFollowUp(id: string): Promise<ClientFollowUp
     return null
   }
   return data as ClientFollowUp
+}
+
+// Fetch workflow for a client
+export async function getClientWorkflow(clientId: string): Promise<any> {
+  const { data, error } = await supabase.from("clients").select("workflow").eq("id", clientId).single()
+  if (error) throw error
+  return data?.workflow || { nodes: [], edges: [] }
+}
+
+// Update workflow for a client
+export async function updateClientWorkflow(clientId: string, workflow: any): Promise<void> {
+  const { error } = await supabase.from("clients").update({ workflow }).eq("id", clientId)
+  if (error) throw error
 }

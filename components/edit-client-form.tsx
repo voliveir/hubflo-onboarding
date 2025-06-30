@@ -42,6 +42,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     email: client.email,
     plan_type: client.plan_type,
     revenue_amount: client.revenue_amount,
+    workflow_builder_enabled: client.workflow_builder_enabled,
   })
 
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
@@ -422,6 +423,18 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                   id="projects_enabled"
                   checked={formData.projects_enabled !== false}
                   onCheckedChange={(checked) => setFormData((prev: Partial<Client>) => ({ ...prev, projects_enabled: checked }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="workflow_builder_enabled">Enable Workflow Builder</Label>
+                  <p className="text-sm text-gray-600">Show collaborative workflow builder in client portal</p>
+                </div>
+                <Switch
+                  id="workflow_builder_enabled"
+                  checked={formData.workflow_builder_enabled || false}
+                  onCheckedChange={(checked) => setFormData((prev: Partial<Client>) => ({ ...prev, workflow_builder_enabled: checked }))}
                 />
               </div>
             </div>

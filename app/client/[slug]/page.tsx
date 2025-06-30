@@ -31,6 +31,7 @@ import { getClientBySlug, getClientIntegrations, getClientFeaturesForPortal } fr
 import Image from "next/image"
 import type { ClientIntegration, ClientFeature } from "@/lib/types"
 import { IndustryWorkflows } from "@/components/industry-workflows"
+import { ClientWorkflowBuilderWrapper } from "@/components/ClientWorkflowBuilderWrapper"
 
 interface ClientPageProps {
   params: {
@@ -351,6 +352,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
       {/* Visual Workflows Section - move here before Next Steps */}
       <IndustryWorkflows />
+      <ClientWorkflowBuilderWrapper enabled={client.workflow_builder_enabled} clientId={client.id} />
 
       {/* Next Steps */}
       <section className="py-16 px-4 bg-white">

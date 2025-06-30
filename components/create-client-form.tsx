@@ -84,6 +84,7 @@ export default function CreateClientForm() {
     migration_completed: false,
     slack_access_granted: false,
     notes: "",
+    workflow_builder_enabled: false,
   })
 
   const handleInputChange = (field: string, value: any) => {
@@ -478,6 +479,15 @@ export default function CreateClientForm() {
                 onCheckedChange={(checked) => handleInputChange("show_zapier_integrations", checked)}
               />
               <Label htmlFor="show_zapier_integrations">Show Zapier Integrations</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="workflow_builder_enabled"
+                checked={formData.workflow_builder_enabled}
+                onCheckedChange={(checked) => handleInputChange("workflow_builder_enabled", checked)}
+              />
+              <Label htmlFor="workflow_builder_enabled">Enable Workflow Builder</Label>
             </div>
           </div>
         </CardContent>
