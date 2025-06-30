@@ -16,7 +16,10 @@ import {
   Building2,
   Wrench,
   Rocket,
+  Kanban,
 } from "lucide-react"
+
+type NavChild = { name: string; href: string };
 
 const navigation = [
   {
@@ -29,8 +32,15 @@ const navigation = [
     icon: Users,
     children: [
       { name: "All Clients", href: "/admin/clients" },
+      { name: "Active Clients", href: "/admin/clients?status=active" },
+      { name: "Completed Clients", href: "/admin/clients?status=completed" },
       { name: "Add New Client", href: "/admin/clients/new" },
-    ],
+    ] as NavChild[],
+  },
+  {
+    name: "Project Management",
+    href: "/admin/kanban",
+    icon: Kanban,
   },
   {
     name: "Features",
@@ -97,21 +107,23 @@ export function AdminSidebar() {
 
                   {isExpanded && (
                     <div className="ml-6 mt-1 space-y-1">
-                      {item.children.map((child) => (
-                        <Button
-                          key={child.href}
-                          variant="ghost"
-                          className={cn(
-                            "w-full justify-start px-3 py-2 text-left font-normal text-sm",
-                            pathname === child.href
-                              ? "bg-[#ECB22D] text-[#010124]"
-                              : "text-gray-300 hover:bg-[#ECB22D] hover:text-[#010124]",
-                          )}
-                          asChild
-                        >
-                          <Link href={child.href}>{child.name}</Link>
-                        </Button>
-                      ))}
+                      {item.children.map((child: NavChild) =>
+                        child.href ? (
+                          <Button
+                            key={child.href}
+                            variant="ghost"
+                            className={cn(
+                              "w-full justify-start px-3 py-2 text-left font-normal text-sm",
+                              pathname === child.href
+                                ? "bg-[#ECB22D] text-[#010124]"
+                                : "text-gray-300 hover:bg-[#ECB22D] hover:text-[#010124]",
+                            )}
+                            asChild
+                          >
+                            <Link href={child.href as string}>{child.name}</Link>
+                          </Button>
+                        ) : null
+                      )}
                     </div>
                   )}
                 </div>
@@ -130,7 +142,7 @@ export function AdminSidebar() {
                 )}
                 asChild
               >
-                <Link href={item.href}>
+                <Link href={item.href || "#"}>
                   <item.icon className="mr-3 h-4 w-4" />
                   {item.name}
                 </Link>

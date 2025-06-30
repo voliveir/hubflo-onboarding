@@ -49,6 +49,21 @@ export default async function ClientDetailPage({ params }: PageProps) {
     }
   }
 
+  function getCustomAppLabel(value: string | undefined) {
+    switch (value) {
+      case "gray_label":
+        return "Gray Label"
+      case "white_label":
+        return "White Label"
+      case "not_applicable":
+      case "":
+      case undefined:
+        return "Not Applicable"
+      default:
+        return value
+    }
+  }
+
   return (
     <PasswordProtection>
       <div className="flex h-screen bg-gray-100">
@@ -148,7 +163,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
                         </div>
                         <div>
                           <label className="text-sm font-medium text-gray-500">Custom App</label>
-                          <p className="text-gray-900">{client.custom_app || "Not Applicable"}</p>
+                          <p className="text-gray-900">{getCustomAppLabel(client.custom_app)}</p>
                         </div>
                       </div>
                     </CardContent>

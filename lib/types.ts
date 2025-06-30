@@ -330,3 +330,52 @@ export interface CreateClientIntegrationData {
 export interface UpdateClientIntegrationData extends Partial<CreateClientIntegrationData> {
   id: string
 }
+
+// Kanban Board Types
+export interface KanbanWorkflow {
+  id: string
+  success_package: "light" | "premium" | "gold" | "elite"
+  stage_key: string
+  stage_name: string
+  stage_description?: string
+  stage_order: number
+  is_final_stage: boolean
+  color: string
+  icon_name?: string
+  created_at: string
+}
+
+export interface ClientStage {
+  id: string
+  client_id: string
+  current_stage: string
+  stage_order: number
+  stage_started_at: string
+  stage_completed_at?: string
+  stage_notes?: string
+  next_action_required?: string
+  next_action_due_date?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface KanbanActivity {
+  id: string
+  client_id: string
+  stage_key: string
+  activity_type: string
+  activity_title: string
+  activity_description?: string
+  status: "pending" | "in_progress" | "completed" | "cancelled"
+  assigned_to?: string
+  due_date?: string
+  completed_at?: string
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ClientWithStage extends Client {
+  stage?: ClientStage
+  workflow_stages?: KanbanWorkflow[]
+}

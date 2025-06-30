@@ -100,12 +100,12 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
         </div>
 
         {/* Detailed Steps */}
-        <div className="max-w-6xl mx-auto w-full pb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="max-w-[120rem] mx-auto w-full pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {steps.map((step, index) => (
               <Card
                 key={step.id}
-                className="border-2 border-[#ECB22D] flex flex-col h-full min-h-[700px]"
+                className="border-2 border-[#ECB22D] flex flex-col h-full min-h-[420px] max-w-[480px] mx-auto"
               >
                 {/* Top Bar */}
                 <div className="bg-[#010124] text-white flex items-center px-6 py-4 rounded-t-md" style={{minHeight: 80}}>

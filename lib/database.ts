@@ -9,6 +9,10 @@ import type {
   TaskCompletion,
   Feature,
   ClientFeature,
+  KanbanWorkflow,
+  ClientStage,
+  ClientWithStage,
+  KanbanActivity,
 } from "./types"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -24,12 +28,11 @@ const supabase = createSupabaseClient(supabaseUrl, supabaseKey)
 
 // Helper functions to convert between UI and database values
 const convertCustomAppToDb = (uiValue: string): string => {
-  const mapping: Record<string, string> = {
-    "Gray Label": "gray_label",
-    "White Label": "white_label",
-    "Not Applicable": "not_applicable",
-  }
-  return mapping[uiValue] || "not_applicable"
+  // Accept both UI and DB values
+  if (uiValue === "gray_label" || uiValue === "Gray Label") return "gray_label"
+  if (uiValue === "white_label" || uiValue === "White Label") return "white_label"
+  if (uiValue === "not_applicable" || uiValue === "Not Applicable") return "not_applicable"
+  return "not_applicable"
 }
 
 const convertCustomAppFromDb = (dbValue: string): string => {
@@ -55,13 +58,35 @@ const convertBillingTypeFromDb = (dbValue: string): string => {
 }
 
 // Helper function to transform client data from database
-const transformClientFromDb = (client: any): Client => {
-  if (!client) return client
-
+function transformClientFromDb(data: any): Client {
   return {
-    ...client,
-    custom_app: convertCustomAppFromDb(client.custom_app),
-    billing_type: convertBillingTypeFromDb(client.billing_type),
+    id: data.id,
+    name: data.name,
+    slug: data.slug,
+    email: data.email || undefined,
+    success_package: data.success_package,
+    billing_type: data.billing_type,
+    plan_type: data.plan_type,
+    revenue_amount: data.revenue_amount,
+    custom_app: data.custom_app,
+    notes: data.notes || undefined,
+    number_of_users: data.number_of_users,
+    logo_url: data.logo_url || undefined,
+    welcome_message: data.welcome_message || undefined,
+    video_url: data.video_url || undefined,
+    show_zapier_integrations: data.show_zapier_integrations,
+    projects_enabled: data.projects_enabled,
+    status: data.status,
+    calls_scheduled: data.calls_scheduled || 0,
+    calls_completed: data.calls_completed || 0,
+    forms_setup: data.forms_setup || 0,
+    smartdocs_setup: data.smartdocs_setup || 0,
+    zapier_integrations_setup: data.zapier_integrations_setup || 0,
+    migration_completed: data.migration_completed || false,
+    slack_access_granted: data.slack_access_granted || false,
+    project_completion_percentage: data.project_completion_percentage || 0,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
   }
 }
 
@@ -120,6 +145,19 @@ export async function createClient(formData: any): Promise<Client> {
     if (error) {
       console.error("Error creating client:", error)
       throw new Error(`Failed to create client: ${error.message}`)
+    }
+
+    // Automatically create a client_stages record for the new client
+    const clientId = data.id
+    const initialStage = {
+      client_id: clientId,
+      current_stage: "new",
+      stage_order: 1,
+    }
+    const { error: stageError } = await supabase.from("client_stages").insert([initialStage])
+    if (stageError) {
+      console.error("Error creating client_stages record:", stageError)
+      // Optionally, you could throw here or just log
     }
 
     return transformClientFromDb(data)
@@ -387,7 +425,7 @@ export async function createChecklistItem(
     if (!finalClientName || !finalClientEmail) {
       const client = await getClientById(clientId)
       finalClientName = finalClientName || client?.name || "Unknown Client"
-      finalClientEmail = finalClientEmail || client?.email || null
+      finalClientEmail = finalClientEmail || client?.email || undefined
     }
 
     const itemData = {
@@ -1497,5 +1535,247 @@ export async function getClientFeaturesForPortal(clientId: string): Promise<Clie
   } catch (error) {
     console.error("Error in getClientFeaturesForPortal:", error)
     return []
+  }
+}
+
+// Kanban Board Functions
+export async function getKanbanWorkflows(successPackage?: string): Promise<KanbanWorkflow[]> {
+  let query = supabase
+    .from("kanban_workflows")
+    .select("*")
+    .order("stage_order", { ascending: true })
+
+  if (successPackage) {
+    query = query.eq("success_package", successPackage)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error("Error fetching kanban workflows:", error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getClientStage(clientId: string): Promise<ClientStage | null> {
+  const { data, error } = await supabase
+    .from("client_stages")
+    .select("*")
+    .eq("client_id", clientId)
+    .single()
+
+  if (error && error.code !== "PGRST116") {
+    console.error("Error fetching client stage:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function updateClientStage(clientId: string, stageData: Partial<ClientStage>): Promise<ClientStage> {
+  const { data, error } = await supabase
+    .from("client_stages")
+    .upsert(
+      {
+        client_id: clientId,
+        ...stageData,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "client_id" }
+    )
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Error updating client stage:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function moveClientToStage(clientId: string, newStage: string, notes?: string): Promise<void> {
+  const workflows = await getKanbanWorkflows()
+  const client = await getClientById(clientId)
+  
+  if (!client) {
+    throw new Error("Client not found")
+  }
+
+  const workflow = workflows.find(w => w.success_package === client.success_package && w.stage_key === newStage)
+  
+  if (!workflow) {
+    throw new Error(`Invalid stage ${newStage} for package ${client.success_package}`)
+  }
+
+  // Update the client stage
+  await updateClientStage(clientId, {
+    current_stage: newStage,
+    stage_order: workflow.stage_order,
+    stage_started_at: new Date().toISOString(),
+    stage_notes: notes,
+  })
+
+  // If moving to graduation, mark the previous stage as completed
+  if (newStage === "graduation") {
+    const currentStage = await getClientStage(clientId)
+    if (currentStage && currentStage.current_stage !== "graduation") {
+      await updateClientStage(clientId, {
+        stage_completed_at: new Date().toISOString(),
+      })
+    }
+  }
+}
+
+export async function getClientsByStage(successPackage: string, stageKey: string): Promise<ClientWithStage[]> {
+  const { data, error } = await supabase
+    .from("clients")
+    .select(`
+      *,
+      stage:client_stages(*)
+    `)
+    .eq("success_package", successPackage)
+    .eq("status", "active")
+    .eq("client_stages.current_stage", stageKey)
+
+  if (error) {
+    console.error("Error fetching clients by stage:", error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getAllClientsWithStages(): Promise<ClientWithStage[]> {
+  const { data, error } = await supabase
+    .from("clients")
+    .select(`
+      *,
+      stage:client_stages(*)
+    `)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Error fetching clients with stages:", error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function createKanbanActivity(activityData: Omit<KanbanActivity, "id" | "created_at" | "updated_at">): Promise<KanbanActivity> {
+  const { data, error } = await supabase
+    .from("kanban_activities")
+    .insert({
+      ...activityData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Error creating kanban activity:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function updateKanbanActivity(activityId: string, updates: Partial<KanbanActivity>): Promise<KanbanActivity> {
+  const { data, error } = await supabase
+    .from("kanban_activities")
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", activityId)
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Error updating kanban activity:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function getKanbanActivities(clientId: string, stageKey?: string): Promise<KanbanActivity[]> {
+  let query = supabase
+    .from("kanban_activities")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false })
+
+  if (stageKey) {
+    query = query.eq("stage_key", stageKey)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error("Error fetching kanban activities:", error)
+    throw error
+  }
+
+  return data || []
+}
+
+// Initialize kanban system if tables don't exist
+export async function initializeKanbanSystem(): Promise<void> {
+  try {
+    // Check if kanban_workflows table exists
+    const { data: workflows, error: workflowsError } = await supabase
+      .from("kanban_workflows")
+      .select("count")
+      .limit(1)
+
+    if (workflowsError && workflowsError.code === "42P01") {
+      // Table doesn't exist, create basic structure
+      console.log("Initializing kanban system...")
+      
+      // Create basic workflow data
+      const basicWorkflows = [
+        // Light Package
+        { success_package: "light", stage_key: "new", stage_name: "New Client", stage_description: "Client has signed up and needs initial contact", stage_order: 1, is_final_stage: false, color: "#10B981", icon_name: "UserPlus" },
+        { success_package: "light", stage_key: "call", stage_name: "Onboarding Call", stage_description: "Initial Zoom call with product specialist", stage_order: 2, is_final_stage: false, color: "#3B82F6", icon_name: "Phone" },
+        { success_package: "light", stage_key: "graduation", stage_name: "Graduation", stage_description: "Client has completed onboarding and is ready", stage_order: 3, is_final_stage: true, color: "#8B5CF6", icon_name: "GraduationCap" },
+        
+        // Premium Package
+        { success_package: "premium", stage_key: "new", stage_name: "New Client", stage_description: "Client has signed up and needs initial contact", stage_order: 1, is_final_stage: false, color: "#10B981", icon_name: "UserPlus" },
+        { success_package: "premium", stage_key: "first_call", stage_name: "1st Onboarding Call", stage_description: "Initial discovery and requirements gathering", stage_order: 2, is_final_stage: false, color: "#3B82F6", icon_name: "Phone" },
+        { success_package: "premium", stage_key: "second_call", stage_name: "2nd Onboarding Call", stage_description: "Workflow mapping and workspace structuring", stage_order: 3, is_final_stage: false, color: "#F59E0B", icon_name: "PhoneCall" },
+        { success_package: "premium", stage_key: "graduation", stage_name: "Graduation", stage_description: "Client has completed onboarding and is ready", stage_order: 4, is_final_stage: true, color: "#8B5CF6", icon_name: "GraduationCap" },
+        
+        // Gold Package
+        { success_package: "gold", stage_key: "new", stage_name: "New Client", stage_description: "Client has signed up and needs initial contact", stage_order: 1, is_final_stage: false, color: "#10B981", icon_name: "UserPlus" },
+        { success_package: "gold", stage_key: "first_call", stage_name: "1st Onboarding Call", stage_description: "Initial discovery and requirements gathering", stage_order: 2, is_final_stage: false, color: "#3B82F6", icon_name: "Phone" },
+        { success_package: "gold", stage_key: "second_call", stage_name: "2nd Onboarding Call", stage_description: "Advanced workflow setup and integrations", stage_order: 3, is_final_stage: false, color: "#F59E0B", icon_name: "PhoneCall" },
+        { success_package: "gold", stage_key: "third_call", stage_name: "3rd Onboarding Call", stage_description: "Advanced integrations and optimization", stage_order: 4, is_final_stage: false, color: "#EF4444", icon_name: "PhoneIncoming" },
+        { success_package: "gold", stage_key: "graduation", stage_name: "Graduation", stage_description: "Client has completed onboarding and is ready", stage_order: 5, is_final_stage: true, color: "#8B5CF6", icon_name: "GraduationCap" },
+        
+        // Elite Package
+        { success_package: "elite", stage_key: "new", stage_name: "New Client", stage_description: "Client has signed up and needs initial contact", stage_order: 1, is_final_stage: false, color: "#10B981", icon_name: "UserPlus" },
+        { success_package: "elite", stage_key: "first_call", stage_name: "1st Onboarding Call", stage_description: "Initial discovery and requirements gathering", stage_order: 2, is_final_stage: false, color: "#3B82F6", icon_name: "Phone" },
+        { success_package: "elite", stage_key: "second_call", stage_name: "2nd Onboarding Call", stage_description: "Advanced workflow setup and integrations", stage_order: 3, is_final_stage: false, color: "#F59E0B", icon_name: "PhoneCall" },
+        { success_package: "elite", stage_key: "third_call", stage_name: "3rd Onboarding Call", stage_description: "Advanced integrations and optimization", stage_order: 4, is_final_stage: false, color: "#EF4444", icon_name: "PhoneIncoming" },
+        { success_package: "elite", stage_key: "graduation", stage_name: "Graduation", stage_description: "Client has completed onboarding and is ready", stage_order: 5, is_final_stage: true, color: "#8B5CF6", icon_name: "GraduationCap" },
+      ]
+
+      // Insert workflows (this will fail if table doesn't exist, but that's okay)
+      for (const workflow of basicWorkflows) {
+        try {
+          await supabase.from("kanban_workflows").insert(workflow)
+        } catch (error) {
+          console.log("Could not insert workflow (table may not exist):", error)
+        }
+      }
+    }
+  } catch (error) {
+    console.log("Kanban system initialization check failed:", error)
   }
 }

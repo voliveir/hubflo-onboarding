@@ -79,7 +79,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
   const videoUrl = client?.video_url || null
   const showZapierIntegrations = client?.show_zapier_integrations ?? true
   const projectsEnabled = client?.projects_enabled ?? false
-  const customApp = client?.custom_app || "Not Applicable"
+  const customAppLabel = getCustomAppLabel(client?.custom_app)
 
   // Safe string operations with null checks
   const clientInitial = clientName && clientName.length > 0 ? clientName.charAt(0).toUpperCase() : "C"
@@ -131,7 +131,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
   }
 
   // Check if we should show the custom app section
-  const showCustomAppSection = customApp === "Gray Label" || customApp === "White Label"
+  const showCustomAppSection = customAppLabel === "Gray Label" || customAppLabel === "White Label"
 
   // Check if we should show the upselling section (all packages except Elite)
   const showUpsellSection = successPackage.toLowerCase() !== "elite"
@@ -475,16 +475,16 @@ export default async function ClientPage({ params }: ClientPageProps) {
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold text-[#010124] mb-4">
-                  Your <span className="text-[#ECB22D]">{customApp}</span> Mobile App
+                  Your <span className="text-[#ECB22D]">{customAppLabel}</span> Mobile App
                 </h2>
                 <p className="text-gray-600 max-w-2xl mx-auto">
-                  {customApp === "Gray Label"
+                  {customAppLabel === "Gray Label"
                     ? "Access your branded Hubflo mobile app and share it with your clients for seamless project management on the go."
                     : "Your custom white label mobile app is being prepared specifically for your brand and business needs."}
                 </p>
               </div>
 
-              {customApp === "Gray Label" && (
+              {customAppLabel === "Gray Label" && (
                 <div className="grid md:grid-cols-2 gap-8 items-stretch">
                   {/* Apple App Store */}
                   <Card className="flex flex-col h-full min-h-[400px] text-center border-[#ECB22D] border hover:shadow-lg transition-shadow">
@@ -537,7 +537,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
                 </div>
               )}
 
-              {customApp === "White Label" && (
+              {customAppLabel === "White Label" && (
                 <Card className="border-[#ECB22D] border-2">
                   <CardHeader className="bg-[#010124] text-white text-center">
                     <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
@@ -898,4 +898,19 @@ function UpgradePackageSection({
       </div>
     </section>
   )
+}
+
+function getCustomAppLabel(value: string | undefined) {
+  switch (value) {
+    case "gray_label":
+      return "Gray Label"
+    case "white_label":
+      return "White Label"
+    case "not_applicable":
+    case "":
+    case undefined:
+      return "Not Applicable"
+    default:
+      return value
+  }
 }

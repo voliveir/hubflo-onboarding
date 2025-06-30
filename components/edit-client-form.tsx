@@ -13,7 +13,8 @@ import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "@/hooks/use-toast"
-import { updateClient, isSlugAvailable, type Client } from "@/lib/database"
+import { updateClient, isSlugAvailable } from "@/lib/database"
+import { type Client } from "@/lib/types"
 import { Save, ArrowLeft, CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 
@@ -38,6 +39,9 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     projects_enabled: client.projects_enabled,
     status: client.status,
     custom_app: client.custom_app,
+    email: client.email,
+    plan_type: client.plan_type,
+    revenue_amount: client.revenue_amount,
   })
 
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
@@ -80,7 +84,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
   }
 
   const handleNameChange = (name: string) => {
-    setFormData((prev) => ({
+    setFormData((prev: Partial<Client>) => ({
       ...prev,
       name,
       slug: prev.slug === client.slug ? generateSlug(name) : prev.slug,
@@ -206,7 +210,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                   <Input
                     id="slug"
                     value={formData.slug || ""}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, slug: e.target.value }))}
                     placeholder="client-url-slug"
                     required
                   />
@@ -220,21 +224,32 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                 {slugAvailable === false && <p className="text-sm text-red-600">This slug is already taken</p>}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email || ""}
+                  onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, email: e.target.value }))}
+                  placeholder="client@email.com"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
                   <select
                     id="status"
                     value={formData.status || "active"}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, status: e.target.value as Client["status"] }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                     <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
                   </select>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="number_of_users">Number of Users</Label>
                   <Input
@@ -242,10 +257,21 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                     type="number"
                     min="1"
                     value={formData.number_of_users || 1}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, number_of_users: Number.parseInt(e.target.value) || 1 }))
-                    }
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, number_of_users: Number.parseInt(e.target.value) || 1 }))}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="plan_type">Plan Type</Label>
+                  <select
+                    id="plan_type"
+                    value={formData.plan_type || "pro"}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, plan_type: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="pro">Pro</option>
+                    <option value="business">Business</option>
+                    <option value="unlimited">Unlimited</option>
+                  </select>
                 </div>
               </div>
 
@@ -254,7 +280,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                 <select
                   id="success_package"
                   value={formData.success_package || "premium"}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, success_package: e.target.value as any }))}
+                  onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, success_package: e.target.value as any }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="light">Light</option>
@@ -271,33 +297,44 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="billing_type">Billing Type</Label>
                   <select
                     id="billing_type"
-                    value={formData.billing_type || "Monthly"}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, billing_type: e.target.value as any }))}
+                    value={formData.billing_type || "monthly"}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, billing_type: e.target.value as any }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="Monthly">Monthly</option>
-                    <option value="Quarterly">Quarterly</option>
-                    <option value="Annually">Annually</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="annually">Annually</option>
                   </select>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="custom_app">Custom App</Label>
                   <select
                     id="custom_app"
-                    value={formData.custom_app || "Not Applicable"}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, custom_app: e.target.value as any }))}
+                    value={formData.custom_app || "not_applicable"}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, custom_app: e.target.value as any }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="Gray Label">Gray Label</option>
-                    <option value="White Label">White Label</option>
-                    <option value="Not Applicable">Not Applicable</option>
+                    <option value="gray_label">Gray Label</option>
+                    <option value="white_label">White Label</option>
+                    <option value="not_applicable">Not Applicable</option>
                   </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="revenue_amount">Revenue ($)</Label>
+                  <Input
+                    id="revenue_amount"
+                    type="number"
+                    min="0"
+                    value={formData.revenue_amount || 0}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, revenue_amount: Number.parseInt(e.target.value) || 0 }))}
+                    placeholder="0"
+                    prefix="$"
+                  />
                 </div>
               </div>
             </CardContent>
@@ -315,7 +352,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                 <Input
                   id="logo_url"
                   value={formData.logo_url || ""}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, logo_url: e.target.value }))}
+                  onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, logo_url: e.target.value }))}
                   placeholder="https://example.com/logo.png"
                 />
                 {formData.logo_url && (
@@ -337,7 +374,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                 <Textarea
                   id="welcome_message"
                   value={formData.welcome_message || ""}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, welcome_message: e.target.value }))}
+                  onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, welcome_message: e.target.value }))}
                   placeholder="Welcome to your onboarding portal..."
                   rows={3}
                 />
@@ -348,7 +385,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                 <Input
                   id="video_url"
                   value={formData.video_url || ""}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, video_url: e.target.value }))}
+                  onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, video_url: e.target.value }))}
                   placeholder="https://youtube.com/watch?v=..."
                 />
               </div>
@@ -372,7 +409,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                 <Switch
                   id="show_zapier_integrations"
                   checked={formData.show_zapier_integrations || false}
-                  onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, show_zapier_integrations: checked }))}
+                  onCheckedChange={(checked) => setFormData((prev: Partial<Client>) => ({ ...prev, show_zapier_integrations: checked }))}
                 />
               </div>
 
@@ -384,7 +421,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                 <Switch
                   id="projects_enabled"
                   checked={formData.projects_enabled !== false}
-                  onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, projects_enabled: checked }))}
+                  onCheckedChange={(checked) => setFormData((prev: Partial<Client>) => ({ ...prev, projects_enabled: checked }))}
                 />
               </div>
             </div>
