@@ -17,6 +17,7 @@ import {
   Wrench,
   Rocket,
   Kanban,
+  BarChart3,
 } from "lucide-react"
 
 type NavChild = { name: string; href: string };
