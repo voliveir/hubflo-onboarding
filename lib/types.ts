@@ -38,7 +38,7 @@ export interface Integration {
   title: string
   description: string
   category: string
-  integration_type: "zapier" | "native" | "api"
+  integration_type: "zapier" | "native" | "api" | "makecom"
   external_url: string
   documentation_url?: string
   icon_url?: string
@@ -60,7 +60,7 @@ export interface ClientIntegration {
   title: string
   description: string
   category: string
-  integration_type: "zapier" | "native" | "api"
+  integration_type: "zapier" | "native" | "api" | "makecom"
   external_url: string
   documentation_url?: string
   created_at: string
@@ -303,7 +303,7 @@ export interface UpdateChecklistItemData {
 }
 
 export interface CreateIntegrationData {
-  integration_type: "zapier" | "native" | "api"
+  integration_type: "zapier" | "native" | "api" | "makecom"
   title: string
   description?: string
   url: string
@@ -321,7 +321,7 @@ export interface CreateClientIntegrationData {
   client_id: string
   integration_id?: string // If using master integration
   // For custom integrations
-  integration_type?: "zapier" | "native" | "api"
+  integration_type?: "zapier" | "native" | "api" | "makecom"
   title?: string
   description?: string
   url?: string

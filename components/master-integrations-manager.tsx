@@ -23,7 +23,7 @@ import type { Integration } from "@/lib/types"
 import { Plus, Edit, Trash2, ExternalLink, Search } from "lucide-react"
 
 interface CreateIntegrationData {
-  integration_type: "zapier" | "native" | "api"
+  integration_type: "zapier" | "native" | "api" | "makecom"
   title: string
   description: string
   external_url: string
@@ -128,6 +128,8 @@ export function MasterIntegrationsManager() {
         return "bg-blue-100 text-blue-800"
       case "api":
         return "bg-green-100 text-green-800"
+      case "makecom":
+        return "bg-purple-100 text-purple-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
@@ -201,6 +203,7 @@ export function MasterIntegrationsManager() {
                 <SelectItem value="zapier">Zapier</SelectItem>
                 <SelectItem value="native">Native</SelectItem>
                 <SelectItem value="api">API</SelectItem>
+                <SelectItem value="makecom">Make.com</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterCategory} onValueChange={setFilterCategory}>
@@ -302,7 +305,7 @@ function IntegrationForm({ integration, onSubmit }: IntegrationFormProps) {
     e.preventDefault()
 
     const data = {
-      integration_type: formData.integration_type as "zapier" | "native" | "api",
+      integration_type: formData.integration_type as "zapier" | "native" | "api" | "makecom",
       title: formData.title,
       description: formData.description,
       external_url: formData.url, // Map url to external_url
@@ -338,6 +341,7 @@ function IntegrationForm({ integration, onSubmit }: IntegrationFormProps) {
               <SelectItem value="zapier">Zapier</SelectItem>
               <SelectItem value="native">Native</SelectItem>
               <SelectItem value="api">API</SelectItem>
+              <SelectItem value="makecom">Make.com</SelectItem>
             </SelectContent>
           </Select>
         </div>
