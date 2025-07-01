@@ -394,3 +394,222 @@ export interface ClientFollowUp {
   created_at: string
   updated_at: string
 }
+
+// Analytics Types
+export interface AnalyticsEvent {
+  id: string
+  client_id: string
+  event_type: string
+  event_category: string
+  event_data?: any
+  stage_from?: string
+  stage_to?: string
+  package_type?: string
+  user_agent?: string
+  ip_address?: string
+  session_id?: string
+  created_at: string
+}
+
+export interface ClientJourneyAnalytics {
+  id: string
+  client_id: string
+  stage_name: string
+  stage_started_at: string
+  stage_completed_at?: string
+  duration_days?: number
+  duration_hours?: number
+  is_completed: boolean
+  completion_reason?: string
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ConversionTracking {
+  id: string
+  package_type: string
+  stage_name: string
+  clients_entered: number
+  clients_completed: number
+  conversion_rate?: number
+  avg_duration_days?: number
+  avg_duration_hours?: number
+  period_start: string
+  period_end: string
+  created_at: string
+  updated_at: string
+}
+
+export interface IntegrationAdoptionMetrics {
+  id: string
+  integration_id: string
+  integration_name: string
+  integration_category?: string
+  package_type: string
+  total_offered: number
+  total_adopted: number
+  adoption_rate?: number
+  avg_setup_time_hours?: number
+  success_rate?: number
+  period_start: string
+  period_end: string
+  created_at: string
+  updated_at: string
+}
+
+export interface FeatureUsageStatistics {
+  id: string
+  feature_id: string
+  feature_name: string
+  feature_category?: string
+  package_type: string
+  total_enabled: number
+  total_used: number
+  usage_rate?: number
+  avg_usage_frequency?: number
+  user_satisfaction_score?: number
+  period_start: string
+  period_end: string
+  created_at: string
+  updated_at: string
+}
+
+export interface RevenueImpactTracking {
+  id: string
+  package_type: string
+  revenue_source: string
+  base_revenue?: number
+  additional_revenue?: number
+  total_revenue?: number
+  client_count?: number
+  avg_revenue_per_client?: number
+  revenue_growth_rate?: number
+  period_start: string
+  period_end: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ClientSatisfactionScore {
+  id: string
+  client_id: string
+  survey_type: string
+  overall_satisfaction: number
+  onboarding_experience: number
+  implementation_support: number
+  feature_satisfaction: number
+  integration_satisfaction: number
+  would_recommend: number
+  nps_score: number
+  feedback_text?: string
+  survey_date: string
+  created_at: string
+}
+
+export interface AnalyticsDashboardCache {
+  id: string
+  cache_key: string
+  cache_data: any
+  expires_at: string
+  created_at: string
+}
+
+// Analytics Dashboard Data Types
+export interface AnalyticsOverview {
+  totalClients: number
+  activeClients: number
+  avgConversionRate: number
+  avgClientSatisfaction: number
+  totalRevenue: number
+  revenueGrowth: number
+  topPerformingPackage: string
+  avgOnboardingTime: number
+}
+
+export interface ConversionAnalytics {
+  packageType: string
+  stages: {
+    stageName: string
+    clientsEntered: number
+    clientsCompleted: number
+    conversionRate: number
+    avgDuration: number
+  }[]
+  overallConversionRate: number
+  totalClients: number
+}
+
+export interface JourneyAnalytics {
+  stageName: string
+  avgDurationDays: number
+  avgDurationHours: number
+  completionRate: number
+  clientsInStage: number
+  clientsCompleted: number
+  bottlenecks: string[]
+}
+
+export interface IntegrationAnalytics {
+  integrationName: string
+  category: string
+  adoptionRate: number
+  totalOffered: number
+  totalAdopted: number
+  avgSetupTime: number
+  successRate: number
+  packageType: string
+}
+
+export interface FeatureAnalytics {
+  featureName: string
+  category: string
+  usageRate: number
+  totalEnabled: number
+  totalUsed: number
+  avgUsageFrequency: number
+  userSatisfactionScore: number
+  packageType: string
+}
+
+export interface RevenueAnalytics {
+  packageType: string
+  revenueSource: string
+  totalRevenue: number
+  baseRevenue: number
+  additionalRevenue: number
+  clientCount: number
+  avgRevenuePerClient: number
+  revenueGrowthRate: number
+  period: string
+}
+
+export interface SatisfactionAnalytics {
+  overallSatisfaction: number
+  onboardingExperience: number
+  implementationSupport: number
+  featureSatisfaction: number
+  integrationSatisfaction: number
+  wouldRecommend: number
+  npsScore: number
+  totalSurveys: number
+  recentFeedback: string[]
+}
+
+export interface AnalyticsFilters {
+  dateRange: {
+    start: string
+    end: string
+  }
+  packageType?: string
+  stageName?: string
+  integrationCategory?: string
+  featureCategory?: string
+}
+
+export interface AnalyticsTimeframe {
+  label: string
+  value: string
+  startDate: string
+  endDate: string
+}

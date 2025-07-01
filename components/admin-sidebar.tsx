@@ -18,6 +18,7 @@ import {
   Rocket,
   Kanban,
   BarChart3,
+  TrendingUp,
 } from "lucide-react"
 
 type NavChild = { name: string; href: string };

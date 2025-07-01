@@ -14,6 +14,14 @@ import type {
   ClientWithStage,
   KanbanActivity,
   ClientFollowUp,
+  AnalyticsEvent,
+  ClientJourneyAnalytics,
+  ConversionTracking,
+  IntegrationAdoptionMetrics,
+  FeatureUsageStatistics,
+  RevenueImpactTracking,
+  ClientSatisfactionScore,
+  AnalyticsOverview,
 } from "./types"
 import { addDays, startOfDay, endOfDay, isWithinInterval, parseISO } from "date-fns"
 
@@ -1875,6 +1883,414 @@ export async function getClientWorkflow(clientId: string): Promise<any> {
 
 // Update workflow for a client
 export async function updateClientWorkflow(clientId: string, workflow: any): Promise<void> {
-  const { error } = await supabase.from("clients").update({ workflow }).eq("id", clientId)
-  if (error) throw error
+  const { error } = await supabase
+    .from("clients")
+    .update({ workflow: workflow })
+    .eq("id", clientId)
+
+  if (error) {
+    console.error("Error updating client workflow:", error)
+    throw error
+  }
+}
+
+// Analytics Functions
+export async function trackAnalyticsEvent(eventData: Omit<AnalyticsEvent, "id" | "created_at">): Promise<AnalyticsEvent> {
+  const { data, error } = await supabase
+    .from("analytics_events")
+    .insert({
+      ...eventData,
+      created_at: new Date().toISOString(),
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Error tracking analytics event:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function getAnalyticsEvents(
+  filters: {
+    clientId?: string
+    eventType?: string
+    packageType?: string
+    startDate?: string
+    endDate?: string
+  } = {}
+): Promise<AnalyticsEvent[]> {
+  let query = supabase.from("analytics_events").select("*").order("created_at", { ascending: false })
+
+  if (filters.clientId) {
+    query = query.eq("client_id", filters.clientId)
+  }
+  if (filters.eventType) {
+    query = query.eq("event_type", filters.eventType)
+  }
+  if (filters.packageType) {
+    query = query.eq("package_type", filters.packageType)
+  }
+  if (filters.startDate) {
+    query = query.gte("created_at", filters.startDate)
+  }
+  if (filters.endDate) {
+    query = query.lte("created_at", filters.endDate)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error("Error fetching analytics events:", error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getClientJourneyAnalytics(clientId: string): Promise<ClientJourneyAnalytics[]> {
+  const { data, error } = await supabase
+    .from("client_journey_analytics")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("started_at", { ascending: true })
+
+  if (error) {
+    console.error("Error fetching client journey analytics:", error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function createClientJourneyEntry(
+  journeyData: Omit<ClientJourneyAnalytics, "id" | "created_at" | "updated_at">
+): Promise<ClientJourneyAnalytics> {
+  const { data, error } = await supabase
+    .from("client_journey_analytics")
+    .insert({
+      ...journeyData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Error creating client journey entry:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function updateClientJourneyEntry(
+  id: string,
+  updates: Partial<ClientJourneyAnalytics>
+): Promise<ClientJourneyAnalytics> {
+  const { data, error } = await supabase
+    .from("client_journey_analytics")
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Error updating client journey entry:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function getConversionAnalytics(
+  packageType?: string,
+  startDate?: string,
+  endDate?: string
+): Promise<ConversionTracking[]> {
+  let query = supabase.from("conversion_tracking").select("*").order("period_start", { ascending: false })
+
+  if (packageType) {
+    query = query.eq("package_type", packageType)
+  }
+  if (startDate) {
+    query = query.gte("period_start", startDate)
+  }
+  if (endDate) {
+    query = query.lte("period_end", endDate)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error("Error fetching conversion analytics:", error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getIntegrationAdoptionMetrics(
+  packageType?: string,
+  startDate?: string,
+  endDate?: string
+): Promise<IntegrationAdoptionMetrics[]> {
+  let query = supabase
+    .from("integration_adoption_metrics")
+    .select("*")
+    .order("adoption_rate", { ascending: false })
+
+  if (packageType) {
+    query = query.eq("package_type", packageType)
+  }
+  if (startDate) {
+    query = query.gte("period_start", startDate)
+  }
+  if (endDate) {
+    query = query.lte("period_end", endDate)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error("Error fetching integration adoption metrics:", error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getFeatureUsageStatistics(
+  packageType?: string,
+  startDate?: string,
+  endDate?: string
+): Promise<FeatureUsageStatistics[]> {
+  let query = supabase
+    .from("feature_usage_statistics")
+    .select("*")
+    .order("usage_rate", { ascending: false })
+
+  if (packageType) {
+    query = query.eq("package_type", packageType)
+  }
+  if (startDate) {
+    query = query.gte("period_start", startDate)
+  }
+  if (endDate) {
+    query = query.lte("period_end", endDate)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error("Error fetching feature usage statistics:", error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getRevenueAnalytics(
+  packageType?: string,
+  startDate?: string,
+  endDate?: string
+): Promise<RevenueImpactTracking[]> {
+  let query = supabase
+    .from("revenue_impact_tracking")
+    .select("*")
+    .order("total_revenue", { ascending: false })
+
+  if (packageType) {
+    query = query.eq("package_type", packageType)
+  }
+  if (startDate) {
+    query = query.gte("period_start", startDate)
+  }
+  if (endDate) {
+    query = query.lte("period_end", endDate)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error("Error fetching revenue analytics:", error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getClientSatisfactionScores(
+  clientId?: string,
+  surveyType?: string,
+  startDate?: string,
+  endDate?: string
+): Promise<ClientSatisfactionScore[]> {
+  let query = supabase
+    .from("client_satisfaction_scores")
+    .select("*")
+    .order("survey_date", { ascending: false })
+
+  if (clientId) {
+    query = query.eq("client_id", clientId)
+  }
+  if (surveyType) {
+    query = query.eq("survey_type", surveyType)
+  }
+  if (startDate) {
+    query = query.gte("survey_date", startDate)
+  }
+  if (endDate) {
+    query = query.lte("survey_date", endDate)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error("Error fetching client satisfaction scores:", error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function createClientSatisfactionScore(
+  scoreData: Omit<ClientSatisfactionScore, "id" | "created_at">
+): Promise<ClientSatisfactionScore> {
+  const { data, error } = await supabase
+    .from("client_satisfaction_scores")
+    .insert({
+      ...scoreData,
+      created_at: new Date().toISOString(),
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Error creating client satisfaction score:", error)
+    throw error
+  }
+
+  return data
+}
+
+export async function getAnalyticsOverview(
+  startDate?: string,
+  endDate?: string
+): Promise<AnalyticsOverview> {
+  try {
+    // Get basic client stats
+    const clients = await getAllClients()
+    const totalClients = clients.length
+    const activeClients = clients.filter(c => c.status === "active").length
+
+    // Get conversion rates
+    const conversionData = await getConversionAnalytics(undefined, startDate, endDate)
+    const avgConversionRate = conversionData.length > 0 
+      ? conversionData.reduce((sum, item) => sum + (item.conversion_rate || 0), 0) / conversionData.length
+      : 0
+
+    // Get satisfaction scores
+    const satisfactionData = await getClientSatisfactionScores(undefined, undefined, startDate, endDate)
+    const avgClientSatisfaction = satisfactionData.length > 0
+      ? satisfactionData.reduce((sum, item) => sum + item.overall_satisfaction, 0) / satisfactionData.length
+      : 0
+
+    // Calculate revenue
+    const revenueData = await getRevenueAnalytics(undefined, startDate, endDate)
+    const totalRevenue = revenueData.reduce((sum, item) => sum + (item.total_revenue || 0), 0)
+    const revenueGrowth = revenueData.length > 1 
+      ? ((revenueData[0]?.total_revenue || 0) - (revenueData[1]?.total_revenue || 0)) / (revenueData[1]?.total_revenue || 1) * 100
+      : 0
+
+    // Find top performing package
+    const packageStats = clients.reduce((acc, client) => {
+      acc[client.success_package] = (acc[client.success_package] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+    const topPerformingPackage = Object.entries(packageStats)
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || "premium"
+
+    // Calculate average onboarding time
+    const journeyData = await Promise.all(
+      clients.slice(0, 10).map(client => getClientJourneyAnalytics(client.id))
+    )
+    const allJourneys = journeyData.flat()
+    const avgOnboardingTime = allJourneys.length > 0
+      ? allJourneys.reduce((sum, journey) => sum + (journey.duration_days || 0), 0) / allJourneys.length
+      : 0
+
+    return {
+      totalClients,
+      activeClients,
+      avgConversionRate: Math.round(avgConversionRate * 100) / 100,
+      avgClientSatisfaction: Math.round(avgClientSatisfaction * 100) / 100,
+      totalRevenue: Math.round(totalRevenue * 100) / 100,
+      revenueGrowth: Math.round(revenueGrowth * 100) / 100,
+      topPerformingPackage,
+      avgOnboardingTime: Math.round(avgOnboardingTime * 100) / 100,
+    }
+  } catch (error) {
+    console.error("Error getting analytics overview:", error)
+    throw error
+  }
+}
+
+export async function getAnalyticsCache(cacheKey: string): Promise<any | null> {
+  const { data, error } = await supabase
+    .from("analytics_dashboard_cache")
+    .select("cache_data")
+    .eq("cache_key", cacheKey)
+    .gt("expires_at", new Date().toISOString())
+    .single()
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null // No data found
+    }
+    console.error("Error fetching analytics cache:", error)
+    throw error
+  }
+
+  return data?.cache_data || null
+}
+
+export async function setAnalyticsCache(cacheKey: string, cacheData: any, expiresInHours: number = 1): Promise<void> {
+  const expiresAt = new Date(Date.now() + expiresInHours * 60 * 60 * 1000).toISOString()
+
+  const { error } = await supabase
+    .from("analytics_dashboard_cache")
+    .upsert({
+      cache_key: cacheKey,
+      cache_data: cacheData,
+      expires_at: expiresAt,
+      created_at: new Date().toISOString(),
+    })
+
+  if (error) {
+    console.error("Error setting analytics cache:", error)
+    throw error
+  }
+}
+
+export async function clearAnalyticsCache(cacheKey?: string): Promise<void> {
+  let query = supabase.from("analytics_dashboard_cache").delete()
+
+  if (cacheKey) {
+    query = query.eq("cache_key", cacheKey)
+  } else {
+    query = query.lt("expires_at", new Date().toISOString())
+  }
+
+  const { error } = await query
+
+  if (error) {
+    console.error("Error clearing analytics cache:", error)
+    throw error
+  }
 }
