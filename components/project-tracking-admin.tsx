@@ -43,6 +43,7 @@ import {
   type ClientIntegration,
 } from "@/lib/database"
 import { ClientImplementationProgress } from "./client-implementation-progress"
+import ReactMarkdown from 'react-markdown'
 
 interface ProjectTask {
   id: string
@@ -641,7 +642,7 @@ export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-xs text-gray-600 mb-2">{integration.description}</p>
+                            <ReactMarkdown className="text-xs text-gray-600 mb-2">{integration.description}</ReactMarkdown>
                             <Badge variant="outline" className="text-xs">
                               {integration.category}
                             </Badge>

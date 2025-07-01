@@ -21,6 +21,7 @@ import {
 import { getAllIntegrations, createIntegration, updateIntegration, deleteIntegration } from "@/lib/database"
 import type { Integration } from "@/lib/types"
 import { Plus, Edit, Trash2, ExternalLink, Search } from "lucide-react"
+import ReactMarkdown from 'react-markdown'
 
 interface CreateIntegrationData {
   integration_type: "zapier" | "native" | "api" | "makecom"
@@ -234,7 +235,11 @@ export function MasterIntegrationsManager() {
                     {integration.category && <Badge variant="outline">{integration.category}</Badge>}
                     {!integration.is_active && <Badge variant="destructive">Inactive</Badge>}
                   </div>
-                  {integration.description && <p className="text-sm text-gray-600 mb-2">{integration.description}</p>}
+                  {integration.description && (
+                    <div className="text-sm text-gray-600 mb-2">
+                      <ReactMarkdown>{integration.description}</ReactMarkdown>
+                    </div>
+                  )}
                   {integration.tags && integration.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {integration.tags.map((tag, index) => (
