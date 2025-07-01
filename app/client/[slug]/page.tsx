@@ -352,6 +352,32 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
       {/* Visual Workflows Section - move here before Next Steps */}
       <IndustryWorkflows />
+      {client.show_figma_workflow && client.figma_workflow_url && (
+        <section className="py-12 px-4 bg-white">
+          <div className="container mx-auto">
+            <div className="max-w-3xl mx-auto text-center mb-6">
+              <h2 className="text-2xl font-bold text-[#010124] mb-2">Visual Workflow (Figma)</h2>
+              <p className="text-gray-500 text-base">
+                Explore your advanced onboarding workflow, designed in Figma.
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <div className="w-full max-w-6xl h-[700px] rounded-xl shadow-lg overflow-hidden bg-gray-50 border border-gray-200">
+                <iframe
+                  src={
+                    client.figma_workflow_url.startsWith("https://embed.figma.com/")
+                      ? client.figma_workflow_url
+                      : `https://embed.figma.com/embed?embed_host=share&url=${encodeURIComponent(client.figma_workflow_url)}`
+                  }
+                  style={{ width: "100%", height: "100%", border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
       <ClientWorkflowBuilderWrapper enabled={client.workflow_builder_enabled} clientId={client.id} />
 
       {/* Next Steps */}

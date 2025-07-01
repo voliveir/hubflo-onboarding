@@ -100,6 +100,8 @@ function transformClientFromDb(data: any): Client {
     graduation_date: data.graduation_date || undefined,
     workflow_builder_enabled: data.workflow_builder_enabled || false,
     workflow: data.workflow || undefined,
+    show_figma_workflow: data.show_figma_workflow || false,
+    figma_workflow_url: data.figma_workflow_url || "",
   }
 }
 
@@ -117,6 +119,12 @@ const transformClientForDb = (clientData: any): any => {
 
   if (typeof transformed.workflow_builder_enabled !== "undefined") {
     transformed.workflow_builder_enabled = !!transformed.workflow_builder_enabled
+  }
+  if (typeof transformed.show_figma_workflow !== "undefined") {
+    transformed.show_figma_workflow = !!transformed.show_figma_workflow
+  }
+  if (typeof transformed.figma_workflow_url !== "undefined") {
+    transformed.figma_workflow_url = transformed.figma_workflow_url
   }
 
   return transformed
@@ -156,6 +164,8 @@ export async function createClient(formData: any): Promise<Client> {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       workflow_builder_enabled: formData.workflow_builder_enabled || false,
+      show_figma_workflow: formData.show_figma_workflow || false,
+      figma_workflow_url: formData.figma_workflow_url || "",
     }
 
     const { data, error } = await supabase.from("clients").insert([clientData]).select().single()

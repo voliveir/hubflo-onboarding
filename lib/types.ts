@@ -29,6 +29,8 @@ export interface Client {
   graduation_date?: string | null
   workflow_builder_enabled: boolean
   workflow?: any // JSON object for workflow builder data
+  show_figma_workflow?: boolean
+  figma_workflow_url?: string | null
 }
 
 export interface Integration {

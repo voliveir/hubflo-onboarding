@@ -43,6 +43,8 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     plan_type: client.plan_type,
     revenue_amount: client.revenue_amount,
     workflow_builder_enabled: client.workflow_builder_enabled,
+    show_figma_workflow: client.show_figma_workflow || false,
+    figma_workflow_url: client.figma_workflow_url || "",
   })
 
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
@@ -437,7 +439,30 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                   onCheckedChange={(checked) => setFormData((prev: Partial<Client>) => ({ ...prev, workflow_builder_enabled: checked }))}
                 />
               </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="show_figma_workflow">Show Figma Workflow in Client Portal</Label>
+                  <p className="text-sm text-gray-600">Embed a Figma workflow for this client</p>
+                </div>
+                <Switch
+                  id="show_figma_workflow"
+                  checked={formData.show_figma_workflow || false}
+                  onCheckedChange={(checked) => setFormData((prev: Partial<Client>) => ({ ...prev, show_figma_workflow: checked }))}
+                />
+              </div>
             </div>
+            {formData.show_figma_workflow && (
+              <div className="mt-4">
+                <Label htmlFor="figma_workflow_url">Figma Workflow Share URL</Label>
+                <Input
+                  id="figma_workflow_url"
+                  value={formData.figma_workflow_url || ""}
+                  onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, figma_workflow_url: e.target.value }))}
+                  placeholder="https://www.figma.com/file/..."
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 
