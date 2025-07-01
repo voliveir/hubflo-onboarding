@@ -195,16 +195,17 @@ function getNodeStyle(type: string, selected: boolean) {
 function TaskNode({ data, selected }: any) {
   const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-4 rounded-lg bg-[#FBC02D] text-white shadow border-2 border-[#F9A825]" style={getNodeStyle('task', selected)}>
+    <div className="flex flex-col items-center justify-center rounded-lg bg-[#FBC02D] text-white shadow border-2 border-[#F9A825]"
+      style={{ minWidth: 180, minHeight: 80, padding: '16px 18px', ...getNodeStyle('task', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
       <div className="flex items-center gap-2 mb-1">
         <CheckCircle />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
+      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
       {software && (
-        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center' }}>
+        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
         </div>
       )}
@@ -215,8 +216,10 @@ function ApprovalNode({ data, selected }: any) {
   const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div style={{ width: 150, height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('approval', selected) }}>
-      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
-      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8, zIndex: 20 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8, zIndex: 20 }} />
+      <Handle type="source" position={Position.Bottom} id="source-bottom" style={{ bottom: -8 }} />
+      <Handle type="target" position={Position.Top} id="target-top" style={{ top: -8 }} />
       <div style={{
         width: 120,
         height: 120,
@@ -247,16 +250,17 @@ function ApprovalNode({ data, selected }: any) {
 function MeetingNode({ data, selected }: any) {
   const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-4 rounded-xl bg-[#1976D2] text-white shadow border-2 border-[#1565C0]" style={getNodeStyle('meeting', selected)}>
+    <div className="flex flex-col items-center justify-center rounded-xl bg-[#1976D2] text-white shadow border-2 border-[#1565C0]"
+      style={{ minWidth: 180, minHeight: 80, padding: '16px 18px', ...getNodeStyle('meeting', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
       <div className="flex items-center gap-2 mb-1">
         <Calendar />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
+      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
       {software && (
-        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center' }}>
+        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
         </div>
       )}
@@ -266,16 +270,16 @@ function MeetingNode({ data, selected }: any) {
 function FormNode({ data, selected }: any) {
   const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
-    <div style={{ position: 'relative', width: 140, height: 70, background: '#8E24AA', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.10)', border: '2px solid #6D1B7B', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('form', selected) }}>
+    <div style={{ position: 'relative', minWidth: 180, minHeight: 80, background: '#8E24AA', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.10)', border: '2px solid #6D1B7B', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px 18px', ...getNodeStyle('form', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
       <div className="flex items-center gap-1 mb-1">
         <ClipboardList />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
+      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
       {software && (
-        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center' }}>
+        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
         </div>
       )}
@@ -286,16 +290,17 @@ function FormNode({ data, selected }: any) {
 function DocNode({ data, selected }: any) {
   const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-4 rounded-lg bg-[#F4511E] text-white shadow border-2 border-[#BF360C]" style={getNodeStyle('doc', selected)}>
+    <div className="flex flex-col items-center justify-center rounded-lg bg-[#F4511E] text-white shadow border-2 border-[#BF360C]"
+      style={{ minWidth: 180, minHeight: 80, padding: '16px 18px', ...getNodeStyle('doc', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
       <div className="flex items-center gap-2 mb-1">
         <FileText />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
+      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
       {software && (
-        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center' }}>
+        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
         </div>
       )}
@@ -305,22 +310,20 @@ function DocNode({ data, selected }: any) {
 function FileUploadNode({ data, selected }: any) {
   const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
-    <div style={{ width: 120, height: 70, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('file_upload', selected) }}>
+    <div style={{ minWidth: 260, minHeight: 120, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 24px', ...getNodeStyle('file_upload', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
-      <svg width="120" height="70">
-        <path d="M10 30 Q10 10 30 10 H90 Q110 10 110 30 V60 Q110 65 105 65 H15 Q10 65 10 60 Z" fill="#0288D1" stroke="#01579B" strokeWidth="3" />
+      <svg width="220" height="100">
+        <path d="M20 40 Q20 20 60 20 H160 Q200 20 200 40 V80 Q200 95 185 95 H35 Q20 95 20 80 Z" fill="#0288D1" stroke="#01579B" strokeWidth="4" />
       </svg>
-      <div style={{ position: 'absolute', top: 18, left: 0, width: '100%', textAlign: 'center', color: 'white' }}>
+      <div style={{ position: 'absolute', top: 32, left: 0, width: '100%', textAlign: 'center', color: 'white', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 18px' }}>
         <div className="flex items-center justify-center gap-1 mb-1">
           <UploadCloud />
           {software && <span className="text-lg">{software.logo}</span>}
         </div>
-        <div className="font-bold text-base">{data.label}</div>
+        <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 17 }}>{data.label}</div>
         {software && (
-          <div className="text-xs opacity-80 mt-1">
-            {software.name}
-          </div>
+          <div className="text-xs opacity-80 mt-1" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{software.name}</div>
         )}
       </div>
     </div>
@@ -351,16 +354,17 @@ function AutomationNode({ data, selected }: any) {
 function ChecklistNode({ data, selected }: any) {
   const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-4 rounded-lg bg-[#43A047] text-white shadow border-2 border-[#2E7D32]" style={getNodeStyle('checklist', selected)}>
+    <div className="flex flex-col items-center justify-center rounded-lg bg-[#43A047] text-white shadow border-2 border-[#2E7D32]"
+      style={{ minWidth: 180, minHeight: 80, padding: '16px 18px', ...getNodeStyle('checklist', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
       <div className="flex items-center gap-2 mb-1">
         <ListChecks />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center' }}>{data.label}</div>
+      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
       {software && (
-        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center' }}>
+        <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
         </div>
       )}
@@ -370,22 +374,20 @@ function ChecklistNode({ data, selected }: any) {
 function DueDateNode({ data, selected }: any) {
   const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
-    <div style={{ width: 90, height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', ...getNodeStyle('due_date', selected) }}>
+    <div style={{ minWidth: 100, minHeight: 100, width: 100, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', ...getNodeStyle('due_date', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
-      <svg width="90" height="90">
-        <circle cx="45" cy="45" r="40" fill="#F9A825" stroke="#FBC02D" strokeWidth="4" />
+      <svg width="100" height="100">
+        <circle cx="50" cy="50" r="45" fill="#F9A825" stroke="#FBC02D" strokeWidth="4" />
       </svg>
-      <div style={{ position: 'absolute', top: 22, left: 0, width: '100%', textAlign: 'center', color: 'white' }}>
+      <div style={{ position: 'absolute', top: 25, left: 0, width: '100%', textAlign: 'center', color: 'white', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
         <div className="flex items-center justify-center gap-1 mb-1">
           <Bell />
           {software && <span className="text-lg">{software.logo}</span>}
         </div>
-        <div className="font-bold text-base">{data.label}</div>
+        <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
         {software && (
-          <div className="text-xs opacity-80 mt-1">
-            {software.name}
-          </div>
+          <div className="text-xs opacity-80 mt-1" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{software.name}</div>
         )}
       </div>
     </div>
@@ -395,8 +397,10 @@ function ClientActionNode({ data, selected }: any) {
   const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div style={{ width: 150, height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('client_action', selected) }}>
-      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
-      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8, zIndex: 20 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8, zIndex: 20 }} />
+      <Handle type="source" position={Position.Bottom} id="source-bottom" style={{ bottom: -8 }} />
+      <Handle type="target" position={Position.Top} id="target-top" style={{ top: -8 }} />
       <div style={{
         width: 120,
         height: 120,
@@ -428,8 +432,10 @@ function DecisionNode({ data, selected }: any) {
   const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div style={{ width: 150, height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('decision', selected) }}>
-      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
-      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8, zIndex: 20 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8, zIndex: 20 }} />
+      <Handle type="source" position={Position.Bottom} id="source-bottom" style={{ bottom: -8 }} />
+      <Handle type="target" position={Position.Top} id="target-top" style={{ top: -8 }} />
       <div style={{
         width: 120,
         height: 120,
@@ -461,8 +467,10 @@ function MilestoneNode({ data, selected }: any) {
   const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
     <div style={{ width: 150, height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', ...getNodeStyle('milestone', selected) }}>
-      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
-      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
+      <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8, zIndex: 20 }} />
+      <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8, zIndex: 20 }} />
+      <Handle type="source" position={Position.Bottom} id="source-bottom" style={{ bottom: -8 }} />
+      <Handle type="target" position={Position.Top} id="target-top" style={{ top: -8 }} />
       <div style={{
         width: 120,
         height: 120,
@@ -490,6 +498,35 @@ function MilestoneNode({ data, selected }: any) {
     </div>
   )
 }
+function StickyNoteNode({ data, selected }: any) {
+  return (
+    <div style={{
+      minWidth: 180,
+      minHeight: 80,
+      background: '#FFF9C4',
+      borderRadius: 12,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+      border: selected ? '2px solid #FBC02D' : '2px solid #F5E663',
+      color: '#795548',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      padding: '16px 18px',
+      fontSize: 16,
+      fontWeight: 500,
+      position: 'relative',
+      whiteSpace: 'pre-line',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+    }}>
+      <span style={{ fontSize: 18, fontWeight: 700, opacity: 0.5, position: 'absolute', top: 8, right: 12 }}>📝</span>
+      <div style={{ width: '100%', minHeight: 40, outline: 'none', background: 'transparent', resize: 'none', border: 'none', color: '#795548', fontSize: 16, fontWeight: 500, whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: 0 }}>
+        {data.label || 'Sticky Note'}
+      </div>
+    </div>
+  )
+}
 
 // Move nodeTypes definition outside the component to avoid recreating it on every render
 const nodeTypes = {
@@ -505,6 +542,7 @@ const nodeTypes = {
   client_action: ClientActionNode,
   decision: DecisionNode,
   milestone: MilestoneNode,
+  sticky_note: StickyNoteNode,
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -564,6 +602,17 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
   // Keyboard shortcut for delete (nodes & edges)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent node/edge deletion if focused on input, textarea, or contenteditable
+      const active = document.activeElement as HTMLElement | null;
+      if (
+        active && (
+          active.tagName === 'INPUT' ||
+          active.tagName === 'TEXTAREA' ||
+          active.isContentEditable
+        )
+      ) {
+        return;
+      }
       if ((e.key === 'Delete' || e.key === 'Backspace')) {
         if (selectedNodeIds.length > 0) {
           setNodes(nds => nds.filter(n => !selectedNodeIds.includes(n.id)))
@@ -982,6 +1031,7 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
                       <option value="client_action">Client To-Do</option>
                       <option value="decision">Decision Point</option>
                       <option value="milestone">Milestone</option>
+                      <option value="sticky_note">Sticky Note</option>
                     </select>
                   </div>
                   <div>
