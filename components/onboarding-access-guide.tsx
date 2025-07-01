@@ -27,7 +27,8 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
         "Click 'Activate my account' to access your onboarding tasks."
       ],
       ctaText: "Need help?",
-      ctaAction: <a href="https://calendly.com/vanessa-hubflo/30min" target="_blank" rel="noopener noreferrer">Contact Success</a>,
+      ctaActionLabel: "Contact Success",
+      ctaActionUrl: "https://calendly.com/vanessa-hubflo/30min",
     },
     {
       id: 2,
@@ -44,7 +45,8 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
         "If needed, use 'Forgot your password?' to reset access."
       ],
       ctaText: "Ready to log in?",
-      ctaAction: <a href="https://hubflo-onboarding.hubflo.com" target="_blank" rel="noopener noreferrer">Access Portal</a>,
+      ctaActionLabel: "Access Portal",
+      ctaActionUrl: "https://hubflo-onboarding.hubflo.com",
     },
     {
       id: 3,
@@ -61,7 +63,8 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
         "Your progress is automatically saved as you go"
       ],
       ctaText: "Need help?",
-      ctaAction: <a href="https://calendly.com/vanessa-hubflo/30min" target="_blank" rel="noopener noreferrer">Contact Success</a>,
+      ctaActionLabel: "Contact Success",
+      ctaActionUrl: "https://calendly.com/vanessa-hubflo/30min",
     },
   ]
 
@@ -154,23 +157,9 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
                   <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4 border mt-4">
                     <span className="text-sm font-medium text-[#010124]">{step.ctaText}</span>
                     <Button size="sm" className="bg-[#010124] hover:bg-[#020135] text-white" asChild>
-                      {step.id === 1 ? (
-                        <a href="https://calendly.com/vanessa-hubflo/30min" target="_blank" rel="noopener noreferrer">
-                          {step.ctaAction}
-                        </a>
-                      ) : step.id === 2 ? (
-                        <a href="https://hubflo-onboarding.hubflo.com" target="_blank" rel="noopener noreferrer">
-                          {step.ctaAction}
-                        </a>
-                      ) : (
-                        <a
-                          href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {step.ctaAction}
-                        </a>
-                      )}
+                      <a href={step.ctaActionUrl} target="_blank" rel="noopener noreferrer">
+                        {step.ctaActionLabel}
+                      </a>
                     </Button>
                   </div>
                 </div>

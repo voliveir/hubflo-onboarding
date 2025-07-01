@@ -23,6 +23,8 @@ import {
   Mail,
   Layout,
   Calendar,
+  Kanban,
+  ChevronDown,
 } from "lucide-react"
 import { OnboardingAccessGuide } from "@/components/onboarding-access-guide"
 import { ClientIntegrationsSection } from "@/components/client-integrations-section"
@@ -32,6 +34,9 @@ import Image from "next/image"
 import type { ClientIntegration, ClientFeature } from "@/lib/types"
 import { IndustryWorkflows } from "@/components/industry-workflows"
 import { ClientWorkflowBuilderWrapper } from "@/components/ClientWorkflowBuilderWrapper"
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
+import * as React from "react"
+import CollapsibleVideos, { CollapsibleLinks } from "@/components/CollapsibleVideos"
 
 interface ClientPageProps {
   params: {
@@ -492,6 +497,133 @@ export default async function ClientPage({ params }: ClientPageProps) {
                 </CardContent>
               </Card>
             )}
+          </div>
+
+          {/* Resources Section */}
+          <div className="mt-16 max-w-3xl mx-auto">
+            <h3 className="text-2xl font-semibold text-[#010124] mb-6 text-center">Helpful Resources & Tutorials</h3>
+            <div className="rounded-xl shadow-lg border-2 border-[#ECB22D] bg-white">
+              <Accordion type="multiple" className="">
+                {/* Basics & Foundations */}
+                <AccordionItem value="basics">
+                  <AccordionTrigger className="text-lg font-bold flex items-center gap-2 px-6 py-4 hover:bg-yellow-50 transition rounded-t-xl">
+                    <Settings className="h-5 w-5 text-[#ECB22D]" />
+                    <span>Setup Basics & Foundations</span>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-8 pb-6 pt-2">
+                    <div className="flex items-center gap-2 mb-2"><span className="bg-[#ECB22D] text-[#010124] text-xs font-semibold px-2 py-1 rounded">Subtasks</span></div>
+                    <ul className="list-disc list-inside mb-4 text-gray-700 ml-4">
+                      <li>Basic Setup</li>
+                      <li>Invite & Manage Users</li>
+                      <li>Setup General Settings/Domain</li>
+                      <li>Configure Global Items</li>
+                    </ul>
+                    <CollapsibleVideos
+                      videos={[
+                        { title: "Basic Setup", links: [
+                          { url: "https://www.tella.tv/video/customize-your-personal-hubflo-profile-v2-bqt1" },
+                          { url: "https://www.tella.tv/video/update-organization-and-branding-naming-convention-for-project-tab-v2-1-em66" },
+                        ] },
+                        { title: "Invite & Manage Users", links: [
+                          { url: "https://www.tella.tv/video/inviting-and-managing-internal-users-v2-1-d5i1" },
+                        ] },
+                        { title: "Setup General Settings/Domain", links: [
+                          { url: "https://www.tella.tv/video/customize-your-general-settingsdomain-4-b96e" },
+                        ] },
+                        { title: "Configure Global Items", links: [
+                          { url: "https://www.tella.tv/video/configuring-global-items-v2-bvec" },
+                        ] },
+                      ]}
+                    />
+                    <CollapsibleLinks
+                      buttonLabel="Support Articles"
+                      links={[
+                        { label: "Overview: What is Hubflo?", url: "https://support.hubflo.com/en/articles/11088991-overview-what-is-hubflo" },
+                        { label: "New to Hubflo? Start here.", url: "https://support.hubflo.com/en/articles/11089009-new-to-hubflo-start-here" },
+                        { label: "Custom Domain vs Subdomain on Hubflo", url: "https://support.hubflo.com/en/articles/11326448-custom-domain-vs-subdomain-on-hubflo" },
+                        { label: "Connect Your Email to Hubflo", url: "https://support.hubflo.com/en/articles/11094386-connect-your-email-to-hubflo" },
+                        { label: "Configure Your Personal Profile on Hubflo", url: "https://support.hubflo.com/en/articles/11099514-configure-your-personal-profile-on-hubflo" },
+                        { label: "Setting Up Your Business Profile & Billing Information", url: "https://support.hubflo.com/en/articles/11099790-setting-up-your-business-profile-billing-information" },
+                        { label: "Invite Internal Users", url: "https://support.hubflo.com/en/articles/11114630-invite-internal-users" },
+                        { label: "Set Up Global Items", url: "https://support.hubflo.com/en/articles/9507360-set-up-global-items" },
+                      ]}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+                {/* Project Board - only if enabled */}
+                {projectsEnabled && (
+                  <AccordionItem value="project-board">
+                    <AccordionTrigger className="text-lg font-bold flex items-center gap-2 px-6 py-4 hover:bg-yellow-50 transition">
+                      <Kanban className="h-5 w-5 text-[#ECB22D]" />
+                      <span>Setup Your Project Board</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-8 pb-6 pt-2">
+                      <div className="flex items-center gap-2 mb-2"><span className="bg-[#ECB22D] text-[#010124] text-xs font-semibold px-2 py-1 rounded">Subtasks</span></div>
+                      <ul className="list-disc list-inside mb-4 text-gray-700 ml-4">
+                        <li>Add Custom Fields to your Project</li>
+                        <li>Configure Your Project Board (Organize Internally)</li>
+                      </ul>
+                      <CollapsibleVideos
+                        videos={[
+                          { title: "Add Custom Fields to your Project", links: [
+                            { url: "https://www.tella.tv/video/cm5zycgb8000b0alad26vfrtl/view" },
+                          ] },
+                          { title: "Configure Your Project Board (Organize Internally)", links: [
+                            { url: "https://www.tella.tv/video/configuring-project-boards-1-8t4g" },
+                          ] },
+                        ]}
+                      />
+                      <CollapsibleLinks
+                        buttonLabel="Support Articles"
+                        links={[
+                          { label: "Getting Started with Projects", url: "https://support.hubflo.com/en/articles/11128526-getting-started-with-projects" },
+                          { label: "Project Status Tracker", url: "https://support.hubflo.com/en/articles/10290166-project-status-tracker" },
+                          { label: "Tracking and Managing Your Expenses in Hubflo", url: "https://support.hubflo.com/en/articles/11462734-tracking-and-managing-your-expenses-in-hubflo" },
+                          { label: "Archive a Project", url: "https://support.hubflo.com/en/articles/8907441-archive-a-project" },
+                          { label: "Unlink a Contact from a Project", url: "https://support.hubflo.com/en/articles/11592511-unlink-a-contact-from-a-project" },
+                          { label: "Organize Tasks in Sections", url: "https://support.hubflo.com/en/articles/8307170-organize-tasks-in-sections" },
+                          { label: "Assign Tasks to Clients in the Portal", url: "https://support.hubflo.com/en/articles/11378679-assign-tasks-to-clients-in-the-portal" },
+                          { label: "Add Comments to Collaborate on Tasks", url: "https://support.hubflo.com/en/articles/9292454-add-comments-to-collaborate-on-tasks" },
+                        ]}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+                {/* Workspace Templates */}
+                <AccordionItem value="workspace-templates">
+                  <AccordionTrigger className="text-lg font-bold flex items-center gap-2 px-6 py-4 hover:bg-yellow-50 transition rounded-b-xl">
+                    <FileText className="h-5 w-5 text-[#ECB22D]" />
+                    <span>Setup Workspace Template(s)</span>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-8 pb-6 pt-2">
+                    <div className="flex items-center gap-2 mb-2"><span className="bg-[#ECB22D] text-[#010124] text-xs font-semibold px-2 py-1 rounded">Subtasks</span></div>
+                    <ul className="list-disc list-inside mb-4 text-gray-700 ml-4">
+                      <li>Create Task Template(s)</li>
+                      <li>Create Workspace Template(s)</li>
+                    </ul>
+                    <CollapsibleVideos
+                      videos={[
+                        { title: "Create Task Template(s)", links: [
+                          { url: "https://www.tella.tv/video/streamline-projects-with-task-templates-8kcl" },
+                        ] },
+                        { title: "Create Workspace Template(s)", links: [
+                          { url: "https://www.tella.tv/video/how-to-create-workspace-client-portals-from-workspace-templates-4-e6os" },
+                        ] },
+                      ]}
+                    />
+                    <CollapsibleLinks
+                      buttonLabel="Support Articles"
+                      links={[
+                        { label: "Create and Set Up a Client Workspace", url: "https://support.hubflo.com/en/articles/11101205-create-and-set-up-a-client-workspace" },
+                        { label: "What Clients See in a Portal (Client View Guide)", url: "https://support.hubflo.com/en/articles/11101290-what-clients-see-in-a-portal-client-view-guide" },
+                        { label: "Add a Client Portal Button to Your Website", url: "https://support.hubflo.com/en/articles/9165051-add-a-client-portal-button-to-your-website" },
+                        { label: "Collaborating with Clients on Tasks", url: "https://support.hubflo.com/en/articles/9043216-collaborating-with-clients-on-tasks" },
+                      ]}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
           </div>
         </div>
       </section>
