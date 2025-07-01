@@ -352,33 +352,53 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
       {/* Visual Workflows Section - move here before Next Steps */}
       <IndustryWorkflows />
-      {client.show_figma_workflow && client.figma_workflow_url && (
-        <section className="py-12 px-4 bg-white">
-          <div className="container mx-auto">
-            <div className="max-w-3xl mx-auto text-center mb-6">
-              <h2 className="text-2xl font-bold text-[#010124] mb-2">Visual Workflow (Figma)</h2>
-              <p className="text-gray-500 text-base">
-                Explore your advanced onboarding workflow, designed in Figma.
+
+      {/* Blueprint Your Process Section */}
+      {(client.workflow_builder_enabled || (client.show_figma_workflow && client.figma_workflow_url)) && (
+        <section className="py-16 px-0 bg-white w-full">
+          <div className="w-full max-w-full">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold text-[#010124] mb-3">
+                Blueprint Your Process
+              </h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Turn your onboarding process into a clear, visual journey.
               </p>
             </div>
-            <div className="flex justify-center">
-              <div className="w-full max-w-6xl h-[700px] rounded-xl shadow-lg overflow-hidden bg-gray-50 border border-gray-200">
-                <iframe
-                  src={
-                    client.figma_workflow_url.startsWith("https://embed.figma.com/")
-                      ? client.figma_workflow_url
-                      : `https://embed.figma.com/embed?embed_host=share&url=${encodeURIComponent(client.figma_workflow_url)}`
-                  }
-                  style={{ width: "100%", height: "100%", border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                />
-              </div>
-            </div>
+            {/* Figma Embed and Workflow Builder */}
+            {client.show_figma_workflow && client.figma_workflow_url && (
+              <section className="py-0 px-0 bg-transparent">
+                <div className="container mx-auto flex flex-col items-center">
+                  <div className="w-full max-w-7xl">
+                    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-visible">
+                      <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-[#ECB22D]/30 to-[#FFFBEA] rounded-t-2xl">
+                        <h2 className="text-2xl font-bold text-[#010124]">Visual Workflow (Figma)</h2>
+                      </div>
+                      <div className="px-8 pt-6 pb-8 flex justify-center">
+                        <div className="w-full" style={{ height: 500, maxWidth: 1200, margin: '0 auto', background: '#f9fafb', borderRadius: 12, pointerEvents: 'auto' }}>
+                          <iframe
+                            src={
+                              client.figma_workflow_url.startsWith("https://embed.figma.com/")
+                                ? client.figma_workflow_url
+                                : `https://embed.figma.com/embed?embed_host=share&url=${encodeURIComponent(client.figma_workflow_url)}`
+                            }
+                            style={{ width: "100%", height: "100%", border: 0, borderRadius: 12, background: '#f9fafb' }}
+                            allowFullScreen
+                            loading="lazy"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+            {client.workflow_builder_enabled && (
+              <ClientWorkflowBuilderWrapper enabled={client.workflow_builder_enabled} clientId={client.id} />
+            )}
           </div>
         </section>
       )}
-      <ClientWorkflowBuilderWrapper enabled={client.workflow_builder_enabled} clientId={client.id} />
 
       {/* Next Steps */}
       <section className="py-16 px-4 bg-white">
