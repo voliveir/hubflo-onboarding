@@ -31,6 +31,17 @@ export interface Client {
   workflow?: any // JSON object for workflow builder data
   show_figma_workflow?: boolean
   figma_workflow_url?: string | null
+  white_label_status?: "not_started" | "in_progress" | "waiting_for_approval" | "complete"
+  white_label_checklist?: {
+    create_assets?: boolean
+    create_natively_app?: boolean
+    create_test_user?: boolean
+    test_login?: boolean
+    download_and_create_ios_app?: boolean
+    submit?: boolean
+  }
+  white_label_android_url?: string | null
+  white_label_ios_url?: string | null
 }
 
 export interface Integration {
@@ -282,6 +293,17 @@ export interface CreateClientData {
   show_zapier_integrations?: boolean
   notes?: string
   status?: "draft" | "active"
+  white_label_status?: "not_started" | "in_progress" | "waiting_for_approval" | "complete"
+  white_label_checklist?: {
+    create_assets?: boolean
+    create_natively_app?: boolean
+    create_test_user?: boolean
+    test_login?: boolean
+    download_and_create_ios_app?: boolean
+    submit?: boolean
+  }
+  white_label_android_url?: string | null
+  white_label_ios_url?: string | null
 }
 
 export interface UpdateClientData extends Partial<CreateClientData> {
@@ -294,6 +316,17 @@ export interface UpdateClientData extends Partial<CreateClientData> {
   migration_completed?: boolean
   slack_access_granted?: boolean
   project_completion_percentage?: number
+  white_label_status?: "not_started" | "in_progress" | "waiting_for_approval" | "complete"
+  white_label_checklist?: {
+    create_assets?: boolean
+    create_natively_app?: boolean
+    create_test_user?: boolean
+    test_login?: boolean
+    download_and_create_ios_app?: boolean
+    submit?: boolean
+  }
+  white_label_android_url?: string | null
+  white_label_ios_url?: string | null
 }
 
 export interface UpdateChecklistItemData {

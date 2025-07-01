@@ -102,6 +102,10 @@ function transformClientFromDb(data: any): Client {
     workflow: data.workflow || undefined,
     show_figma_workflow: data.show_figma_workflow || false,
     figma_workflow_url: data.figma_workflow_url || "",
+    white_label_status: data.white_label_status,
+    white_label_checklist: data.white_label_checklist,
+    white_label_android_url: data.white_label_android_url,
+    white_label_ios_url: data.white_label_ios_url,
   }
 }
 
@@ -125,6 +129,20 @@ const transformClientForDb = (clientData: any): any => {
   }
   if (typeof transformed.figma_workflow_url !== "undefined") {
     transformed.figma_workflow_url = transformed.figma_workflow_url
+  }
+
+  // Ensure white label fields are always included
+  if (typeof clientData.white_label_status !== "undefined") {
+    transformed.white_label_status = clientData.white_label_status
+  }
+  if (typeof clientData.white_label_checklist !== "undefined") {
+    transformed.white_label_checklist = clientData.white_label_checklist
+  }
+  if (typeof clientData.white_label_android_url !== "undefined") {
+    transformed.white_label_android_url = clientData.white_label_android_url
+  }
+  if (typeof clientData.white_label_ios_url !== "undefined") {
+    transformed.white_label_ios_url = clientData.white_label_ios_url
   }
 
   return transformed
@@ -301,13 +319,16 @@ export async function addClient(clientData: Partial<Client>): Promise<Client | n
 export async function updateClient(id: string, updates: Partial<Client>): Promise<Client | null> {
   try {
     const transformedUpdates = transformClientForDb(updates)
-    const { data, error } = await supabase.from("clients").update(transformedUpdates).eq("id", id).select().single()
-
+    console.log('Updating client', id, 'with', transformedUpdates)
+    const { data, error } = await supabase.from("clients").update(transformedUpdates).eq("id", id).select("*").single()
+    console.log('Supabase update response:', { data, error })
+    // Debug: Directly select the row after update
+    const { data: selectData, error: selectError } = await supabase.from("clients").select("*").eq("id", id).single()
+    console.log('Direct select after update:', { selectData, selectError })
     if (error) {
       console.error("Error updating client:", error)
       return null
     }
-
     return transformClientFromDb(data)
   } catch (error) {
     console.error("Error in updateClient:", error)
@@ -2302,5 +2323,25 @@ export async function clearAnalyticsCache(cacheKey?: string): Promise<void> {
   if (error) {
     console.error("Error clearing analytics cache:", error)
     throw error
+  }
+}
+
+export async function getWhiteLabelClients(): Promise<Client[]> {
+  try {
+    const { data, error } = await supabase
+      .from("clients")
+      .select("*")
+      .eq("custom_app", "white_label")
+      .order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching white label clients:", error)
+      return []
+    }
+
+    return (data || []).map(transformClientFromDb)
+  } catch (error) {
+    console.error("Error in getWhiteLabelClients:", error)
+    return []
   }
 }

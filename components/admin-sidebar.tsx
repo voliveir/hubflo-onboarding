@@ -45,6 +45,11 @@ const navigation = [
     ] as NavChild[],
   },
   {
+    name: "Mobile App: White Label",
+    href: "/admin/mobile-app-white-label",
+    icon: Wrench,
+  },
+  {
     name: "Project Management",
     href: "/admin/kanban",
     icon: Kanban,

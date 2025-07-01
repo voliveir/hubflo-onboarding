@@ -38,6 +38,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/
 import * as React from "react"
 import CollapsibleVideos, { CollapsibleLinks } from "@/components/CollapsibleVideos"
 import OnboardingProgressClient from './OnboardingProgressClient'
+import { Input } from "@/components/ui/input"
 
 interface ClientPageProps {
   params: {
@@ -142,6 +143,22 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
   // Check if we should show the upselling section (all packages except Elite)
   const showUpsellSection = successPackage.toLowerCase() !== "elite"
+
+  // Add helper for progress calculation
+  function getWhiteLabelProgress(checklist: any) {
+    if (!checklist) return 0
+    const steps = [
+      "create_assets",
+      "create_natively_app",
+      "create_test_user",
+      "test_login",
+      "download_and_create_ios_app",
+      "submit",
+    ]
+    const total = steps.length
+    const completed = steps.filter((k) => checklist[k]).length
+    return Math.round((completed / total) * 100)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -637,7 +654,18 @@ export default async function ClientPage({ params }: ClientPageProps) {
         <ClientIntegrationsSection
           clientId={client.id}
           clientName={clientName}
-          integrations={integrationsError ? undefined : integrations}
+          integrations={integrationsError ? undefined : (integrations
+            .filter(i => ["zapier", "native", "api"].includes(i.integration_type))
+            .map(i => ({
+              id: i.id,
+              title: i.title,
+              description: i.description,
+              category: i.category,
+              integration_type: i.integration_type as "zapier" | "native" | "api",
+              external_url: i.external_url,
+              is_featured: i.is_featured,
+              sort_order: i.sort_order,
+            })) as any)}
           showDefault={true}
           successPackage={successPackage}
         />
@@ -722,59 +750,153 @@ export default async function ClientPage({ params }: ClientPageProps) {
               )}
 
               {customAppLabel === "White Label" && (
-                <Card className="border-[#ECB22D] border-2">
-                  <CardHeader className="bg-[#010124] text-white text-center">
-                    <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Settings className="h-8 w-8 text-[#010124]" />
-                    </div>
-                    <CardTitle className="text-2xl">Custom White Label App Development</CardTitle>
-                    <CardDescription className="text-gray-300">Your personalized mobile application</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-8">
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <h3 className="text-xl font-semibold text-[#010124] mb-3">Development Timeline</h3>
-                        <div className="inline-flex items-center bg-[#ECB22D] bg-opacity-20 rounded-full px-6 py-3">
-                          <Clock className="h-5 w-5 text-[#ECB22D] mr-2" />
-                          <span className="font-semibold text-[#010124]">4-6 Weeks</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-gray-50 rounded-lg p-6">
-                        <h4 className="font-semibold text-[#010124] mb-3">What to Expect:</h4>
-                        <ul className="space-y-2 text-gray-700">
-                          <li className="flex items-start">
-                            <span className="text-[#ECB22D] mr-2">•</span>
-                            Custom branding with your logo, colors, and company identity
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-[#ECB22D] mr-2">•</span>
-                            Personalized app name and description
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-[#ECB22D] mr-2">•</span>
-                            Dedicated app store listings under your brand
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-[#ECB22D] mr-2">•</span>
-                            Full integration with your Hubflo workspace
-                          </li>
-                        </ul>
-                      </div>
-
-                      <div className="text-center bg-[#010124] rounded-lg p-6 text-white">
-                        <h4 className="font-semibold mb-2">Next Steps</h4>
-                        <p className="text-gray-300 mb-4">
-                          Your Implementation Manager will reach out to you within 1-2 business days to discuss your app
-                          requirements, branding guidelines, and development timeline.
-                        </p>
-                        <p className="text-sm text-[#ECB22D]">
-                          Questions? Contact your Implementation Manager or reach out to our support team.
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                (() => {
+                  const status = client.white_label_status || "not_started"
+                  const checklist = client.white_label_checklist || {}
+                  const progress = getWhiteLabelProgress(checklist)
+                  if (status === "not_started") {
+                    return (
+                      <Card className="border-[#ECB22D] border-2">
+                        <CardHeader className="bg-[#010124] text-white text-center">
+                          <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Settings className="h-8 w-8 text-[#010124]" />
+                          </div>
+                          <CardTitle className="text-2xl">Custom White Label App Development</CardTitle>
+                          <CardDescription className="text-gray-300">Your personalized mobile application</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-8">
+                          <div className="space-y-6">
+                            <div className="text-center">
+                              <h3 className="text-xl font-semibold text-[#010124] mb-3">Development Timeline</h3>
+                              <div className="inline-flex items-center bg-[#ECB22D] bg-opacity-20 rounded-full px-6 py-3">
+                                <Clock className="h-5 w-5 text-[#ECB22D] mr-2" />
+                                <span className="font-semibold text-[#010124]">4-6 Weeks</span>
+                              </div>
+                            </div>
+                            <div className="bg-gray-50 rounded-lg p-6">
+                              <h4 className="font-semibold text-[#010124] mb-3">What to Expect:</h4>
+                              <ul className="space-y-2 text-gray-700">
+                                <li className="flex items-start">
+                                  <span className="text-[#ECB22D] mr-2">•</span>
+                                  Custom branding with your logo, colors, and company identity
+                                </li>
+                                <li className="flex items-start">
+                                  <span className="text-[#ECB22D] mr-2">•</span>
+                                  Personalized app name and description
+                                </li>
+                                <li className="flex items-start">
+                                  <span className="text-[#ECB22D] mr-2">•</span>
+                                  Dedicated app store listings under your brand
+                                </li>
+                                <li className="flex items-start">
+                                  <span className="text-[#ECB22D] mr-2">•</span>
+                                  Full integration with your Hubflo workspace
+                                </li>
+                              </ul>
+                            </div>
+                            <div className="text-center bg-[#010124] rounded-lg p-6 text-white">
+                              <h4 className="font-semibold mb-2">Next Steps</h4>
+                              <p className="text-gray-300 mb-4">
+                                Your Implementation Manager will reach out to you within 1-2 business days to discuss your app
+                                requirements, branding guidelines, and development timeline.
+                              </p>
+                              <p className="text-sm text-[#ECB22D]">
+                                Questions? Contact your Implementation Manager or reach out to our support team.
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  }
+                  if (status === "in_progress" || status === "waiting_for_approval") {
+                    return (
+                      <Card className="border-[#ECB22D] border-2">
+                        <CardHeader className="bg-[#010124] text-white text-center">
+                          <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Settings className="h-8 w-8 text-[#010124]" />
+                          </div>
+                          <CardTitle className="text-2xl">Custom White Label App Development</CardTitle>
+                          <CardDescription className="text-gray-300">Your personalized mobile application</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-8">
+                          <div className="space-y-6">
+                            <div className="text-center mb-6">
+                              <h3 className="text-xl font-semibold text-[#010124] mb-3">Progress</h3>
+                              <div className="w-full bg-gray-200 rounded-full h-6">
+                                <div
+                                  className="bg-[#ECB22D] h-6 rounded-full flex items-center justify-center text-[#010124] font-bold text-sm transition-all duration-500"
+                                  style={{ width: `${progress}%` }}
+                                >
+                                  {progress}%
+                                </div>
+                              </div>
+                              <div className="text-gray-500 mt-2 text-sm">
+                                Last updated: {new Date(client.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}, {new Date(client.updated_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}
+                              </div>
+                              {status === "waiting_for_approval" && (
+                                <div className="text-[#ECB22D] mt-4 font-medium">
+                                  We're currently waiting for approval from Apple and Google to add your application to their respective stores. This process typically takes 1-2 weeks.
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  }
+                  if (status === "complete") {
+                    return (
+                      <Card className="border-[#ECB22D] border-2">
+                        <CardHeader className="bg-[#010124] text-white text-center">
+                          <div className="w-16 h-16 bg-[#ECB22D] rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Settings className="h-8 w-8 text-[#010124]" />
+                          </div>
+                          <CardTitle className="text-2xl">Your White Label App is Ready!</CardTitle>
+                          <CardDescription className="text-gray-300">Your app is now live on the app stores.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-8">
+                          <div className="space-y-6 text-center">
+                            <div className="mb-4">
+                              <h3 className="text-xl font-semibold text-[#010124] mb-3">Download Links</h3>
+                              <div className="flex flex-row flex-wrap justify-center items-center gap-4 mb-2">
+                                {client.white_label_android_url ? (
+                                  <a href={client.white_label_android_url} target="_blank" rel="noopener noreferrer">
+                                    <img
+                                      src="/google-play-badge.png"
+                                      alt="Get it on Google Play"
+                                      className="h-12 md:h-14 w-auto hover:opacity-90 transition"
+                                    />
+                                  </a>
+                                ) : (
+                                  <div className="text-gray-500 font-semibold">Google Play coming soon!</div>
+                                )}
+                                {client.white_label_ios_url ? (
+                                  <a href={client.white_label_ios_url} target="_blank" rel="noopener noreferrer">
+                                    <img
+                                      src="/app-store-badge.png"
+                                      alt="Download on the App Store"
+                                      className="h-12 md:h-14 w-auto hover:opacity-90 transition"
+                                    />
+                                  </a>
+                                ) : (
+                                  <div className="text-gray-500 font-semibold">Apple App Store coming soon!</div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-gray-500 mt-2 text-sm">
+                              Marked complete: {new Date(client.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}, {new Date(client.updated_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}
+                            </div>
+                            <div className="text-[#010124] font-semibold mt-6">
+                              Share these links with your clients so they can download your app directly from the app stores.
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  }
+                  return null
+                })()
               )}
             </div>
           </div>
@@ -788,7 +910,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-[#010124] mb-4">
                 Hubflo Apps for <span className="text-[#ECB22D]">Internal Users</span>
-              </h2>
+                </h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
                 Stay connected and productive with Hubflo apps designed for your team to manage clients and projects
                 efficiently.
