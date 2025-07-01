@@ -37,6 +37,7 @@ import { ClientWorkflowBuilderWrapper } from "@/components/ClientWorkflowBuilder
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
 import * as React from "react"
 import CollapsibleVideos, { CollapsibleLinks } from "@/components/CollapsibleVideos"
+import OnboardingProgressClient from './OnboardingProgressClient'
 
 interface ClientPageProps {
   params: {
@@ -500,6 +501,9 @@ export default async function ClientPage({ params }: ClientPageProps) {
           </div>
 
           {/* Resources Section */}
+          <div className="mt-12">
+            <OnboardingProgressClient clientId={client.id} />
+          </div>
           <div className="mt-16 max-w-3xl mx-auto">
             <h3 className="text-2xl font-semibold text-[#010124] mb-6 text-center">Helpful Resources & Tutorials</h3>
             <div className="rounded-xl shadow-lg border-2 border-[#ECB22D] bg-white">

@@ -1,15 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
+const TASK_NAME_TO_KEY: Record<string, string> = {
+  '3. Setup Basics & Foundations': 'basics',
+  '4. Setup Your Project Board': 'project_board',
+  '5. Setup Workspaces & Tasks': 'workspace_templates',
+};
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    let { client_id, client_email, task_id, completed_at, task_name } = body;
+    let { client_id, client_email, task_name, completed_at } = body;
     if (!client_id && !client_email) {
       return NextResponse.json({ error: 'Missing client_id or client_email' }, { status: 400 });
     }
-    if (!task_id || !completed_at) {
+    if (!task_name || !completed_at) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Map task_name to internal key
+    const task_id = TASK_NAME_TO_KEY[task_name];
+    if (!task_id) {
+      return NextResponse.json({ error: 'Unknown task name' }, { status: 400 });
     }
 
     // If client_id is not provided, look it up by email
