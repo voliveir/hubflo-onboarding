@@ -502,7 +502,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
           {/* Resources Section */}
           <div className="mt-12">
-            <OnboardingProgressClient clientId={client.id} />
+            <OnboardingProgressClient clientId={client.id} projectsEnabled={projectsEnabled} />
           </div>
           <div className="mt-16 max-w-3xl mx-auto">
             <h3 className="text-2xl font-semibold text-[#010124] mb-6 text-center">Helpful Resources & Tutorials</h3>
