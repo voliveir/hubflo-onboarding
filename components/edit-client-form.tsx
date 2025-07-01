@@ -13,10 +13,81 @@ import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "@/hooks/use-toast"
-import { updateClient, isSlugAvailable } from "@/lib/database"
+import { updateClient, isSlugAvailable, getTaskCompletions, updateTaskCompletion } from "@/lib/database"
 import { type Client } from "@/lib/types"
 import { Save, ArrowLeft, CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react"
 import Link from "next/link"
+import { Checkbox } from "@/components/ui/checkbox"
+
+// --- Admin Onboarding Task Checklist Component ---
+interface OnboardingTaskAdminChecklistProps {
+  clientId: string
+  projectsEnabled: boolean
+}
+
+function OnboardingTaskAdminChecklist({ clientId, projectsEnabled }: OnboardingTaskAdminChecklistProps) {
+  const [loading, setLoading] = useState(true)
+  const [completions, setCompletions] = useState<Record<string, boolean>>({})
+  const [saving, setSaving] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const TASKS = [
+    { key: "basics", label: "Setup Basics & Foundations" },
+    ...(projectsEnabled ? [{ key: "project_board", label: "Setup Your Project Board" }] : []),
+    { key: "workspace_templates", label: "Setup Workspace Template(s)" },
+  ]
+
+  useEffect(() => {
+    async function fetchCompletions() {
+      setLoading(true)
+      setError(null)
+      try {
+        const data = await getTaskCompletions(clientId)
+        setCompletions(data)
+      } catch (e) {
+        setError("Failed to load onboarding task completions.")
+      } finally {
+        setLoading(false)
+      }
+    }
+    if (clientId) fetchCompletions()
+  }, [clientId, projectsEnabled])
+
+  const handleToggle = async (taskKey: string, checked: boolean) => {
+    setSaving(taskKey)
+    try {
+      await updateTaskCompletion(clientId, taskKey, checked)
+      setCompletions((prev) => ({ ...prev, [taskKey]: checked }))
+      toast({ title: "Success", description: `Marked '${TASKS.find(t => t.key === taskKey)?.label}' as ${checked ? "complete" : "incomplete"}.` })
+    } catch (e) {
+      toast({ title: "Error", description: `Failed to update task: ${TASKS.find(t => t.key === taskKey)?.label}`, variant: "destructive" })
+    } finally {
+      setSaving(null)
+    }
+  }
+
+  if (loading) return <div className="text-sm text-gray-500">Loading onboarding tasks...</div>
+  if (error) return <div className="text-sm text-red-500">{error}</div>
+
+  return (
+    <div className="space-y-4">
+      {TASKS.map((task) => (
+        <div key={task.key} className="flex items-center gap-3">
+          <Checkbox
+            checked={!!completions[task.key]}
+            onCheckedChange={(checked) => handleToggle(task.key, !!checked)}
+            disabled={saving === task.key}
+            id={`onboarding-task-${task.key}`}
+          />
+          <label htmlFor={`onboarding-task-${task.key}`} className={`text-base ${completions[task.key] ? "line-through text-gray-400" : "text-gray-900"}`}>
+            {task.label}
+          </label>
+          {saving === task.key && <span className="text-xs text-gray-400 ml-2">Saving...</span>}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 interface EditClientFormProps {
   client: Client
@@ -505,6 +576,19 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
           </Alert>
         )}
       </form>
+
+      {/* Onboarding Task Completions (Admin Control) */}
+      <div className="mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Onboarding Task Completions</CardTitle>
+            <CardDescription>Mark core onboarding tasks as complete for this client</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <OnboardingTaskAdminChecklist clientId={client.id} projectsEnabled={formData.projects_enabled !== false} />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
