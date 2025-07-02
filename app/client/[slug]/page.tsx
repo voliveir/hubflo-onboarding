@@ -1199,6 +1199,15 @@ function UpgradePackageSection({
                 </Button>
               </CardContent>
             </Card>
+            {/* Compliance Logos Row */}
+            <div className="flex flex-col items-center mt-8">
+              <a href="https://hubflo.eu.trust.site/" target="_blank" rel="noopener noreferrer" className="flex gap-8 items-center justify-center">
+                <img src="https://static.eu.sprinto.com/_next/static/images/framework/soc2.png" alt="SOC2 Compliant" className="h-12 w-auto" />
+                <img src="https://static.eu.sprinto.com/_next/static/images/framework/hipaa.png" alt="HIPAA Compliant" className="h-12 w-auto" />
+                <img src="https://static.eu.sprinto.com/_next/static/images/framework/gdpr.png" alt="GDPR Compliant" className="h-12 w-auto" />
+              </a>
+              <span className="mt-2 text-xs text-gray-500">We are SOC2, HIPAA, and GDPR compliant. <a href="https://hubflo.eu.trust.site/" target="_blank" rel="noopener noreferrer" className="underline text-[#ECB22D]">Learn more</a></span>
+            </div>
           </div>
         </div>
       </div>
