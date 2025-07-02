@@ -116,6 +116,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     workflow_builder_enabled: client.workflow_builder_enabled,
     show_figma_workflow: client.show_figma_workflow || false,
     figma_workflow_url: client.figma_workflow_url || "",
+    feedback_board_enabled: client.feedback_board_enabled || true,
   })
 
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
@@ -521,6 +522,15 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                   checked={formData.show_figma_workflow || false}
                   onCheckedChange={(checked) => setFormData((prev: Partial<Client>) => ({ ...prev, show_figma_workflow: checked }))}
                 />
+              </div>
+
+              <div className="flex items-center gap-4">
+                <Switch
+                  id="feedback_board_enabled"
+                  checked={formData.feedback_board_enabled ?? true}
+                  onCheckedChange={checked => setFormData((f) => ({ ...f, feedback_board_enabled: checked }))}
+                />
+                <label htmlFor="feedback_board_enabled" className="text-sm font-medium">Show Feedback & Requests Board</label>
               </div>
             </div>
             {formData.show_figma_workflow && (

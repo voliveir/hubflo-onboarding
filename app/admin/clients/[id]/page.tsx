@@ -300,6 +300,24 @@ export default async function ClientDetailPage({ params }: PageProps) {
                           {client.projects_enabled ? "Yes" : "No"}
                         </Badge>
                       </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Show Feedback & Requests Board</span>
+                        <Badge variant={client.feedback_board_enabled ? "default" : "secondary"}>
+                          {client.feedback_board_enabled ? "Yes" : "No"}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Enable Workflow Builder</span>
+                        <Badge variant={client.workflow_builder_enabled ? "default" : "secondary"}>
+                          {client.workflow_builder_enabled ? "Yes" : "No"}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Show Figma Workflow</span>
+                        <Badge variant={client.show_figma_workflow ? "default" : "secondary"}>
+                          {client.show_figma_workflow ? "Yes" : "No"}
+                        </Badge>
+                      </div>
                     </CardContent>
                   </Card>
 

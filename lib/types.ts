@@ -52,6 +52,7 @@ export interface Client {
   }
   white_label_android_url?: string | null
   white_label_ios_url?: string | null
+  feedback_board_enabled?: boolean
 }
 
 export interface Integration {
@@ -657,4 +658,16 @@ export interface AnalyticsTimeframe {
   value: string
   startDate: string
   endDate: string
+}
+
+export interface FeedbackBoardCard {
+  id: string;
+  title: string;
+  description: string;
+  type: 'bug' | 'feature' | 'improvement';
+  status: 'backlog' | 'in_progress' | 'completed' | 'closed';
+  client_id: string;
+  submission_date: string;
+  created_by?: string | null;
+  updated_at: string;
 }

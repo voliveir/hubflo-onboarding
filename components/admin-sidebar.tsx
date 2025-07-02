@@ -55,6 +55,11 @@ const navigation = [
     icon: Kanban,
   },
   {
+    name: "Feedback Board",
+    href: "/admin/feedback-board",
+    icon: Kanban,
+  },
+  {
     name: "Features",
     href: "/admin/features",
     icon: Rocket,

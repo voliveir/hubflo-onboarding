@@ -39,6 +39,7 @@ import * as React from "react"
 import CollapsibleVideos, { CollapsibleLinks } from "@/components/CollapsibleVideos"
 import OnboardingProgressClient from './OnboardingProgressClient'
 import { Input } from "@/components/ui/input"
+import { FeedbackBoardClientView } from '@/components/FeedbackBoardClientView'
 
 interface ClientPageProps {
   params: {
@@ -669,6 +670,17 @@ export default async function ClientPage({ params }: ClientPageProps) {
           showDefault={true}
           successPackage={successPackage}
         />
+      )}
+
+      {/* Feedback Board Section */}
+      {(client.feedback_board_enabled ?? true) && (
+        <section className="py-16 px-4 bg-gray-50">
+          <div className="container mx-auto">
+            <div className="max-w-6xl mx-auto">
+              <FeedbackBoardClientView clientId={client.id} />
+            </div>
+          </div>
+        </section>
       )}
 
       {/* Custom Features Section */}

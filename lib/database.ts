@@ -22,6 +22,7 @@ import type {
   RevenueImpactTracking,
   ClientSatisfactionScore,
   AnalyticsOverview,
+  FeedbackBoardCard,
 } from "./types"
 import { addDays, startOfDay, endOfDay, isWithinInterval, parseISO } from "date-fns"
 
@@ -116,6 +117,7 @@ function transformClientFromDb(data: any): Client {
     white_label_checklist: data.white_label_checklist,
     white_label_android_url: data.white_label_android_url,
     white_label_ios_url: data.white_label_ios_url,
+    feedback_board_enabled: data.feedback_board_enabled || false,
   }
 }
 
@@ -182,6 +184,10 @@ const transformClientForDb = (clientData: any): any => {
   }
   if (typeof clientData.elite_verification_completed_date !== "undefined") {
     transformed.elite_verification_completed_date = clientData.elite_verification_completed_date
+  }
+
+  if (typeof transformed.feedback_board_enabled !== "undefined") {
+    transformed.feedback_board_enabled = !!transformed.feedback_board_enabled;
   }
 
   return transformed
@@ -2383,4 +2389,46 @@ export async function getWhiteLabelClients(): Promise<Client[]> {
     console.error("Error in getWhiteLabelClients:", error)
     return []
   }
+}
+
+// Feedback Board CRUD
+export async function getFeedbackBoardCards({ clientId, status }: { clientId?: string; status?: string } = {}): Promise<FeedbackBoardCard[]> {
+  let query = supabase
+    .from("feedback_board_cards")
+    .select("*")
+    .order("submission_date", { ascending: false });
+  if (clientId) query = query.eq("client_id", clientId);
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createFeedbackBoardCard(card: Omit<FeedbackBoardCard, "id" | "submission_date" | "updated_at">): Promise<FeedbackBoardCard | null> {
+  const { data, error } = await supabase
+    .from("feedback_board_cards")
+    .insert([{ ...card }])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateFeedbackBoardCard(id: string, updates: Partial<Omit<FeedbackBoardCard, "id" | "client_id" | "submission_date">>): Promise<FeedbackBoardCard | null> {
+  const { data, error } = await supabase
+    .from("feedback_board_cards")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteFeedbackBoardCard(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("feedback_board_cards")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
 }

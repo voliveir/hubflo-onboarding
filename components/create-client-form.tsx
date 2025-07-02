@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { createClient, checkSlugAvailability } from "@/lib/database"
 import { Loader2, Check, X, Palette, Settings, Package } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
 
 // Helper function to extract error message from various error types
 const extractErrorMessage = (error: any): string => {
@@ -85,6 +86,7 @@ export default function CreateClientForm() {
     slack_access_granted: false,
     notes: "",
     workflow_builder_enabled: false,
+    feedback_board_enabled: false,
   })
 
   const handleInputChange = (field: string, value: any) => {
@@ -489,6 +491,15 @@ export default function CreateClientForm() {
               />
               <Label htmlFor="workflow_builder_enabled">Enable Workflow Builder</Label>
             </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Switch
+              id="feedback_board_enabled"
+              checked={formData.feedback_board_enabled}
+              onCheckedChange={checked => setFormData(f => ({ ...f, feedback_board_enabled: checked }))}
+            />
+            <label htmlFor="feedback_board_enabled" className="text-sm font-medium">Show Feedback & Requests Board</label>
           </div>
         </CardContent>
       </Card>
