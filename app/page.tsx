@@ -20,8 +20,19 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* Quick Navigation Bar */}
+      <nav className="sticky top-[64px] z-40 bg-white/90 border-b border-[#ECB22D] shadow-sm">
+        <div className="container mx-auto px-4 py-2 flex flex-wrap gap-2 justify-center">
+          <a href="#welcome" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Welcome</a>
+          <a href="#packages" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Packages</a>
+          <a href="#launch-process" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Launch Process</a>
+          <a href="#integrations" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Integrations</a>
+          <a href="#support" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Support</a>
+        </div>
+      </nav>
+
       {/* Hero Section */}
-      <section className="py-20 px-4 bg-[#010124] text-white">
+      <section id="welcome" className="py-20 px-4 bg-[#010124] text-white scroll-mt-32">
         <div className="container mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">Hubflo Onboarding Platform</h1>
           <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
@@ -235,7 +246,7 @@ export default function HomePage() {
       </section>
 
       {/* Hubflo Onboarding Packages */}
-      <section id="packages" className="py-16 px-4">
+      <section id="packages" className="py-16 px-4 scroll-mt-32">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-[#010124] mb-4">Hubflo Onboarding Packages</h2>
@@ -371,7 +382,7 @@ export default function HomePage() {
       </section>
 
       {/* Client Portal Launch Process */}
-      <section id="launch-process" className="py-16 px-4">
+      <section id="launch-process" className="py-16 px-4 scroll-mt-32">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-[#010124] mb-4">Client Portal Launch Process</h2>
@@ -448,7 +459,7 @@ export default function HomePage() {
       </section>
 
       {/* Zapier Integrations */}
-      <section id="integrations" className="py-16 px-4 bg-white/50">
+      <section id="integrations" className="py-16 px-4 bg-white/50 scroll-mt-32">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-[#010124] mb-4">Hubflo Automations &amp; Integrations</h2>
@@ -586,7 +597,7 @@ export default function HomePage() {
       </section>
 
       {/* Support & Tutorials */}
-      <section id="support" className="py-16 px-4">
+      <section id="support" className="py-16 px-4 scroll-mt-32">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-[#010124] mb-4">Support & Tutorials</h2>
