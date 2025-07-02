@@ -16,13 +16,6 @@ export default function HomePage() {
               <Image src="/hubflo-logo.png" alt="Hubflo Logo" width={32} height={32} className="object-contain" />
               <span className="text-xl font-bold text-white">Hubflo Onboarding Platform</span>
             </div>
-            <Button
-              variant="outline"
-              className="text-[#ECB22D] border-[#ECB22D] hover:bg-[#ECB22D] hover:text-[#010124] bg-transparent"
-              asChild
-            >
-              <Link href="/admin">Admin</Link>
-            </Button>
           </div>
         </div>
       </header>
@@ -62,7 +55,7 @@ export default function HomePage() {
                   <div className="text-center space-y-6">
                     <div className="max-w-2xl mx-auto">
                       <p className="text-gray-700 text-lg leading-relaxed mb-6">
-                        You've made a great choice—now let’s get your team up and running smoothly with Hubflo. This portal is your step-by-step guide to success, tailored to your specific plan and goals.
+                        You've made a great choice—now let's get your team up and running smoothly with Hubflo. This portal is your step-by-step guide to success, tailored to your specific plan and goals.
                       </p>
                     </div>
 
@@ -88,7 +81,7 @@ export default function HomePage() {
                           <Settings className="h-6 w-6 text-[#ECB22D]" />
                         </div>
                         <h4 className="font-semibold text-[#010124] mb-2">Real-time Progress</h4>
-                        <p className="text-sm text-gray-600">Easily track your milestones and know exactly what’s next</p>
+                        <p className="text-sm text-gray-600">Easily track your milestones and know exactly what's next</p>
                       </div>
                     </div>
 
@@ -189,9 +182,9 @@ export default function HomePage() {
                               <CheckCircle className="h-4 w-4 text-[#010124]" />
                             </div>
                             <div>
-                              <h4 className="font-semibold text-[#010124]">How We’ll Work Together</h4>
+                              <h4 className="font-semibold text-[#010124]">How We'll Work Together</h4>
                               <p className="text-gray-600 text-sm">
-                                Expectations for collaboration, communication, and how we’ll ensure a successful launch.
+                                Expectations for collaboration, communication, and how we'll ensure a successful launch.
                               </p>
                             </div>
                           </div>
