@@ -332,13 +332,13 @@ function FileUploadNode({ data, selected }: any) {
 function AutomationNode({ data, selected }: any) {
   const software = data.software ? SOFTWARE_DATABASE[data.software as keyof typeof SOFTWARE_DATABASE] : null
   return (
-    <div style={{ width: 220, height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', ...getNodeStyle('automation', selected) }}>
+    <div style={{ width: 180, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', ...getNodeStyle('automation', selected) }}>
       <Handle type="target" position={Position.Left} id="target-left" style={{ left: -8 }} />
       <Handle type="source" position={Position.Right} id="source-right" style={{ right: -8 }} />
-      <svg width="200" height="100" viewBox="0 0 200 100">
-        <polygon points="50,10 150,10 190,50 150,90 50,90 10,50" fill="#00B8D4" stroke="#00838F" strokeWidth="5" />
+      <svg width="160" height="160">
+        <circle cx="80" cy="80" r="75" fill="#00B8D4" stroke="#00838F" strokeWidth="5" />
       </svg>
-      <div style={{ position: 'absolute', top: 25, left: 0, width: '100%', textAlign: 'center', color: 'white', pointerEvents: 'none', padding: '0 12px', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 15, fontWeight: 600, lineHeight: 1.2 }}>
+      <div style={{ position: 'absolute', top: 45, left: 0, width: '100%', textAlign: 'center', color: 'white', pointerEvents: 'none', padding: '0 18px', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 18, fontWeight: 600, lineHeight: 1.2 }}>
         <div className="flex items-center justify-center gap-1 mb-1">
           <Zap />
           {software && <span className="text-lg">{software.logo}</span>}
