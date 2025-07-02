@@ -98,6 +98,16 @@ function transformClientFromDb(data: any): Client {
     created_at: data.created_at,
     updated_at: data.updated_at,
     graduation_date: data.graduation_date || undefined,
+    // Milestone dates for each package type
+    light_onboarding_call_date: data.light_onboarding_call_date || undefined,
+    premium_first_call_date: data.premium_first_call_date || undefined,
+    premium_second_call_date: data.premium_second_call_date || undefined,
+    gold_first_call_date: data.gold_first_call_date || undefined,
+    gold_second_call_date: data.gold_second_call_date || undefined,
+    gold_third_call_date: data.gold_third_call_date || undefined,
+    elite_configurations_started_date: data.elite_configurations_started_date || undefined,
+    elite_integrations_started_date: data.elite_integrations_started_date || undefined,
+    elite_verification_completed_date: data.elite_verification_completed_date || undefined,
     workflow_builder_enabled: data.workflow_builder_enabled || false,
     workflow: data.workflow || undefined,
     show_figma_workflow: data.show_figma_workflow || false,
@@ -143,6 +153,35 @@ const transformClientForDb = (clientData: any): any => {
   }
   if (typeof clientData.white_label_ios_url !== "undefined") {
     transformed.white_label_ios_url = clientData.white_label_ios_url
+  }
+
+  // Handle milestone date fields
+  if (typeof clientData.light_onboarding_call_date !== "undefined") {
+    transformed.light_onboarding_call_date = clientData.light_onboarding_call_date
+  }
+  if (typeof clientData.premium_first_call_date !== "undefined") {
+    transformed.premium_first_call_date = clientData.premium_first_call_date
+  }
+  if (typeof clientData.premium_second_call_date !== "undefined") {
+    transformed.premium_second_call_date = clientData.premium_second_call_date
+  }
+  if (typeof clientData.gold_first_call_date !== "undefined") {
+    transformed.gold_first_call_date = clientData.gold_first_call_date
+  }
+  if (typeof clientData.gold_second_call_date !== "undefined") {
+    transformed.gold_second_call_date = clientData.gold_second_call_date
+  }
+  if (typeof clientData.gold_third_call_date !== "undefined") {
+    transformed.gold_third_call_date = clientData.gold_third_call_date
+  }
+  if (typeof clientData.elite_configurations_started_date !== "undefined") {
+    transformed.elite_configurations_started_date = clientData.elite_configurations_started_date
+  }
+  if (typeof clientData.elite_integrations_started_date !== "undefined") {
+    transformed.elite_integrations_started_date = clientData.elite_integrations_started_date
+  }
+  if (typeof clientData.elite_verification_completed_date !== "undefined") {
+    transformed.elite_verification_completed_date = clientData.elite_verification_completed_date
   }
 
   return transformed

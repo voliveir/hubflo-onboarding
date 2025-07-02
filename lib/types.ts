@@ -27,6 +27,16 @@ export interface Client {
   created_at: string
   updated_at: string
   graduation_date?: string | null
+  // Milestone dates for each package type
+  light_onboarding_call_date?: string | null
+  premium_first_call_date?: string | null
+  premium_second_call_date?: string | null
+  gold_first_call_date?: string | null
+  gold_second_call_date?: string | null
+  gold_third_call_date?: string | null
+  elite_configurations_started_date?: string | null
+  elite_integrations_started_date?: string | null
+  elite_verification_completed_date?: string | null
   workflow_builder_enabled: boolean
   workflow?: any // JSON object for workflow builder data
   show_figma_workflow?: boolean

@@ -567,6 +567,124 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
           </CardContent>
         </Card>
 
+        {/* Milestone Dates */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Milestone Dates</CardTitle>
+            <CardDescription>Track important milestone dates for this client</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {client.success_package === "light" && (
+              <div className="space-y-2">
+                <Label htmlFor="light_onboarding_call_date">Onboarding Call Date</Label>
+                <Input
+                  id="light_onboarding_call_date"
+                  type="date"
+                  value={formData.light_onboarding_call_date || ""}
+                  onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, light_onboarding_call_date: e.target.value }))}
+                />
+              </div>
+            )}
+            
+            {client.success_package === "premium" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="premium_first_call_date">1st Onboarding Call Date</Label>
+                  <Input
+                    id="premium_first_call_date"
+                    type="date"
+                    value={formData.premium_first_call_date || ""}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, premium_first_call_date: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="premium_second_call_date">2nd Onboarding Call Date</Label>
+                  <Input
+                    id="premium_second_call_date"
+                    type="date"
+                    value={formData.premium_second_call_date || ""}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, premium_second_call_date: e.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {client.success_package === "gold" && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="gold_first_call_date">1st Onboarding Call Date</Label>
+                  <Input
+                    id="gold_first_call_date"
+                    type="date"
+                    value={formData.gold_first_call_date || ""}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, gold_first_call_date: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gold_second_call_date">2nd Onboarding Call Date</Label>
+                  <Input
+                    id="gold_second_call_date"
+                    type="date"
+                    value={formData.gold_second_call_date || ""}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, gold_second_call_date: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gold_third_call_date">3rd Onboarding Call Date</Label>
+                  <Input
+                    id="gold_third_call_date"
+                    type="date"
+                    value={formData.gold_third_call_date || ""}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, gold_third_call_date: e.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {client.success_package === "elite" && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="elite_configurations_started_date">Configurations Started Date</Label>
+                  <Input
+                    id="elite_configurations_started_date"
+                    type="date"
+                    value={formData.elite_configurations_started_date || ""}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, elite_configurations_started_date: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="elite_integrations_started_date">Integrations Started Date</Label>
+                  <Input
+                    id="elite_integrations_started_date"
+                    type="date"
+                    value={formData.elite_integrations_started_date || ""}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, elite_integrations_started_date: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="elite_verification_completed_date">Verification Completed Date</Label>
+                  <Input
+                    id="elite_verification_completed_date"
+                    type="date"
+                    value={formData.elite_verification_completed_date || ""}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, elite_verification_completed_date: e.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="graduation_date">Graduation Date</Label>
+              <Input
+                id="graduation_date"
+                type="date"
+                value={formData.graduation_date || ""}
+                onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, graduation_date: e.target.value }))}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {formData.slug !== client.slug && (
           <Alert>
             <AlertCircle className="h-4 w-4" />

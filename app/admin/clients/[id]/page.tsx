@@ -317,6 +317,84 @@ export default async function ClientDetailPage({ params }: PageProps) {
                         <label className="text-sm font-medium text-gray-500">Last Updated</label>
                         <p className="text-sm text-gray-900">{new Date(client.updated_at).toLocaleDateString()}</p>
                       </div>
+                      
+                      {/* Milestone dates based on package type */}
+                      {client.success_package === "light" && client.light_onboarding_call_date && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Onboarding Call</label>
+                          <p className="text-sm text-gray-900">{new Date(client.light_onboarding_call_date).toLocaleDateString()}</p>
+                        </div>
+                      )}
+                      
+                      {client.success_package === "premium" && (
+                        <>
+                          {client.premium_first_call_date && (
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">1st Onboarding Call</label>
+                              <p className="text-sm text-gray-900">{new Date(client.premium_first_call_date).toLocaleDateString()}</p>
+                            </div>
+                          )}
+                          {client.premium_second_call_date && (
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">2nd Onboarding Call</label>
+                              <p className="text-sm text-gray-900">{new Date(client.premium_second_call_date).toLocaleDateString()}</p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      
+                      {client.success_package === "gold" && (
+                        <>
+                          {client.gold_first_call_date && (
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">1st Onboarding Call</label>
+                              <p className="text-sm text-gray-900">{new Date(client.gold_first_call_date).toLocaleDateString()}</p>
+                            </div>
+                          )}
+                          {client.gold_second_call_date && (
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">2nd Onboarding Call</label>
+                              <p className="text-sm text-gray-900">{new Date(client.gold_second_call_date).toLocaleDateString()}</p>
+                            </div>
+                          )}
+                          {client.gold_third_call_date && (
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">3rd Onboarding Call</label>
+                              <p className="text-sm text-gray-900">{new Date(client.gold_third_call_date).toLocaleDateString()}</p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      
+                      {client.success_package === "elite" && (
+                        <>
+                          {client.elite_configurations_started_date && (
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">Configurations Started</label>
+                              <p className="text-sm text-gray-900">{new Date(client.elite_configurations_started_date).toLocaleDateString()}</p>
+                            </div>
+                          )}
+                          {client.elite_integrations_started_date && (
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">Integrations Started</label>
+                              <p className="text-sm text-gray-900">{new Date(client.elite_integrations_started_date).toLocaleDateString()}</p>
+                            </div>
+                          )}
+                          {client.elite_verification_completed_date && (
+                            <div>
+                              <label className="text-sm font-medium text-gray-500">Verification Completed</label>
+                              <p className="text-sm text-gray-900">{new Date(client.elite_verification_completed_date).toLocaleDateString()}</p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      
+                      {client.graduation_date && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Graduation Date</label>
+                          <p className="text-sm text-gray-900">{new Date(client.graduation_date).toLocaleDateString()}</p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>

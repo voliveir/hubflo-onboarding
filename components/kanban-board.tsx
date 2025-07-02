@@ -35,6 +35,7 @@ import {
   Archive,
 } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   getKanbanWorkflows,
   getAllClientsWithStages,
@@ -48,6 +49,7 @@ import {
 import {
   type KanbanWorkflow,
   type ClientWithStage,
+  type Client,
 } from "@/lib/types"
 import { Calendar as KanbanDatePicker } from "@/components/ui/calendar"
 import { addDays, format } from "date-fns"
@@ -230,6 +232,69 @@ function ClientCard({ client, workflow, onMoveClient, onViewClient }: ClientCard
               <span>Calls: {client.calls_completed}/{client.calls_scheduled}</span>
               <span>Created: {new Date(client.created_at).toLocaleDateString()}</span>
             </div>
+            
+            {/* Milestone dates based on package type */}
+            {client.success_package === "light" && client.light_onboarding_call_date && (
+              <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                <span>Onboarding Call: {new Date(client.light_onboarding_call_date).toLocaleDateString()}</span>
+              </div>
+            )}
+            
+            {client.success_package === "premium" && (
+              <>
+                {client.premium_first_call_date && (
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                    <span>1st Call: {new Date(client.premium_first_call_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+                {client.premium_second_call_date && (
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                    <span>2nd Call: {new Date(client.premium_second_call_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+              </>
+            )}
+            
+            {client.success_package === "gold" && (
+              <>
+                {client.gold_first_call_date && (
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                    <span>1st Call: {new Date(client.gold_first_call_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+                {client.gold_second_call_date && (
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                    <span>2nd Call: {new Date(client.gold_second_call_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+                {client.gold_third_call_date && (
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                    <span>3rd Call: {new Date(client.gold_third_call_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+              </>
+            )}
+            
+            {client.success_package === "elite" && (
+              <>
+                {client.elite_configurations_started_date && (
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                    <span>Config Started: {new Date(client.elite_configurations_started_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+                {client.elite_integrations_started_date && (
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                    <span>Integrations Started: {new Date(client.elite_integrations_started_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+                {client.elite_verification_completed_date && (
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                    <span>Verification: {new Date(client.elite_verification_completed_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+              </>
+            )}
+            
             {client.graduation_date && (
               <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
                 <span>Graduated: {new Date(client.graduation_date).toLocaleDateString()}</span>
@@ -368,12 +433,19 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
   const [editingGraduationDate, setEditingGraduationDate] = useState(false)
   const [newGraduationDate, setNewGraduationDate] = useState<Date | null>(null)
   const [savingGraduationDate, setSavingGraduationDate] = useState(false)
+  
+  // Milestone date editing states
+  const [editingMilestoneDate, setEditingMilestoneDate] = useState<string | null>(null)
+  const [newMilestoneDate, setNewMilestoneDate] = useState<Date | null>(null)
+  const [savingMilestoneDate, setSavingMilestoneDate] = useState(false)
   const [showFollowUpModal, setShowFollowUpModal] = useState(false)
   const [followUpDays, setFollowUpDays] = useState<number | "custom">(7)
   const [customFollowUpDate, setCustomFollowUpDate] = useState<Date | null>(null)
   const [followUpTitle, setFollowUpTitle] = useState("")
   const [followUpNotes, setFollowUpNotes] = useState("")
   const [creatingFollowUp, setCreatingFollowUp] = useState(false)
+
+  const pathname = usePathname();
 
   useEffect(() => {
     fetchData()
@@ -476,6 +548,61 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
     }
   }
 
+  const handleEditMilestoneDate = (milestoneKey: string) => {
+    setEditingMilestoneDate(milestoneKey)
+    const currentDate = (selectedClient as any)?.[milestoneKey] as string
+    setNewMilestoneDate(currentDate ? new Date(currentDate) : null)
+  }
+
+  const handleSaveMilestoneDate = async () => {
+    if (!selectedClient || !editingMilestoneDate) return
+    setSavingMilestoneDate(true)
+    try {
+      const updateData: any = {}
+      updateData[editingMilestoneDate] = newMilestoneDate ? newMilestoneDate.toISOString().slice(0, 10) : null
+      
+      await updateClient(selectedClient.id, updateData)
+      setSelectedClient({ ...selectedClient, ...updateData })
+      setEditingMilestoneDate(null)
+      toast.success("Milestone date updated!")
+    } catch (error) {
+      toast.error("Failed to update milestone date")
+    } finally {
+      setSavingMilestoneDate(false)
+    }
+  }
+
+  const getMilestoneDateField = (milestoneKey: string, label: string) => {
+    const currentDate = (selectedClient as any)?.[milestoneKey] as string
+    const isEditing = editingMilestoneDate === milestoneKey
+    
+    return (
+      <div key={milestoneKey}>
+        <Label>{label}</Label>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600">{currentDate ? new Date(currentDate).toLocaleDateString() : "-"}</span>
+          <Button size="sm" variant="ghost" onClick={() => handleEditMilestoneDate(milestoneKey)}>
+            <CalendarIcon className="h-4 w-4" /> Edit
+          </Button>
+        </div>
+        {isEditing && (
+          <div className="mt-2 space-y-2">
+            <KanbanDatePicker
+              mode="single"
+              selected={newMilestoneDate || undefined}
+              onSelect={(date) => setNewMilestoneDate(date ?? null)}
+              initialFocus
+            />
+            <div className="flex space-x-2">
+              <Button size="sm" variant="outline" onClick={() => setEditingMilestoneDate(null)} disabled={savingMilestoneDate}>Cancel</Button>
+              <Button size="sm" onClick={handleSaveMilestoneDate} disabled={savingMilestoneDate}>{savingMilestoneDate ? "Saving..." : "Save Date"}</Button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -486,12 +613,25 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
 
   return (
     <div className="space-y-6">
+      {/* Tab navigation for Kanban/Gantt */}
+      <div className="mb-4">
+        <div className="flex space-x-2 border-b border-gray-200">
+          <Link href="/admin/kanban" legacyBehavior>
+            <a className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${pathname === "/admin/kanban" ? "border-[#ECB22D] text-[#010124] bg-white" : "border-transparent text-gray-500 hover:text-[#010124]"}`}>Kanban Board</a>
+          </Link>
+          <Link href="/admin/kanban/gantt" legacyBehavior>
+            <a className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${pathname === "/admin/kanban/gantt" ? "border-[#ECB22D] text-[#010124] bg-white" : "border-transparent text-gray-500 hover:text-[#010124]"}`}>Gantt Chart</a>
+          </Link>
+        </div>
+      </div>
       {/* Header with stats */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl">Kanban Board</CardTitle>
+              <CardTitle className="text-xl flex items-center gap-4">
+                Kanban Board
+              </CardTitle>
               <CardDescription>Track clients through their {selectedPackage} package workflow</CardDescription>
             </div>
             <div className="flex items-center space-x-4">
@@ -609,6 +749,34 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
                   </div>
                 )}
               </div>
+
+              {/* Milestone dates based on package type */}
+              {selectedClient.success_package === "light" && (
+                getMilestoneDateField("light_onboarding_call_date", "Onboarding Call Date")
+              )}
+              
+              {selectedClient.success_package === "premium" && (
+                <div className="space-y-4">
+                  {getMilestoneDateField("premium_first_call_date", "1st Onboarding Call Date")}
+                  {getMilestoneDateField("premium_second_call_date", "2nd Onboarding Call Date")}
+                </div>
+              )}
+              
+              {selectedClient.success_package === "gold" && (
+                <div className="space-y-4">
+                  {getMilestoneDateField("gold_first_call_date", "1st Onboarding Call Date")}
+                  {getMilestoneDateField("gold_second_call_date", "2nd Onboarding Call Date")}
+                  {getMilestoneDateField("gold_third_call_date", "3rd Onboarding Call Date")}
+                </div>
+              )}
+              
+              {selectedClient.success_package === "elite" && (
+                <div className="space-y-4">
+                  {getMilestoneDateField("elite_configurations_started_date", "Configurations Started Date")}
+                  {getMilestoneDateField("elite_integrations_started_date", "Integrations Started Date")}
+                  {getMilestoneDateField("elite_verification_completed_date", "Verification Completed Date")}
+                </div>
+              )}
 
               <div>
                 <Label>Graduation Date</Label>
