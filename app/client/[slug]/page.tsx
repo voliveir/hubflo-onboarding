@@ -190,8 +190,21 @@ export default async function ClientPage({ params }: ClientPageProps) {
         </div>
       </header>
 
+      {/* Quick Navigation Bar */}
+      <nav className="sticky top-[64px] z-40 bg-white/90 border-b border-[#ECB22D] shadow-sm">
+        <div className="container mx-auto px-4 py-2 flex flex-wrap gap-2 justify-center">
+          <a href="#welcome" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Welcome</a>
+          <a href="#progress" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Progress</a>
+          <a href="#workflows" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Workflows</a>
+          <a href="#next-steps" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Next Steps</a>
+          <a href="#integrations" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Integrations</a>
+          <a href="#feedback" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Feedback/Bugs/Requests</a>
+          <a href="#apps" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Apps</a>
+        </div>
+      </nav>
+
       {/* Personalized Hero Section */}
-      <section className="py-16 px-4 bg-[#010124] text-white">
+      <section id="welcome" className="py-16 px-4 bg-[#010124] text-white scroll-mt-32">
         <div className="container mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             Welcome, <span className="text-[#ECB22D]">{clientName}</span>!
@@ -363,7 +376,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       </section>
 
       {/* Implementation Progress Section - RESTORED */}
-      <section className="py-16 px-4 bg-white">
+      <section id="progress" className="py-16 px-4 bg-white scroll-mt-32">
         <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             <ClientImplementationProgress client={client} />
@@ -375,7 +388,9 @@ export default async function ClientPage({ params }: ClientPageProps) {
       <OnboardingAccessGuide clientName={clientName} />
 
       {/* Visual Workflows Section - move here before Next Steps */}
-      <IndustryWorkflows />
+      <section id="workflows" className="scroll-mt-32">
+        <IndustryWorkflows />
+      </section>
 
       {/* Blueprint Your Process Section */}
       {(client.workflow_builder_enabled || (client.show_figma_workflow && client.figma_workflow_url)) && (
@@ -425,7 +440,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       )}
 
       {/* Next Steps */}
-      <section className="py-16 px-4 bg-white">
+      <section id="next-steps" className="py-16 px-4 bg-white scroll-mt-32">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-[#010124] mb-4">Your Next Steps</h2>
@@ -651,37 +666,41 @@ export default async function ClientPage({ params }: ClientPageProps) {
       </section>
 
       {/* Dynamic Integrations Section - Pass showDefault=true to ensure default integrations show */}
-      {(client.show_zapier_integrations || integrations.length > 0) && (
-        <ClientIntegrationsSection
-          clientId={client.id}
-          clientName={clientName}
-          integrations={integrationsError ? undefined : (integrations
-            .filter(i => ["zapier", "native", "api"].includes(i.integration_type))
-            .map(i => ({
-              id: i.id,
-              title: i.title,
-              description: i.description,
-              category: i.category,
-              integration_type: i.integration_type as "zapier" | "native" | "api",
-              external_url: i.external_url,
-              is_featured: i.is_featured,
-              sort_order: i.sort_order,
-            })) as any)}
-          showDefault={true}
-          successPackage={successPackage}
-        />
-      )}
+      <section id="integrations" className="scroll-mt-32">
+        {(client.show_zapier_integrations || integrations.length > 0) && (
+          <ClientIntegrationsSection
+            clientId={client.id}
+            clientName={clientName}
+            integrations={integrationsError ? undefined : (integrations
+              .filter(i => ["zapier", "native", "api"].includes(i.integration_type))
+              .map(i => ({
+                id: i.id,
+                title: i.title,
+                description: i.description,
+                category: i.category,
+                integration_type: i.integration_type as "zapier" | "native" | "api",
+                external_url: i.external_url,
+                is_featured: i.is_featured,
+                sort_order: i.sort_order,
+              })) as any)}
+            showDefault={true}
+            successPackage={successPackage}
+          />
+        )}
+      </section>
 
       {/* Feedback Board Section */}
-      {(client.feedback_board_enabled ?? true) && (
-        <section className="py-16 px-4 bg-gray-50">
-          <div className="container mx-auto">
-            <div className="max-w-6xl mx-auto">
-              <FeedbackBoardClientView clientId={client.id} />
+      <section id="feedback" className="scroll-mt-32">
+        {(client.feedback_board_enabled ?? true) && (
+          <div className="py-16 px-4 bg-gray-50">
+            <div className="container mx-auto">
+              <div className="max-w-6xl mx-auto">
+                <FeedbackBoardClientView clientId={client.id} />
+              </div>
             </div>
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* Custom Features Section */}
       <section className="py-16 px-4 bg-white">
@@ -916,7 +935,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       )}
 
       {/* Hubflo Internal Apps Section - Always show for all packages */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section id="apps" className="py-16 px-4 bg-gray-50 scroll-mt-32">
         <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
@@ -1167,14 +1186,12 @@ function UpgradePackageSection({
                     </div>
                   </div>
                 )}
-
                 <CardHeader className="text-center pb-4">
                   <div className="text-4xl mb-2">{pkg.emoji}</div>
                   <CardTitle className="text-2xl text-[#010124]">{pkg.name} Package</CardTitle>
                   <CardDescription className="text-gray-600">{pkg.description}</CardDescription>
                   <div className="text-xl font-bold text-[#010124] mt-2">{pkg.price}</div>
                 </CardHeader>
-
                 <CardContent className="space-y-4">
                   <ul className="space-y-3">
                     {pkg.features.map((feature, index) => (
@@ -1188,7 +1205,6 @@ function UpgradePackageSection({
               </Card>
             ))}
           </div>
-
           <div className="text-center mt-12">
             <Card className="bg-gray-50 border-[#ECB22D] border">
               <CardContent className="p-6">
