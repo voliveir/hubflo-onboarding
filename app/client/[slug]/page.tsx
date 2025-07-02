@@ -198,7 +198,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
           <a href="#workflows" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Workflows</a>
           <a href="#next-steps" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Next Steps</a>
           <a href="#integrations" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Integrations</a>
-          <a href="#feedback" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Feedback/Bugs/Requests</a>
+          <a href="#feedback" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Features/Bugs/Requests</a>
           <a href="#apps" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Apps</a>
         </div>
       </nav>
