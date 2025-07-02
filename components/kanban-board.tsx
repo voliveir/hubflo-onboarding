@@ -33,6 +33,7 @@ import {
   Puzzle,
   Calendar as CalendarIcon,
   Archive,
+  X,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -420,6 +421,15 @@ function KanbanColumn({
   )
 }
 
+// Helper to format a Date as YYYY-MM-DD in local time, or undefined if null
+function formatLocalDate(date: Date | null): string | undefined {
+  if (!date) return undefined;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
   const [selectedPackage, setSelectedPackage] = useState(initialPackage)
   const [workflows, setWorkflows] = useState<KanbanWorkflow[]>([])
@@ -517,8 +527,8 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
     if (!selectedClient || !newCreatedAt) return
     setSavingDate(true)
     try {
-      await updateClient(selectedClient.id, { created_at: newCreatedAt.toISOString() })
-      setSelectedClient({ ...selectedClient, created_at: newCreatedAt.toISOString() })
+      await updateClient(selectedClient.id, { created_at: formatLocalDate(newCreatedAt) ?? "" })
+      setSelectedClient({ ...selectedClient, created_at: formatLocalDate(newCreatedAt) ?? "" })
       setEditingDate(false)
       toast.success("Created date updated!")
     } catch (error) {
@@ -537,8 +547,8 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
     if (!selectedClient) return
     setSavingGraduationDate(true)
     try {
-      await updateClient(selectedClient.id, { graduation_date: newGraduationDate ? newGraduationDate.toISOString().slice(0, 10) : null })
-      setSelectedClient({ ...selectedClient, graduation_date: newGraduationDate ? newGraduationDate.toISOString().slice(0, 10) : null })
+      await updateClient(selectedClient.id, { graduation_date: formatLocalDate(newGraduationDate) ?? "" })
+      setSelectedClient({ ...selectedClient, graduation_date: formatLocalDate(newGraduationDate) ?? "" })
       setEditingGraduationDate(false)
       toast.success("Graduation date updated!")
     } catch (error) {
@@ -559,7 +569,7 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
     setSavingMilestoneDate(true)
     try {
       const updateData: any = {}
-      updateData[editingMilestoneDate] = newMilestoneDate ? newMilestoneDate.toISOString().slice(0, 10) : null
+      updateData[editingMilestoneDate] = formatLocalDate(newMilestoneDate)
       
       await updateClient(selectedClient.id, updateData)
       setSelectedClient({ ...selectedClient, ...updateData })
@@ -593,9 +603,14 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
               onSelect={(date) => setNewMilestoneDate(date ?? null)}
               initialFocus
             />
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 items-center">
               <Button size="sm" variant="outline" onClick={() => setEditingMilestoneDate(null)} disabled={savingMilestoneDate}>Cancel</Button>
-              <Button size="sm" onClick={handleSaveMilestoneDate} disabled={savingMilestoneDate}>{savingMilestoneDate ? "Saving..." : "Save Date"}</Button>
+              <Button size="sm" onClick={handleSaveMilestoneDate} disabled={savingMilestoneDate || (newMilestoneDate === null && !(selectedClient as any)[milestoneKey] === null)}>{savingMilestoneDate ? "Saving..." : "Save Date"}</Button>
+              {(newMilestoneDate !== null || (selectedClient as any)[milestoneKey]) && (
+                <button type="button" className="ml-2 p-2 rounded hover:bg-red-50" title="Clear Date" onClick={() => setNewMilestoneDate(null)} disabled={savingMilestoneDate}>
+                  <X className="h-4 w-4 text-red-500" />
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -742,9 +757,14 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
                       onSelect={(date) => setNewCreatedAt(date ?? null)}
                       initialFocus
                     />
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 items-center">
                       <Button size="sm" variant="outline" onClick={() => setEditingDate(false)} disabled={savingDate}>Cancel</Button>
                       <Button size="sm" onClick={handleSaveDate} disabled={!newCreatedAt || savingDate}>{savingDate ? "Saving..." : "Save Date"}</Button>
+                      {newCreatedAt && (
+                        <button type="button" className="ml-2 p-2 rounded hover:bg-red-50" title="Clear Date" onClick={() => setNewCreatedAt(null)} disabled={savingDate}>
+                          <X className="h-4 w-4 text-red-500" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -794,9 +814,14 @@ export function KanbanBoard({ initialPackage = "premium" }: KanbanBoardProps) {
                       onSelect={(date) => setNewGraduationDate(date ?? null)}
                       initialFocus
                     />
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 items-center">
                       <Button size="sm" variant="outline" onClick={() => setEditingGraduationDate(false)} disabled={savingGraduationDate}>Cancel</Button>
                       <Button size="sm" onClick={handleSaveGraduationDate} disabled={savingGraduationDate}>{savingGraduationDate ? "Saving..." : "Save Date"}</Button>
+                      {newGraduationDate && (
+                        <button type="button" className="ml-2 p-2 rounded hover:bg-red-50" title="Clear Date" onClick={() => setNewGraduationDate(null)} disabled={savingGraduationDate}>
+                          <X className="h-4 w-4 text-red-500" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
