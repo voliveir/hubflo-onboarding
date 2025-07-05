@@ -64,7 +64,7 @@ export function CardHover({
             )}
           </CardHeader>
         )}
-        <CardContent className="relative">
+        <CardContent className="relative flex flex-col h-full">
           {children}
         </CardContent>
       </Card>
