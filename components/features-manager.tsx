@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog"
 import { getAllFeatures, createFeature, updateFeature, deleteFeature } from "@/lib/database"
 import type { Feature } from "@/lib/types"
-import { Plus, Edit, Trash2, Rocket, Code, Wrench, Star, DollarSign, Calendar } from "lucide-react"
+import { Plus, Edit, Trash2, Rocket, Code, Wrench, Star, DollarSign, Calendar, GripVertical } from "lucide-react"
 
 export function FeaturesManager() {
   const [features, setFeatures] = useState<Feature[]>([])
@@ -125,121 +125,105 @@ export function FeaturesManager() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="bg-[#10122b]/90 ring-1 ring-[#F2C94C]/30 rounded-2xl p-0">
+        <CardHeader className="pb-0">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-white">
                 <Rocket className="h-5 w-5 text-blue-500" />
                 Features Management
               </CardTitle>
-              <CardDescription>Manage upcoming features and upselling opportunities</CardDescription>
+              <CardDescription className="text-white/80">Manage upcoming features and upselling opportunities</CardDescription>
             </div>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-white font-semibold rounded-full h-11 px-6 text-[18px] shadow-md hover:brightness-110 border border-[#F2C94C]/70 flex items-center">
+                  <Plus className="h-5 w-5 mr-2" />
                   Add Feature
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl bg-[#10122b] ring-1 ring-[#F2C94C]/30 rounded-3xl">
                 <DialogHeader>
-                  <DialogTitle>Create New Feature</DialogTitle>
-                  <DialogDescription>Add a new feature for upselling and client assignment</DialogDescription>
+                  <DialogTitle className="text-white">Create New Feature</DialogTitle>
+                  <DialogDescription className="text-white/80">Add a new feature for upselling and client assignment</DialogDescription>
                 </DialogHeader>
                 <FeatureForm onSubmit={handleCreateFeature} />
               </DialogContent>
             </Dialog>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="pt-0">
+          <div className="space-y-6 mt-4">
             {features.map((feature) => (
-              <div key={feature.id} className="border rounded-lg p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <div className="flex items-center space-x-2">
-                        {getFeatureTypeIcon(feature.feature_type)}
-                        <h3 className="font-medium">{feature.title}</h3>
-                      </div>
-                      <Badge className={getStatusBadgeColor(feature.status)}>{feature.status}</Badge>
-                      <Badge variant="outline">{feature.category}</Badge>
-                      {feature.pricing_amount && (
-                        <Badge variant="outline" className="text-green-600">
-                          <DollarSign className="h-3 w-3 mr-1" />${feature.pricing_amount}
-                        </Badge>
-                      )}
-                      {feature.is_upsell_eligible && (
-                        <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                          Upsell
-                        </Badge>
-                      )}
+              <div key={feature.id} className="group flex items-stretch bg-[#10122b]/90 ring-1 ring-[#F2C94C]/30 rounded-xl py-6 px-6 mb-2">
+                <div className="flex items-center pr-4">
+                  <GripVertical className="text-slate-500/60 w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <div className="flex items-center space-x-2">
+                      {getFeatureTypeIcon(feature.feature_type)}
+                      <h3 className="font-semibold text-white text-[18px]">{feature.title}</h3>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{feature.description}</p>
-
-                    {/* Target Packages */}
-                    {feature.target_packages && feature.target_packages.length > 0 && (
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-xs text-gray-500">Target Packages:</span>
-                        {feature.target_packages.map((pkg) => (
-                          <Badge key={pkg} variant="outline" className="text-xs">
-                            {pkg}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Release Date */}
-                    {(feature.release_date || feature.estimated_release_date) && (
-                      <div className="flex items-center text-xs text-gray-500 mb-2">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {feature.release_date
-                          ? `Released: ${new Date(feature.release_date).toLocaleDateString()}`
-                          : `Est. Release: ${new Date(feature.estimated_release_date!).toLocaleDateString()}`}
-                      </div>
-                    )}
-
-                    {/* Sales Notes */}
-                    {feature.sales_notes && (
-                      <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded mt-2">
-                        <strong>Sales Notes:</strong> {feature.sales_notes}
-                      </div>
-                    )}
+                    {/* Status/label chips */}
+                    {feature.status === 'beta' && <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-[11px] font-semibold" style={{ borderRadius: 12 }}>Beta</span>}
+                    {feature.status === 'development' && <span className="bg-orange-400 text-white px-3 py-1 rounded-full text-[11px] font-semibold" style={{ borderRadius: 12 }}>Development</span>}
+                    {feature.status === 'released' && <span className="bg-green-400 text-white px-3 py-1 rounded-full text-[11px] font-semibold" style={{ borderRadius: 12 }}>Released</span>}
+                    {feature.is_upsell_eligible && <span className="bg-pink-400 text-white px-3 py-1 rounded-full text-[11px] font-semibold" style={{ borderRadius: 12 }}>Upsell</span>}
                   </div>
-
-                  <div className="flex space-x-2 ml-4">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" onClick={() => setEditingFeature(feature)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                          <DialogTitle>Edit Feature</DialogTitle>
-                          <DialogDescription>Update feature details</DialogDescription>
-                        </DialogHeader>
-                        <FeatureForm feature={feature} onSubmit={(data) => handleUpdateFeature(feature.id, data)} />
-                      </DialogContent>
-                    </Dialog>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteFeature(feature.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <p className="text-[15px] text-slate-200 mb-2">{feature.description}</p>
+                  {/* Enabled package pills */}
+                  {feature.target_packages && feature.target_packages.length > 0 && (
+                    <div className="flex items-center space-x-2 mb-2">
+                      {feature.target_packages.includes('light') && <span className="bg-green-400/20 text-green-300 px-3 py-1 rounded-full text-xs font-semibold" style={{ borderRadius: 12 }}>Light</span>}
+                      {feature.target_packages.includes('premium') && <span className="bg-blue-400/20 text-blue-300 px-3 py-1 rounded-full text-xs font-semibold" style={{ borderRadius: 12 }}>Premium</span>}
+                      {feature.target_packages.includes('gold') && <span className="bg-yellow-300/20 text-yellow-200 px-3 py-1 rounded-full text-xs font-semibold" style={{ borderRadius: 12 }}>Gold</span>}
+                      {feature.target_packages.includes('elite') && <span className="bg-purple-400/20 text-purple-300 px-3 py-1 rounded-full text-xs font-semibold" style={{ borderRadius: 12 }}>Elite</span>}
+                    </div>
+                  )}
+                  {/* Release Date */}
+                  {(feature.release_date || feature.estimated_release_date) && (
+                    <div className="flex items-center text-xs text-white/60 mb-2">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      {feature.release_date
+                        ? `Released: ${new Date(feature.release_date).toLocaleDateString()}`
+                        : `Est. Release: ${new Date(feature.estimated_release_date!).toLocaleDateString()}`}
+                    </div>
+                  )}
+                  {/* Sales Notes */}
+                  {feature.sales_notes && (
+                    <div className="text-xs text-pink-200 bg-pink-900/30 p-2 rounded mt-2">
+                      <strong>Sales Notes:</strong> {feature.sales_notes}
+                    </div>
+                  )}
+                </div>
+                {/* Actions: hidden until row hover */}
+                <div className="flex flex-col space-y-2 ml-4 justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="w-8 h-8 bg-[#181a2f] rounded-md flex items-center justify-center" onClick={() => setEditingFeature(feature)}>
+                        <Edit className="h-5 w-5 text-[#F2C94C]" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl bg-[#10122b] ring-1 ring-[#F2C94C]/30 rounded-3xl">
+                      <DialogHeader>
+                        <DialogTitle className="text-white">Edit Feature</DialogTitle>
+                        <DialogDescription className="text-white/80">Update feature details</DialogDescription>
+                      </DialogHeader>
+                      <FeatureForm feature={feature} onSubmit={(data) => handleUpdateFeature(feature.id, data)} />
+                    </DialogContent>
+                  </Dialog>
+                  <Button className="w-8 h-8 bg-[#181a2f] rounded-md flex items-center justify-center" onClick={() => handleDeleteFeature(feature.id)}>
+                    <Trash2 className="h-5 w-5 text-[#F2C94C]" />
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
 
           {features.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <Rocket className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <div className="text-center py-8 text-white/60">
+              <Rocket className="h-12 w-12 mx-auto mb-4 text-white/30" />
               <p>No features created yet. Click "Add Feature" to get started.</p>
             </div>
           )}
@@ -314,16 +298,17 @@ function FeatureForm({ feature, onSubmit }: FeatureFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="title">Feature Title</Label>
+          <Label htmlFor="title" className="text-white">Feature Title</Label>
           <Input
             id="title"
             value={formData.title}
             onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
             required
+            className="bg-[#181a2f] border border-slate-600 text-white placeholder-white/60"
           />
         </div>
         <div>
-          <Label htmlFor="category">Category</Label>
+          <Label htmlFor="category" className="text-white">Category</Label>
           <Input
             id="category"
             value={formData.category}
@@ -333,23 +318,24 @@ function FeatureForm({ feature, onSubmit }: FeatureFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description" className="text-white">Description</Label>
         <Textarea
           id="description"
           value={formData.description}
           onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
           rows={3}
+          className="bg-[#181a2f] border border-slate-600 text-white placeholder-white/60"
         />
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Label htmlFor="feature_type">Type</Label>
+          <Label htmlFor="feature_type" className="text-white">Type</Label>
           <Select
             value={formData.feature_type}
-            onValueChange={(value) => setFormData((prev) => ({ ...prev, feature_type: value }))}
+            onValueChange={(value) => setFormData((prev) => ({ ...prev, feature_type: value as 'feature' | 'integration' | 'tool' | 'service' }))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="text-white bg-[#181a2f] border border-slate-600">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -361,12 +347,12 @@ function FeatureForm({ feature, onSubmit }: FeatureFormProps) {
           </Select>
         </div>
         <div>
-          <Label htmlFor="status">Status</Label>
+          <Label htmlFor="status" className="text-white">Status</Label>
           <Select
             value={formData.status}
-            onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value }))}
+            onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value as 'development' | 'beta' | 'released' | 'deprecated' }))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="text-white bg-[#181a2f] border border-slate-600">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -378,12 +364,12 @@ function FeatureForm({ feature, onSubmit }: FeatureFormProps) {
           </Select>
         </div>
         <div>
-          <Label htmlFor="pricing_tier">Pricing Tier</Label>
+          <Label htmlFor="pricing_tier" className="text-white">Pricing Tier</Label>
           <Select
             value={formData.pricing_tier}
-            onValueChange={(value) => setFormData((prev) => ({ ...prev, pricing_tier: value }))}
+            onValueChange={(value) => setFormData((prev) => ({ ...prev, pricing_tier: value as 'free' | 'premium' | 'enterprise' | 'addon' }))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="text-white bg-[#181a2f] border border-slate-600">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -398,7 +384,7 @@ function FeatureForm({ feature, onSubmit }: FeatureFormProps) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="pricing_amount">Pricing Amount ($)</Label>
+          <Label htmlFor="pricing_amount" className="text-white">Pricing Amount ($)</Label>
           <Input
             id="pricing_amount"
             type="number"
@@ -410,7 +396,7 @@ function FeatureForm({ feature, onSubmit }: FeatureFormProps) {
           />
         </div>
         <div>
-          <Label htmlFor="estimated_release_date">Estimated Release Date</Label>
+          <Label htmlFor="estimated_release_date" className="text-white">Estimated Release Date</Label>
           <Input
             id="estimated_release_date"
             type="date"
@@ -421,7 +407,7 @@ function FeatureForm({ feature, onSubmit }: FeatureFormProps) {
       </div>
 
       <div>
-        <Label>Target Packages</Label>
+        <Label className="text-white">Target Packages</Label>
         <div className="grid grid-cols-4 gap-2 mt-2">
           {availablePackages.map((pkg) => (
             <div key={pkg} className="flex items-center space-x-2">
@@ -432,16 +418,16 @@ function FeatureForm({ feature, onSubmit }: FeatureFormProps) {
                 onChange={(e) => handleTargetPackageChange(pkg, e.target.checked)}
                 className="rounded"
               />
-              <Label htmlFor={`pkg-${pkg}`} className="text-sm capitalize">
+              <label key={pkg} className="flex items-center space-x-2 text-sm font-medium text-white">
                 {pkg}
-              </Label>
+              </label>
             </div>
           ))}
         </div>
       </div>
 
       <div>
-        <Label htmlFor="sales_notes">Sales Notes</Label>
+        <Label htmlFor="sales_notes" className="text-white">Sales Notes</Label>
         <Textarea
           id="sales_notes"
           value={formData.sales_notes}
@@ -458,7 +444,7 @@ function FeatureForm({ feature, onSubmit }: FeatureFormProps) {
             checked={formData.is_active}
             onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_active: checked }))}
           />
-          <Label htmlFor="is_active">Active</Label>
+          <Label htmlFor="is_active" className="text-white">Active</Label>
         </div>
         <div className="flex items-center space-x-2">
           <Switch
@@ -466,7 +452,7 @@ function FeatureForm({ feature, onSubmit }: FeatureFormProps) {
             checked={formData.is_upsell_eligible}
             onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_upsell_eligible: checked }))}
           />
-          <Label htmlFor="is_upsell_eligible">Upsell Eligible</Label>
+          <Label htmlFor="is_upsell_eligible" className="text-white">Upsell Eligible</Label>
         </div>
       </div>
 
