@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 import { FeedbackBoardCard } from '@/lib/types';
 import { marked } from 'marked';
 import { useReveal } from '@/hooks/useReveal';
 import { cn } from '@/lib/utils';
+import { Package } from 'lucide-react';
 
 const STATUS_COLUMNS = [
   { key: 'backlog', label: 'Backlog' },
@@ -55,12 +57,17 @@ export function FeedbackBoardClientView({ clientId }: { clientId: string }) {
                 <div className="text-center text-white/60 py-8">Loading...</div>
               ) : showPlaceholder ? (
                 <div className="flex flex-col items-center justify-center h-40 text-white/60">
-                  <div className="w-12 h-12 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20 mb-3">
-                    <svg className="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 21m0 0l-1.5-4m1.5 4h6m-6 0h6m0 0l1.5-4m-1.5 4l.75-4M12 3v12m0 0c-4.418 0-8 1.79-8 4v1h16v-1c0-2.21-3.582-4-8-4z" />
-                    </svg>
+                  <div className="w-16 h-16 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/40 mb-4 opacity-40">
+                    <Package className="w-8 h-8 text-brand-gold" strokeWidth={1.5} />
                   </div>
-                  <span>No feedback/bugs submitted yet</span>
+                  <span className="text-center mb-4">No feedback submitted yet</span>
+                  <Button 
+                    variant="outline" 
+                    className="border-brand-gold/40 text-brand-gold hover:bg-brand-gold/10"
+                    onClick={() => window.open('/admin/feedback-board', '_blank')}
+                  >
+                    Submit Your First Request
+                  </Button>
                 </div>
               ) : (
                 colCards.map(card => (
