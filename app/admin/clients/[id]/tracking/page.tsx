@@ -19,13 +19,13 @@ export default async function ClientTrackingPage({ params }: ClientTrackingPageP
 
   return (
     <PasswordProtection>
-      <div className="flex h-screen bg-gray-100">
+      <div className="flex h-screen bg-gradient-to-b from-[#10122b] to-[#0a0b1a]">
         <AdminSidebar />
         <main className="flex-1 overflow-y-auto">
-          <div className="p-8">
+          <div className="max-w-7xl mx-auto p-8">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">{client.name} - Project Tracking</h1>
-              <p className="text-gray-600">Track implementation progress and milestones</p>
+              <h1 className="text-3xl font-bold text-white">{client.name} - Project Tracking</h1>
+              <p className="text-white/80">Track implementation progress and milestones</p>
             </div>
             <ProjectTrackingAdmin client={client} />
           </div>

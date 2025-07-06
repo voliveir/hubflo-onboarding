@@ -5,7 +5,7 @@ import { AdminSidebar } from "@/components/admin-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { User, Package, ExternalLink, Edit, Settings, BarChart3, Zap } from "lucide-react"
+import { User, Package, ExternalLink, Edit, Settings, BarChart3, Zap, Calendar, DollarSign, Users, Building, Phone, Mail, Globe, CheckCircle, Clock, XCircle } from "lucide-react"
 import Link from "next/link"
 
 interface PageProps {
@@ -24,29 +24,41 @@ export default async function ClientDetailPage({ params }: PageProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800"
+        return "bg-green-500/20 text-green-300"
       case "inactive":
-        return "bg-red-100 text-red-800"
+        return "bg-red-500/20 text-red-300"
       case "pending":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-400/20 text-yellow-200"
+      case "draft":
+        return "bg-slate-400/20 text-slate-200"
+      case "completed":
+        return "bg-blue-500/20 text-blue-300"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-slate-400/20 text-slate-200"
     }
   }
 
   const getPackageColor = (pkg: string) => {
     switch (pkg.toLowerCase()) {
       case "light":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-500/20 text-blue-300"
       case "premium":
-        return "bg-purple-100 text-purple-800"
+        return "bg-purple-500/20 text-purple-300"
       case "gold":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-400/20 text-yellow-200"
       case "elite":
-        return "bg-red-100 text-red-800"
+        return "bg-red-500/20 text-red-300"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-slate-400/20 text-slate-200"
     }
+  }
+
+  const getProgressStatusColor = (completed: boolean) => {
+    return completed ? "text-green-400" : "text-red-400"
+  }
+
+  const getProgressStatusIcon = (completed: boolean) => {
+    return completed ? <CheckCircle className="h-8 w-8 text-green-400" /> : <XCircle className="h-8 w-8 text-red-400" />
   }
 
   function getCustomAppLabel(value: string | undefined) {
@@ -66,26 +78,26 @@ export default async function ClientDetailPage({ params }: PageProps) {
 
   return (
     <PasswordProtection>
-      <div className="flex h-screen bg-gray-100">
+      <div className="flex h-screen bg-gradient-to-br from-[#0a0b1a] via-[#10122b] to-[#1a1c3a]">
         <AdminSidebar />
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto">
             <div className="container mx-auto px-6 py-8">
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">{client.name}</h1>
-                  <p className="text-gray-600">Client Details & Management</p>
+                  <h1 className="text-3xl font-bold text-white">{client.name}</h1>
+                  <p className="text-white/80">Client Details & Management</p>
                 </div>
                 <div className="flex space-x-3">
-                  <Button variant="outline" asChild>
+                  <Button variant="outline" asChild className="bg-[#181a2f] border border-slate-600 text-[#F2C94C] hover:bg-[#23244a]">
                     <Link href={`/client/${client.slug}`} target="_blank">
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View Portal
                     </Link>
                   </Button>
-                  <Button asChild>
+                  <Button asChild className="bg-gradient-to-r from-[#F2C94C] via-[#F2994A] to-[#F2994A] text-white font-semibold hover:brightness-110 border border-[#F2C94C]/70">
                     <Link href={`/admin/clients/${client.id}/edit`}>
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Client
@@ -94,118 +106,104 @@ export default async function ClientDetailPage({ params }: PageProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Info */}
-                <div className="lg:col-span-2 space-y-6">
+              <div className="grid grid-cols-12 gap-6">
+                {/* Main Content - 8 cols on xl, 12 on <lg */}
+                <div className="col-span-12 xl:col-span-8 space-y-6">
                   {/* Basic Information */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <User className="h-5 w-5" />
+                  <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6 md:p-8 shadow-[#F2C94C]/5">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg font-semibold text-white pl-3 border-l-4 border-[#F2C94C] flex items-center gap-2">
+                        <User className="h-5 w-5 text-[#F2C94C]" />
                         Basic Information
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Client Name</label>
-                          <p className="text-gray-900 font-medium">{client.name}</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Status</label>
-                          <div className="mt-1">
-                            <Badge className={getStatusColor(client.status)}>{client.status}</Badge>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Email</label>
-                          <p className="text-gray-900">{client.email || "Not provided"}</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Phone</label>
-                          <p className="text-gray-900">{client.phone || "Not provided"}</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Company</label>
-                          <p className="text-gray-900">{client.company || "Not provided"}</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Portal Slug</label>
-                          <p className="text-gray-900 font-mono">{client.slug}</p>
-                        </div>
+                    <CardContent>
+                      <div className="grid grid-cols-12 gap-y-2">
+                        <dt className="col-span-4 text-right text-slate-400">Client Name</dt>
+                        <dd className="col-span-8 text-slate-100">{client.name}</dd>
+                        
+                        <dt className="col-span-4 text-right text-slate-400">Status</dt>
+                        <dd className="col-span-8">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${getStatusColor(client.status)}`}>
+                            {client.status}
+                          </span>
+                        </dd>
+                        
+                        <dt className="col-span-4 text-right text-slate-400">Email</dt>
+                        <dd className="col-span-8 text-slate-100">{client.email || "Not provided"}</dd>
+                        
+                        <dt className="col-span-4 text-right text-slate-400">Portal Slug</dt>
+                        <dd className="col-span-8 text-slate-100 font-mono">{client.slug}</dd>
                       </div>
                     </CardContent>
                   </Card>
 
                   {/* Package & Billing */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Package className="h-5 w-5" />
+                  <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6 md:p-8 shadow-[#F2C94C]/5">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg font-semibold text-white pl-3 border-l-4 border-[#F2C94C] flex items-center gap-2">
+                        <Package className="h-5 w-5 text-[#F2C94C]" />
                         Package & Billing
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Success Package</label>
-                          <div className="mt-1">
-                            <Badge className={getPackageColor(client.success_package)}>{client.success_package}</Badge>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Billing Type</label>
-                          <p className="text-gray-900 capitalize">{client.billing_type}</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Number of Users</label>
-                          <p className="text-gray-900">{client.number_of_users || "Not specified"}</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Custom App</label>
-                          <p className="text-gray-900">{getCustomAppLabel(client.custom_app)}</p>
-                        </div>
+                    <CardContent>
+                      <div className="grid grid-cols-12 gap-y-2">
+                        <dt className="col-span-4 text-right text-slate-400">Success Package</dt>
+                        <dd className="col-span-8">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${getPackageColor(client.success_package)}`}>
+                            {client.success_package}
+                          </span>
+                        </dd>
+                        
+                        <dt className="col-span-4 text-right text-slate-400">Billing Type</dt>
+                        <dd className="col-span-8 text-slate-100 capitalize">{client.billing_type}</dd>
+                        
+                        <dt className="col-span-4 text-right text-slate-400">Number of Users</dt>
+                        <dd className="col-span-8 text-slate-100">{client.number_of_users || "Not specified"}</dd>
+                        
+                        <dt className="col-span-4 text-right text-slate-400">Custom App</dt>
+                        <dd className="col-span-8 text-slate-100">{getCustomAppLabel(client.custom_app)}</dd>
                       </div>
                     </CardContent>
                   </Card>
 
                   {/* Implementation Progress */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5" />
+                  <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6 md:p-8 shadow-[#F2C94C]/5">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg font-semibold text-white pl-3 border-l-4 border-[#F2C94C] flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5 text-[#F2C94C]" />
                         Implementation Progress
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <div className="text-center p-4 bg-gray-50 rounded-lg">
-                          <div className="text-2xl font-bold text-blue-600">{client.calls_completed}</div>
-                          <div className="text-sm text-gray-600">Calls Completed</div>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-4">
+                        <div className="w-full sm:w-1/2 lg:w-1/3 bg-[#0d1120] rounded-xl border border-slate-700 p-4 text-center">
+                          <div className="text-3xl font-bold text-blue-400">{client.calls_completed}</div>
+                          <div className="text-sm text-slate-400">Calls Completed</div>
                         </div>
-                        <div className="text-center p-4 bg-gray-50 rounded-lg">
-                          <div className="text-2xl font-bold text-green-600">{client.forms_setup}</div>
-                          <div className="text-sm text-gray-600">Forms Setup</div>
+                        <div className="w-full sm:w-1/2 lg:w-1/3 bg-[#0d1120] rounded-xl border border-slate-700 p-4 text-center">
+                          <div className="text-3xl font-bold text-green-400">{client.forms_setup}</div>
+                          <div className="text-sm text-slate-400">Forms Setup</div>
                         </div>
-                        <div className="text-center p-4 bg-gray-50 rounded-lg">
-                          <div className="text-2xl font-bold text-purple-600">{client.smartdocs_setup}</div>
-                          <div className="text-sm text-gray-600">SmartDocs Setup</div>
+                        <div className="w-full sm:w-1/2 lg:w-1/3 bg-[#0d1120] rounded-xl border border-slate-700 p-4 text-center">
+                          <div className="text-3xl font-bold text-purple-400">{client.smartdocs_setup}</div>
+                          <div className="text-sm text-slate-400">SmartDocs Setup</div>
                         </div>
-                        <div className="text-center p-4 bg-gray-50 rounded-lg">
-                          <div className="text-2xl font-bold text-orange-600">{client.zapier_integrations_setup}</div>
-                          <div className="text-sm text-gray-600">Zapier Integrations</div>
+                        <div className="w-full sm:w-1/2 lg:w-1/3 bg-[#0d1120] rounded-xl border border-slate-700 p-4 text-center">
+                          <div className="text-3xl font-bold text-orange-400">{client.zapier_integrations_setup}</div>
+                          <div className="text-sm text-slate-400">Zapier Integrations</div>
                         </div>
-                        <div className="text-center p-4 bg-gray-50 rounded-lg">
-                          <div className="text-2xl font-bold text-red-600">
-                            {client.migration_completed ? "✓" : "✗"}
+                        <div className="w-full sm:w-1/2 lg:w-1/3 bg-[#0d1120] rounded-xl border border-slate-700 p-4 text-center">
+                          <div className="text-3xl font-bold">
+                            {getProgressStatusIcon(client.migration_completed)}
                           </div>
-                          <div className="text-sm text-gray-600">Migration</div>
+                          <div className="text-sm text-slate-400">Migration</div>
                         </div>
-                        <div className="text-center p-4 bg-gray-50 rounded-lg">
-                          <div className="text-2xl font-bold text-indigo-600">
-                            {client.slack_access_granted ? "✓" : "✗"}
+                        <div className="w-full sm:w-1/2 lg:w-1/3 bg-[#0d1120] rounded-xl border border-slate-700 p-4 text-center">
+                          <div className="text-3xl font-bold">
+                            {getProgressStatusIcon(client.slack_access_granted)}
                           </div>
-                          <div className="text-sm text-gray-600">Slack Access</div>
+                          <div className="text-sm text-slate-400">Slack Access</div>
                         </div>
                       </div>
                     </CardContent>
@@ -213,134 +211,144 @@ export default async function ClientDetailPage({ params }: PageProps) {
 
                   {/* Custom Messages */}
                   {client.welcome_message && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Welcome Message</CardTitle>
+                    <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6 md:p-8 shadow-[#F2C94C]/5">
+                      <CardHeader className="pb-4">
+                        <CardTitle className="text-lg font-semibold text-white pl-3 border-l-4 border-[#F2C94C]">
+                          Welcome Message
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-gray-700">{client.welcome_message}</p>
+                        <p className="text-slate-300">{client.welcome_message}</p>
                       </CardContent>
                     </Card>
                   )}
                 </div>
 
-                {/* Sidebar */}
-                <div className="space-y-6">
+                {/* Sidebar - 4 cols on xl, 12 on <lg */}
+                <div className="col-span-12 xl:col-span-4 space-y-6">
                   {/* Quick Actions */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Quick Actions</CardTitle>
+                  <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6 md:p-8 shadow-[#F2C94C]/5">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg font-semibold text-white pl-3 border-l-4 border-[#F2C94C]">
+                        Quick Actions
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <Button className="w-full justify-start bg-transparent" variant="outline" asChild>
-                        <Link href={`/admin/clients/${client.id}/edit`}>
-                          <Edit className="h-4 w-4 mr-2" />
+                      <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                        <Edit className="text-[#F2C94C]" />
+                        <Link href={`/admin/clients/${client.id}/edit`} className="flex-1 text-left">
                           Edit Client
                         </Link>
-                      </Button>
-                      <Button className="w-full justify-start bg-transparent" variant="outline" asChild>
-                        <Link href={`/admin/clients/${client.id}/integrations`}>
-                          <Zap className="h-4 w-4 mr-2" />
+                      </button>
+                      <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                        <Zap className="text-[#F2C94C]" />
+                        <Link href={`/admin/clients/${client.id}/integrations`} className="flex-1 text-left">
                           Manage Integrations
                         </Link>
-                      </Button>
-                      <Button className="w-full justify-start bg-transparent" variant="outline" asChild>
-                        <Link href={`/admin/clients/${client.id}/tracking`}>
-                          <BarChart3 className="h-4 w-4 mr-2" />
+                      </button>
+                      <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                        <BarChart3 className="text-[#F2C94C]" />
+                        <Link href={`/admin/clients/${client.id}/tracking`} className="flex-1 text-left">
                           Project Tracking
                         </Link>
-                      </Button>
-                      <Button className="w-full justify-start bg-transparent" variant="outline" asChild>
-                        <Link href={`/admin/clients/${client.id}/features`}>
-                          <Settings className="h-4 w-4 mr-2" />
+                      </button>
+                      <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                        <Settings className="text-[#F2C94C]" />
+                        <Link href={`/admin/clients/${client.id}/features`} className="flex-1 text-left">
                           Manage Features
                         </Link>
-                      </Button>
-                      <Button className="w-full justify-start bg-transparent" variant="outline" asChild>
-                        <Link href={`/client/${client.slug}`} target="_blank">
-                          <ExternalLink className="h-4 w-4 mr-2" />
+                      </button>
+                      <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                        <ExternalLink className="text-[#F2C94C]" />
+                        <Link href={`/client/${client.slug}`} target="_blank" className="flex-1 text-left">
                           View Client Portal
                         </Link>
-                      </Button>
+                      </button>
                     </CardContent>
                   </Card>
 
                   {/* Client Assets */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Client Assets</CardTitle>
+                  <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6 md:p-8 shadow-[#F2C94C]/5">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg font-semibold text-white pl-3 border-l-4 border-[#F2C94C]">
+                        Client Assets
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Logo URL</label>
-                        <p className="text-sm text-gray-900 break-all">{client.logo_url || "Not provided"}</p>
+                        <label className="text-sm font-medium text-slate-400">Logo URL</label>
+                        <p className="text-sm text-slate-100 break-all">{client.logo_url || "Not provided"}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Video URL</label>
-                        <p className="text-sm text-gray-900 break-all">{client.video_url || "Not provided"}</p>
+                        <label className="text-sm font-medium text-slate-400">Video URL</label>
+                        <p className="text-sm text-slate-100 break-all">{client.video_url || "Not provided"}</p>
                       </div>
                     </CardContent>
                   </Card>
 
                   {/* Settings */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Portal Settings</CardTitle>
+                  <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6 md:p-8 shadow-[#F2C94C]/5">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg font-semibold text-white pl-3 border-l-4 border-[#F2C94C]">
+                        Portal Settings
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Show Zapier Integrations</span>
-                        <Badge variant={client.show_zapier_integrations ? "default" : "secondary"}>
+                        <span className="text-sm text-slate-400">Show Zapier Integrations</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${client.show_zapier_integrations ? 'bg-emerald-400/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}`}>
                           {client.show_zapier_integrations ? "Yes" : "No"}
-                        </Badge>
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Projects Enabled</span>
-                        <Badge variant={client.projects_enabled ? "default" : "secondary"}>
+                        <span className="text-sm text-slate-400">Projects Enabled</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${client.projects_enabled ? 'bg-emerald-400/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}`}>
                           {client.projects_enabled ? "Yes" : "No"}
-                        </Badge>
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Show Feedback & Requests Board</span>
-                        <Badge variant={client.feedback_board_enabled ? "default" : "secondary"}>
+                        <span className="text-sm text-slate-400">Show Feedback & Requests Board</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${client.feedback_board_enabled ? 'bg-emerald-400/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}`}>
                           {client.feedback_board_enabled ? "Yes" : "No"}
-                        </Badge>
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Enable Workflow Builder</span>
-                        <Badge variant={client.workflow_builder_enabled ? "default" : "secondary"}>
+                        <span className="text-sm text-slate-400">Enable Workflow Builder</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${client.workflow_builder_enabled ? 'bg-emerald-400/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}`}>
                           {client.workflow_builder_enabled ? "Yes" : "No"}
-                        </Badge>
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Show Figma Workflow</span>
-                        <Badge variant={client.show_figma_workflow ? "default" : "secondary"}>
+                        <span className="text-sm text-slate-400">Show Figma Workflow</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${client.show_figma_workflow ? 'bg-emerald-400/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}`}>
                           {client.show_figma_workflow ? "Yes" : "No"}
-                        </Badge>
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
 
                   {/* Timestamps */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Timestamps</CardTitle>
+                  <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6 md:p-8 shadow-[#F2C94C]/5">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg font-semibold text-white pl-3 border-l-4 border-[#F2C94C]">
+                        Timestamps
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Created</label>
-                        <p className="text-sm text-gray-900">{new Date(client.created_at).toLocaleDateString()}</p>
+                        <label className="text-sm font-medium text-slate-400">Created</label>
+                        <p className="text-sm text-slate-100">{new Date(client.created_at).toLocaleDateString()}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Last Updated</label>
-                        <p className="text-sm text-gray-900">{new Date(client.updated_at).toLocaleDateString()}</p>
+                        <label className="text-sm font-medium text-slate-400">Last Updated</label>
+                        <p className="text-sm text-slate-100">{new Date(client.updated_at).toLocaleDateString()}</p>
                       </div>
                       
                       {/* Milestone dates based on package type */}
                       {client.success_package === "light" && client.light_onboarding_call_date && (
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Onboarding Call</label>
-                          <p className="text-sm text-gray-900">{new Date(client.light_onboarding_call_date).toLocaleDateString()}</p>
+                          <label className="text-sm font-medium text-slate-400">Onboarding Call</label>
+                          <p className="text-sm text-slate-100">{new Date(client.light_onboarding_call_date).toLocaleDateString()}</p>
                         </div>
                       )}
                       
@@ -348,14 +356,14 @@ export default async function ClientDetailPage({ params }: PageProps) {
                         <>
                           {client.premium_first_call_date && (
                             <div>
-                              <label className="text-sm font-medium text-gray-500">1st Onboarding Call</label>
-                              <p className="text-sm text-gray-900">{new Date(client.premium_first_call_date).toLocaleDateString()}</p>
+                              <label className="text-sm font-medium text-slate-400">1st Onboarding Call</label>
+                              <p className="text-sm text-slate-100">{new Date(client.premium_first_call_date).toLocaleDateString()}</p>
                             </div>
                           )}
                           {client.premium_second_call_date && (
                             <div>
-                              <label className="text-sm font-medium text-gray-500">2nd Onboarding Call</label>
-                              <p className="text-sm text-gray-900">{new Date(client.premium_second_call_date).toLocaleDateString()}</p>
+                              <label className="text-sm font-medium text-slate-400">2nd Onboarding Call</label>
+                              <p className="text-sm text-slate-100">{new Date(client.premium_second_call_date).toLocaleDateString()}</p>
                             </div>
                           )}
                         </>
@@ -365,20 +373,20 @@ export default async function ClientDetailPage({ params }: PageProps) {
                         <>
                           {client.gold_first_call_date && (
                             <div>
-                              <label className="text-sm font-medium text-gray-500">1st Onboarding Call</label>
-                              <p className="text-sm text-gray-900">{new Date(client.gold_first_call_date).toLocaleDateString()}</p>
+                              <label className="text-sm font-medium text-slate-400">1st Onboarding Call</label>
+                              <p className="text-sm text-slate-100">{new Date(client.gold_first_call_date).toLocaleDateString()}</p>
                             </div>
                           )}
                           {client.gold_second_call_date && (
                             <div>
-                              <label className="text-sm font-medium text-gray-500">2nd Onboarding Call</label>
-                              <p className="text-sm text-gray-900">{new Date(client.gold_second_call_date).toLocaleDateString()}</p>
+                              <label className="text-sm font-medium text-slate-400">2nd Onboarding Call</label>
+                              <p className="text-sm text-slate-100">{new Date(client.gold_second_call_date).toLocaleDateString()}</p>
                             </div>
                           )}
                           {client.gold_third_call_date && (
                             <div>
-                              <label className="text-sm font-medium text-gray-500">3rd Onboarding Call</label>
-                              <p className="text-sm text-gray-900">{new Date(client.gold_third_call_date).toLocaleDateString()}</p>
+                              <label className="text-sm font-medium text-slate-400">3rd Onboarding Call</label>
+                              <p className="text-sm text-slate-100">{new Date(client.gold_third_call_date).toLocaleDateString()}</p>
                             </div>
                           )}
                         </>
@@ -388,20 +396,20 @@ export default async function ClientDetailPage({ params }: PageProps) {
                         <>
                           {client.elite_configurations_started_date && (
                             <div>
-                              <label className="text-sm font-medium text-gray-500">Configurations Started</label>
-                              <p className="text-sm text-gray-900">{new Date(client.elite_configurations_started_date).toLocaleDateString()}</p>
+                              <label className="text-sm font-medium text-slate-400">Configurations Started</label>
+                              <p className="text-sm text-slate-100">{new Date(client.elite_configurations_started_date).toLocaleDateString()}</p>
                             </div>
                           )}
                           {client.elite_integrations_started_date && (
                             <div>
-                              <label className="text-sm font-medium text-gray-500">Integrations Started</label>
-                              <p className="text-sm text-gray-900">{new Date(client.elite_integrations_started_date).toLocaleDateString()}</p>
+                              <label className="text-sm font-medium text-slate-400">Integrations Started</label>
+                              <p className="text-sm text-slate-100">{new Date(client.elite_integrations_started_date).toLocaleDateString()}</p>
                             </div>
                           )}
                           {client.elite_verification_completed_date && (
                             <div>
-                              <label className="text-sm font-medium text-gray-500">Verification Completed</label>
-                              <p className="text-sm text-gray-900">{new Date(client.elite_verification_completed_date).toLocaleDateString()}</p>
+                              <label className="text-sm font-medium text-slate-400">Verification Completed</label>
+                              <p className="text-sm text-slate-100">{new Date(client.elite_verification_completed_date).toLocaleDateString()}</p>
                             </div>
                           )}
                         </>
@@ -409,8 +417,8 @@ export default async function ClientDetailPage({ params }: PageProps) {
                       
                       {client.graduation_date && (
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Graduation Date</label>
-                          <p className="text-sm text-gray-900">{new Date(client.graduation_date).toLocaleDateString()}</p>
+                          <label className="text-sm font-medium text-slate-400">Graduation Date</label>
+                          <p className="text-sm text-slate-100">{new Date(client.graduation_date).toLocaleDateString()}</p>
                         </div>
                       )}
                     </CardContent>
