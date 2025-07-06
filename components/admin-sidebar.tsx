@@ -70,11 +70,6 @@ const navigation = [
     icon: Puzzle,
   },
   {
-    name: "Setup",
-    href: "/admin/setup",
-    icon: Wrench,
-  },
-  {
     name: "Settings",
     href: "/admin/settings",
     icon: Settings,

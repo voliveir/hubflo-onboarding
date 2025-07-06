@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { getAllIntegrations, createIntegration, updateIntegration, deleteIntegration } from "@/lib/database"
 import type { Integration } from "@/lib/types"
-import { Plus, Edit, Trash2, ExternalLink, Search } from "lucide-react"
+import { Plus, Edit, Trash2, ExternalLink, Search, Pencil } from "lucide-react"
 import ReactMarkdown from 'react-markdown'
 
 interface CreateIntegrationData {
@@ -157,46 +157,46 @@ export function MasterIntegrationsManager() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="bg-[#10122b]/90 ring-1 ring-[#F2C94C]/30 rounded-2xl p-0">
+        <CardHeader className="pb-0">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Master Integrations</CardTitle>
-              <CardDescription>Manage the master list of available integrations</CardDescription>
+              <CardTitle className="text-white">Master Integrations</CardTitle>
+              <CardDescription className="text-white/80">Manage the master list of available integrations</CardDescription>
             </div>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-white font-semibold rounded-full h-11 px-6 text-[18px] shadow-md hover:brightness-110 border border-[#F2C94C]/70 flex items-center">
+                  <Plus className="h-5 w-5 mr-2" />
                   Add Integration
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl bg-[#10122b] ring-1 ring-[#F2C94C]/30 rounded-3xl">
                 <DialogHeader>
-                  <DialogTitle>Add New Integration</DialogTitle>
-                  <DialogDescription>Create a new integration in the master list</DialogDescription>
+                  <CardTitle className="text-white">Add New Integration</CardTitle>
+                  <CardDescription className="text-white/80">Create a new integration in the master list</CardDescription>
                 </DialogHeader>
-                <IntegrationForm onSubmit={handleCreateIntegration} />
+                <IntegrationForm onSubmit={handleCreateIntegration} dark={true} />
               </DialogContent>
             </Dialog>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {/* Filters */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
                 <Input
                   placeholder="Search integrations..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-[#181a2f] border border-slate-600 text-white placeholder-white/60 rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
                 />
               </div>
             </div>
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-full md:w-48">
+              <SelectTrigger className="w-full md:w-48 bg-[#181a2f] border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-[#F2C94C]">
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
               <SelectContent>
@@ -208,7 +208,7 @@ export function MasterIntegrationsManager() {
               </SelectContent>
             </Select>
             <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="w-full md:w-48">
+              <SelectTrigger className="w-full md:w-48 bg-[#181a2f] border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-[#F2C94C]">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
@@ -225,40 +225,38 @@ export function MasterIntegrationsManager() {
           {/* Integrations List */}
           <div className="space-y-4">
             {filteredIntegrations.map((integration) => (
-              <div key={integration.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={integration.id} className="group flex items-center justify-between bg-[#10122b]/90 ring-1 ring-[#F2C94C]/30 rounded-xl p-5">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="font-medium">{integration.title}</h3>
-                    <Badge className={getTypeBadgeColor(integration.integration_type)}>
-                      {integration.integration_type}
-                    </Badge>
-                    {integration.category && <Badge variant="outline">{integration.category}</Badge>}
-                    {!integration.is_active && <Badge variant="destructive">Inactive</Badge>}
+                    <h3 className="font-medium text-white text-[17px]">{integration.title}</h3>
+                    {/* Chips: pill component, colors by type */}
+                    {integration.integration_type === 'native' && <span className="bg-blue-400/20 text-blue-300 px-3 py-1 rounded-full text-xs font-semibold" style={{ borderRadius: 12 }}>Native</span>}
+                    {integration.integration_type === 'zapier' && <span className="bg-orange-400/20 text-orange-300 px-3 py-1 rounded-full text-xs font-semibold" style={{ borderRadius: 12 }}>Zapier</span>}
+                    {integration.integration_type === 'api' && <span className="bg-green-400/20 text-green-300 px-3 py-1 rounded-full text-xs font-semibold" style={{ borderRadius: 12 }}>API</span>}
+                    {integration.integration_type === 'makecom' && <span className="bg-purple-400/20 text-purple-300 px-3 py-1 rounded-full text-xs font-semibold" style={{ borderRadius: 12 }}>Make.com</span>}
+                    {integration.category && <span className="bg-slate-400/20 text-slate-200 px-3 py-1 rounded-full text-xs font-semibold" style={{ borderRadius: 12 }}>{integration.category}</span>}
+                    {!integration.is_active && <span className="bg-red-500/20 text-red-300 px-3 py-1 rounded-full text-xs font-semibold" style={{ borderRadius: 12 }}>Inactive</span>}
                   </div>
                   {integration.description && (
-                    <div className="text-sm text-gray-600 mb-2">
+                    <div className="text-sm text-slate-200 mt-2">
                       <ReactMarkdown>{integration.description}</ReactMarkdown>
                     </div>
                   )}
                   {integration.tags && integration.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1 mt-2">
                       {integration.tags.map((tag, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {tag}
-                        </Badge>
+                        <span key={index} className="bg-[#23244a] text-white/80 px-2 py-0.5 rounded-full text-xs font-medium" style={{ borderRadius: 10 }}>{tag}</span>
                       ))}
                     </div>
                   )}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button size="sm" variant="outline" onClick={() => window.open(integration.external_url, "_blank")}>
-                    <ExternalLink className="h-4 w-4" />
+                {/* Action buttons: hidden until group hover */}
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 ml-4">
+                  <Button className="w-8 h-8 bg-[#181a2f] rounded-md flex items-center justify-center" onClick={() => setEditingIntegration(integration)}>
+                    <Pencil className="h-5 w-5 text-[#F2C94C]" />
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setEditingIntegration(integration)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => handleDeleteIntegration(integration.id)}>
-                    <Trash2 className="h-4 w-4" />
+                  <Button className="w-8 h-8 bg-[#181a2f] rounded-md flex items-center justify-center" onClick={() => handleDeleteIntegration(integration.id)}>
+                    <Trash2 className="h-5 w-5 text-[#F2C94C]" />
                   </Button>
                 </div>
               </div>
@@ -266,8 +264,8 @@ export function MasterIntegrationsManager() {
           </div>
 
           {filteredIntegrations.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <p>No integrations found matching your criteria.</p>
+            <div className="text-center py-8 text-white/60">
+              <p>No integrations found.</p>
             </div>
           )}
         </CardContent>
@@ -291,10 +289,11 @@ export function MasterIntegrationsManager() {
 
 interface IntegrationFormProps {
   integration?: Integration
-  onSubmit: (data: CreateIntegrationData | UpdateIntegrationData) => void
+  onSubmit: (data: any) => void
+  dark?: boolean
 }
 
-function IntegrationForm({ integration, onSubmit }: IntegrationFormProps) {
+function IntegrationForm({ integration, onSubmit, dark = false }: IntegrationFormProps & { dark?: boolean }) {
   const [formData, setFormData] = useState({
     integration_type: integration?.integration_type || "zapier",
     title: integration?.title || "",
@@ -334,7 +333,7 @@ function IntegrationForm({ integration, onSubmit }: IntegrationFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="integration_type">Type</Label>
+          <Label htmlFor="integration_type" className={dark ? 'text-white' : 'text-black'}>Type</Label>
           <Select
             value={formData.integration_type}
             onValueChange={(value) => setFormData({ ...formData, integration_type: value as any })}
@@ -351,7 +350,7 @@ function IntegrationForm({ integration, onSubmit }: IntegrationFormProps) {
           </Select>
         </div>
         <div>
-          <Label htmlFor="category">Category</Label>
+          <Label htmlFor="category" className={dark ? 'text-white' : 'text-black'}>Category</Label>
           <Input
             id="category"
             value={formData.category}
@@ -362,7 +361,7 @@ function IntegrationForm({ integration, onSubmit }: IntegrationFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="title">Title</Label>
+        <Label htmlFor="title" className={dark ? 'text-white' : 'text-black'}>Title</Label>
         <Input
           id="title"
           value={formData.title}
@@ -372,7 +371,7 @@ function IntegrationForm({ integration, onSubmit }: IntegrationFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description" className={dark ? 'text-white' : 'text-black'}>Description</Label>
         <Textarea
           id="description"
           value={formData.description}
@@ -382,7 +381,7 @@ function IntegrationForm({ integration, onSubmit }: IntegrationFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="url">URL</Label>
+        <Label htmlFor="url" className={dark ? 'text-white' : 'text-black'}>URL</Label>
         <Input
           id="url"
           type="url"
@@ -393,7 +392,7 @@ function IntegrationForm({ integration, onSubmit }: IntegrationFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="icon_name">Icon Name (Lucide React)</Label>
+        <Label htmlFor="icon_name" className={dark ? 'text-white' : 'text-black'}>Icon Name (Lucide React)</Label>
         <Input
           id="icon_name"
           value={formData.icon_name}
@@ -403,7 +402,7 @@ function IntegrationForm({ integration, onSubmit }: IntegrationFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="tags">Tags (comma-separated)</Label>
+        <Label htmlFor="tags" className={dark ? 'text-white' : 'text-black'}>Tags (comma-separated)</Label>
         <Input
           id="tags"
           value={formData.tags}
@@ -419,7 +418,7 @@ function IntegrationForm({ integration, onSubmit }: IntegrationFormProps) {
           checked={formData.is_active}
           onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
         />
-        <Label htmlFor="is_active">Active</Label>
+        <Label htmlFor="is_active" className={dark ? 'text-white' : 'text-black'}>Active</Label>
       </div>
 
       <div className="flex justify-end space-x-2">
