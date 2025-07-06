@@ -101,7 +101,7 @@ function WorkflowBoard({ workflow }: { workflow: typeof INDUSTRY_WORKFLOWS.law }
     <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2 h-96 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 overflow-visible my-8 shadow-xl">
       {/* Grid background */}
       <div 
-        className="absolute inset-0 opacity-20 pointer-events-none"
+        className="absolute inset-0 opacity-6 pointer-events-none"
         style={{
           backgroundImage: `
             linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
@@ -111,7 +111,7 @@ function WorkflowBoard({ workflow }: { workflow: typeof INDUSTRY_WORKFLOWS.law }
         }}
       />
       {/* SVG for arrows */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
         {workflow.nodes.slice(0, -1).map((from, idx) => {
           const to = workflow.nodes[idx + 1]
           // Calculate node center positions
@@ -122,11 +122,12 @@ function WorkflowBoard({ workflow }: { workflow: typeof INDUSTRY_WORKFLOWS.law }
             <g key={from.key + '-' + to.key}>
               <line
                 x1={`${fromX}%`}
-                y1={`${y}%`}
+                y1={`${y + 12}%`}
                 x2={`${toX}%`}
-                y2={`${y}%`}
+                y2={`${y + 12}%`}
                 stroke="#ECB22D"
-                strokeWidth={2}
+                strokeWidth={1}
+                strokeOpacity={0.4}
                 markerEnd="url(#arrowhead)"
               />
             </g>
@@ -141,7 +142,7 @@ function WorkflowBoard({ workflow }: { workflow: typeof INDUSTRY_WORKFLOWS.law }
             refY="3.5"
             orient="auto"
           >
-            <polygon points="0 0, 10 3.5, 0 7" fill="#ECB22D" />
+            <polygon points="0 0, 10 3.5, 0 7" fill="#ECB22D" fillOpacity={0.4} />
           </marker>
         </defs>
       </svg>
@@ -158,7 +159,7 @@ function WorkflowBoard({ workflow }: { workflow: typeof INDUSTRY_WORKFLOWS.law }
               width: `calc(90vw/${nodeCount} - 1rem)`,
               minWidth: 120,
               maxWidth: 220,
-              zIndex: 2,
+              zIndex: 10,
               transform: 'translate(-50%, -50%)',
               backdropFilter: 'blur(8px)',
               background: 'rgba(255,255,255,0.1)',
