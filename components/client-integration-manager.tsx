@@ -215,7 +215,7 @@ export function ClientIntegrationManager({ clientId, clientName }: ClientIntegra
                                     Featured
                                   </Badge>
                                 )}
-                                {!clientIntegration.is_enabled && <Badge variant="secondary">Disabled</Badge>}
+                                {!clientIntegration.is_enabled && <Badge variant="secondary" className="bg-brand-gold/15 text-brand-gold border-brand-gold/40">Disabled</Badge>}
                               </div>
                               <p className="text-sm text-gray-600 mb-2">
                                 {clientIntegration.integration?.description || clientIntegration.description}
