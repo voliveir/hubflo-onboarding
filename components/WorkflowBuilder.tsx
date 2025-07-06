@@ -203,7 +203,7 @@ function TaskNode({ data, selected }: any) {
         <CheckCircle />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
       {software && (
         <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
@@ -238,7 +238,7 @@ function ApprovalNode({ data, selected }: any) {
             <FileSignature />
             {software && <span className="text-lg">{software.logo}</span>}
           </div>
-          <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
           {software && (
             <div className="text-xs opacity-80 mt-1">{software.name}</div>
           )}
@@ -258,7 +258,7 @@ function MeetingNode({ data, selected }: any) {
         <Calendar />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
       {software && (
         <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
@@ -277,7 +277,7 @@ function FormNode({ data, selected }: any) {
         <ClipboardList />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
       {software && (
         <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
@@ -298,7 +298,7 @@ function DocNode({ data, selected }: any) {
         <FileText />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
       {software && (
         <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
@@ -321,7 +321,7 @@ function FileUploadNode({ data, selected }: any) {
           <UploadCloud />
           {software && <span className="text-lg">{software.logo}</span>}
         </div>
-        <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 17 }}>{data.label}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
         {software && (
           <div className="text-xs opacity-80 mt-1" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{software.name}</div>
         )}
@@ -343,7 +343,7 @@ function AutomationNode({ data, selected }: any) {
           <Zap />
           {software && <span className="text-lg">{software.logo}</span>}
         </div>
-        <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
         {software && (
           <div className="text-xs opacity-80 mt-1">{software.name}</div>
         )}
@@ -362,7 +362,7 @@ function ChecklistNode({ data, selected }: any) {
         <ListChecks />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
       {software && (
         <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
@@ -385,7 +385,7 @@ function DueDateNode({ data, selected }: any) {
           <Bell />
           {software && <span className="text-lg">{software.logo}</span>}
         </div>
-        <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
         {software && (
           <div className="text-xs opacity-80 mt-1" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{software.name}</div>
         )}
@@ -419,7 +419,7 @@ function ClientActionNode({ data, selected }: any) {
             <UserCheck />
             {software && <span className="text-lg">{software.logo}</span>}
           </div>
-          <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
           {software && (
             <div className="text-xs opacity-80 mt-1">{software.name}</div>
           )}
@@ -454,7 +454,7 @@ function DecisionNode({ data, selected }: any) {
             <HelpCircle />
             {software && <span className="text-lg">{software.logo}</span>}
           </div>
-          <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
           {software && (
             <div className="text-xs opacity-80 mt-1">{software.name}</div>
           )}
@@ -489,7 +489,7 @@ function MilestoneNode({ data, selected }: any) {
             <Flag />
             {software && <span className="text-lg">{software.logo}</span>}
           </div>
-          <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
           {software && (
             <div className="text-xs opacity-80 mt-1">{software.name}</div>
           )}
@@ -888,7 +888,7 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
     <section>
       <div className="rounded-t-2xl bg-gradient-to-r from-brand-DEFAULT via-emerald-900/0 to-brand-gold/30 h-12 flex items-center px-8">
         <div className="flex-1">
-          <span className="text-brand-foreground font-semibold text-lg">Workflow Builder</span>
+          <h3 className="text-xl font-semibold text-brand-foreground">Workflow Builder</h3>
         </div>
         <div className="flex gap-2 items-center">
           <Button variant="ghost" className="text-brand-foreground" onClick={addNode}>+ Add Step</Button>
@@ -896,23 +896,8 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
         </div>
       </div>
       <div className={isTemplateMode ? undefined : "px-8 pt-6 pb-8"} style={isTemplateMode ? { padding: 24 } : undefined}>
-        <p className="text-gray-600 text-lg mb-4 text-center">
-          Collaboratively design your onboarding and service workflows here.
-        </p>
-        {/* Instructions Box */}
-        <div className="mb-2 max-w-3xl text-xs text-gray-500 flex flex-wrap gap-x-4 gap-y-1 items-center justify-start">
-          <span className="font-semibold text-gray-600 mr-2">Shortcuts:</span>
-          <span><b>Pan:</b> <kbd className="px-1 py-0.5 bg-white border rounded">Space</kbd> + drag</span>
-          <span><b>Select:</b> Click, <kbd className="px-1 py-0.5 bg-white border rounded">Ctrl</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Cmd</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Shift</kbd> + click, or drag box</span>
-          <span><b>Drag:</b> Drag node(s)</span>
-          <span><b>Edit:</b> Double-click node</span>
-          <span><b>Connect:</b> Drag from connector</span>
-          <span><b>Copy:</b> <kbd className="px-1 py-0.5 bg-white border rounded">Ctrl</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Cmd</kbd> + <kbd className="px-1 py-0.5 bg-white border rounded">C</kbd></span>
-          <span><b>Paste:</b> <kbd className="px-1 py-0.5 bg-white border rounded">Ctrl</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Cmd</kbd> + <kbd className="px-1 py-0.5 bg-white border rounded">V</kbd></span>
-          <span><b>Duplicate:</b> <kbd className="px-1 py-0.5 bg-white border rounded">Ctrl</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Cmd</kbd> + <kbd className="px-1 py-0.5 bg-white border rounded">D</kbd></span>
-          <span><b>Delete:</b> Select, then <kbd className="px-1 py-0.5 bg-white border rounded">Delete</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Backspace</kbd></span>
-          <span><b>Zoom/Pan:</b> Use controls</span>
-        </div>
+        <p className="mt-1 text-sm text-brand-foreground/70 text-center">Collaboratively design your onboarding and service workflows here.</p>
+        <p className="px-6 pb-4 text-xs leading-relaxed text-brand-foreground/60">Pan <kbd>Space</kbd>, Select <kbd>Ctrl/Cmd</kbd>, Copy <kbd>Ctrl/Cmd C</kbd>, Paste <kbd>Ctrl/Cmd V</kbd>, Delete <kbd>Del</kbd></p>
         {message && <div className="mb-4 text-center text-lg font-medium text-green-700">{message}</div>}
         <div className="overflow-auto max-h-[70vh]">
           <div
