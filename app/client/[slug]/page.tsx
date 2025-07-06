@@ -38,6 +38,7 @@ import { PortalSection } from "@/components/ui/PortalSection"
 import { PortalHeader, PortalNavLink } from "@/components/ui/PortalHeader"
 import { PackageHighlights } from "@/components/portal/PackageHighlights"
 import { ActionCards } from "@/components/portal/ActionCards"
+import { WhiteLabelProgress } from "@/components/WhiteLabelProgress"
 
 interface ClientPageProps {
   params: {
@@ -135,24 +136,6 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
   // Check if we should show the custom app section
   const showCustomAppSection = customAppLabel === "Gray Label" || customAppLabel === "White Label"
-
-
-
-  // Add helper for progress calculation
-  function getWhiteLabelProgress(checklist: Record<string, boolean>) {
-    if (!checklist) return 0
-    const steps = [
-      "create_assets",
-      "create_natively_app",
-      "create_test_user",
-      "test_login",
-      "download_and_create_ios_app",
-      "submit",
-    ]
-    const total = steps.length
-    const completed = steps.filter((k) => checklist[k]).length
-    return Math.round((completed / total) * 100)
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#070720] to-[#0d0d25]">
@@ -553,158 +536,13 @@ export default async function ClientPage({ params }: ClientPageProps) {
             )}
 
             {customAppLabel === "White Label" && (
-              (() => {
-                const status = client.white_label_status || "not_started"
-                const checklist = client.white_label_checklist || {}
-                const progress = getWhiteLabelProgress(checklist)
-                if (status === "not_started") {
-                  return (
-                    <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl border border-brand-gold/40 overflow-hidden">
-                      <div className="bg-gradient-to-r from-[#010124] to-brand-gold/20 px-8 py-6 text-center">
-                        <div className="w-16 h-16 bg-brand-gold rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Settings className="h-8 w-8 text-white" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-white">Custom White Label App Development</h2>
-                        <p className="text-white/80 mt-2">Your personalized mobile application</p>
-                      </div>
-                      <div className="p-8">
-                        <div className="space-y-6">
-                          <div className="text-center">
-                            <h3 className="text-xl font-semibold text-white mb-3">Development Timeline</h3>
-                            <div className="inline-flex items-center bg-brand-gold/20 rounded-full px-6 py-3 border border-brand-gold/40">
-                              <Clock className="h-5 w-5 text-brand-gold mr-2" />
-                              <span className="font-semibold text-white">4-6 Weeks</span>
-                            </div>
-                          </div>
-                          <div className="bg-white/5 rounded-lg p-6 border border-white/10">
-                            <h4 className="font-semibold text-white mb-3">What to Expect:</h4>
-                            <ul className="space-y-2 text-white/80">
-                              <li className="flex items-start">
-                                <span className="text-brand-gold mr-2">•</span>
-                                Custom branding with your logo, colors, and company identity
-                              </li>
-                              <li className="flex items-start">
-                                <span className="text-brand-gold mr-2">•</span>
-                                Personalized app name and description
-                              </li>
-                              <li className="flex items-start">
-                                <span className="text-brand-gold mr-2">•</span>
-                                Dedicated app store listings under your brand
-                              </li>
-                              <li className="flex items-start">
-                                <span className="text-brand-gold mr-2">•</span>
-                                Full integration with your Hubflo workspace
-                              </li>
-                            </ul>
-                          </div>
-                          <div className="text-center bg-gradient-to-r from-[#010124] to-brand-gold/10 rounded-lg p-6 border border-brand-gold/20">
-                            <h4 className="font-semibold mb-2 text-white">Next Steps</h4>
-                            <p className="text-white/80 mb-4">
-                              Your Implementation Manager will reach out to you within 1-2 business days to discuss your app
-                              requirements, branding guidelines, and development timeline.
-                            </p>
-                            <p className="text-sm text-brand-gold">
-                              Questions? Contact your Implementation Manager or reach out to our support team.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                }
-                if (status === "in_progress" || status === "waiting_for_approval") {
-                  return (
-                    <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl border border-brand-gold/40 overflow-hidden">
-                      <div className="bg-gradient-to-r from-[#010124] to-brand-gold/20 px-8 py-6 text-center">
-                        <div className="w-16 h-16 bg-brand-gold rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Settings className="h-8 w-8 text-white" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-white">Custom White Label App Development</h2>
-                        <p className="text-white/80 mt-2">Your personalized mobile application</p>
-                      </div>
-                      <div className="p-8">
-                        <div className="space-y-6">
-                          <div className="text-center mb-6">
-                            <h3 className="text-xl font-semibold text-white mb-3">Progress</h3>
-                            <div className="w-full bg-white/10 rounded-full h-8 overflow-hidden">
-                              <div
-                                className="bg-gradient-to-r from-brand-gold to-brand-gold/80 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all duration-500"
-                                style={{ width: `${progress}%` }}
-                              >
-                                {progress}%
-                              </div>
-                            </div>
-                            <div className="text-white/60 mt-2 text-sm">
-                              Last updated: {new Date(client.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}, {new Date(client.updated_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}
-                            </div>
-                            {status === "waiting_for_approval" && (
-                              <div className="text-brand-gold mt-4 font-medium flex items-center justify-center gap-2">
-                                <div className="flex gap-1">
-                                  <div className="w-2 h-2 bg-brand-gold rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                  <div className="w-2 h-2 bg-brand-gold rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                  <div className="w-2 h-2 bg-brand-gold rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                                </div>
-                                We're currently waiting for approval from Apple and Google to add your application to their respective stores. This process typically takes 1-2 weeks.
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                }
-                if (status === "complete") {
-                  return (
-                    <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl border border-brand-gold/40 overflow-hidden">
-                      <div className="bg-gradient-to-r from-[#010124] to-brand-gold/20 px-8 py-6 text-center">
-                        <div className="w-16 h-16 bg-brand-gold rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Settings className="h-8 w-8 text-white" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-white">Your White Label App is Ready!</h2>
-                        <p className="text-white/80 mt-2">Your app is now live on the app stores.</p>
-                      </div>
-                      <div className="p-8">
-                        <div className="space-y-6 text-center">
-                          <div className="mb-4">
-                            <h3 className="text-xl font-semibold text-white mb-3">Download Links</h3>
-                            <div className="flex flex-row flex-wrap justify-center items-center gap-4 mb-2">
-                              {client.white_label_android_url ? (
-                                <a href={client.white_label_android_url} target="_blank" rel="noopener noreferrer">
-                                  <img
-                                    src="/google-play-badge.png"
-                                    alt="Get it on Google Play"
-                                    className="h-12 md:h-14 w-auto hover:opacity-90 transition"
-                                  />
-                                </a>
-                              ) : (
-                                <div className="text-white/60 font-semibold">Google Play coming soon!</div>
-                              )}
-                              {client.white_label_ios_url ? (
-                                <a href={client.white_label_ios_url} target="_blank" rel="noopener noreferrer">
-                                  <img
-                                    src="/app-store-badge.png"
-                                    alt="Download on the App Store"
-                                    className="h-12 md:h-14 w-auto hover:opacity-90 transition"
-                                  />
-                                </a>
-                              ) : (
-                                <div className="text-white/60 font-semibold">Apple App Store coming soon!</div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-white/60 mt-2 text-sm">
-                            Marked complete: {new Date(client.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}, {new Date(client.updated_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}
-                          </div>
-                          <div className="text-white font-semibold mt-6">
-                            Share these links with your clients so they can download your app directly from the app stores.
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                }
-                return null
-              })()
+              <WhiteLabelProgress
+                status={client.white_label_status || "not_started"}
+                checklist={client.white_label_checklist || {}}
+                androidUrl={client.white_label_android_url ?? undefined}
+                iosUrl={client.white_label_ios_url ?? undefined}
+                updatedAt={client.updated_at}
+              />
             )}
           </div>
         </PortalSection>
