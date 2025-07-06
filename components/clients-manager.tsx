@@ -15,6 +15,7 @@ import { type Client } from "@/lib/types"
 import { Plus, Search, Edit, Trash2, Eye, Users, Package, Calendar, Filter, X, ChevronDown, ChevronUp } from "lucide-react"
 import Link from "next/link"
 import { EditClientForm } from "./edit-client-form"
+import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
 
 interface FilterState {
   searchTerm: string
@@ -28,6 +29,7 @@ interface FilterState {
   usersMax: string
   revenueMin: string
   revenueMax: string
+  implementationManager: string
 }
 
 export function ClientsManager({ initialStatus }: { initialStatus?: string } = {}) {
@@ -37,6 +39,7 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [managers, setManagers] = useState<ImplementationManager[]>([])
   
   const [filters, setFilters] = useState<FilterState>({
     searchTerm: "",
@@ -49,7 +52,8 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
     usersMin: "",
     usersMax: "",
     revenueMin: "",
-    revenueMax: ""
+    revenueMax: "",
+    implementationManager: ""
   })
 
   useEffect(() => {
@@ -61,11 +65,21 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
 
   useEffect(() => {
     loadClients()
+    loadManagers()
   }, [])
 
   useEffect(() => {
     applyFilters()
   }, [clients, filters])
+
+  const loadManagers = async () => {
+    try {
+      const data = await getImplementationManagers()
+      setManagers(data)
+    } catch (error) {
+      // Optionally handle error
+    }
+  }
 
   const applyFilters = () => {
     let filtered = [...clients]
@@ -125,6 +139,11 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
       filtered = filtered.filter(client => client.revenue_amount <= parseInt(filters.revenueMax))
     }
 
+    // Implementation Manager filter
+    if (filters.implementationManager && filters.implementationManager !== "all") {
+      filtered = filtered.filter(client => client.implementation_manager === filters.implementationManager)
+    }
+
     setFilteredClients(filtered)
   }
 
@@ -144,7 +163,8 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
       usersMin: "",
       usersMax: "",
       revenueMin: "",
-      revenueMax: ""
+      revenueMax: "",
+      implementationManager: ""
     })
   }
 
@@ -481,6 +501,22 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
                     className="h-9"
                   />
                 </div>
+
+                {/* Implementation Manager Filter */}
+                <div className="space-y-2">
+                  <Label htmlFor="manager-filter" className="text-sm font-medium">Implementation Manager</Label>
+                  <Select value={filters.implementationManager} onValueChange={(value) => updateFilter("implementationManager", value)}>
+                    <SelectTrigger id="manager-filter" className="h-9">
+                      <SelectValue placeholder="All managers" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All managers</SelectItem>
+                      {managers.map((manager) => (
+                        <SelectItem key={manager.manager_id} value={manager.manager_id}>{manager.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -549,6 +585,11 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
                 {filters.revenueMax && (
                   <Badge variant="secondary" className="text-xs">
                     Revenue: ≤${parseInt(filters.revenueMax).toLocaleString()}
+                  </Badge>
+                )}
+                {filters.implementationManager && (
+                  <Badge variant="secondary" className="text-xs">
+                    Manager: {managers.find(m => m.manager_id === filters.implementationManager)?.name || filters.implementationManager}
                   </Badge>
                 )}
               </div>

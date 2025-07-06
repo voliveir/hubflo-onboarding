@@ -191,6 +191,9 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Debug: Log the selected implementation manager
+    console.log('Submitting implementation_manager:', formData.implementation_manager)
+
     if (!formData.name || !formData.slug) {
       toast({
         title: "Error",

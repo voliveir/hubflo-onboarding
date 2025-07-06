@@ -172,6 +172,9 @@ export default function CreateClientForm() {
     setIsLoading(true)
     setError("")
 
+    // Debug: Log the selected implementation manager
+    console.log('Submitting implementation_manager:', formData.implementation_manager)
+
     try {
       // Validate required fields
       if (!formData.name.trim()) {

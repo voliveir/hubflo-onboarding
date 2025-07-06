@@ -320,6 +320,7 @@ export interface CreateClientData {
   }
   white_label_android_url?: string | null
   white_label_ios_url?: string | null
+  implementation_manager: string
 }
 
 export interface UpdateClientData extends Partial<CreateClientData> {
@@ -343,6 +344,7 @@ export interface UpdateClientData extends Partial<CreateClientData> {
   }
   white_label_android_url?: string | null
   white_label_ios_url?: string | null
+  implementation_manager?: string
 }
 
 export interface UpdateChecklistItemData {
