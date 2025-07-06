@@ -5,18 +5,17 @@ import ReactFlow, {
   MiniMap,
   Controls,
   Background,
+  BackgroundVariant,
   addEdge,
   useNodesState,
   useEdgesState,
-  Node,
-  Edge,
-  Connection,
   NodeTypes,
   useReactFlow,
   Handle,
   Position,
   ConnectionMode,
 } from "reactflow"
+import type { Node, Edge, Connection } from "reactflow"
 import "reactflow/dist/style.css"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { Dialog } from "@/components/ui/dialog"
@@ -834,17 +833,19 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
   }
 
   // Color code nodes by type (for default fallback)
-  const coloredNodes = nodes.map((node) => ({
-    ...node,
-    type: node.data?.type || 'task',
-    style: node.data?.type ? {} : {
-      ...node.style,
-      background: typeColors[node.data?.type] || typeColors.default,
-      color: "#fff",
-      border: "2px solid #222",
-      fontWeight: 600,
-    },
-  }))
+  const coloredNodes = nodes.map((node) => {
+    if (!node.data?.type || node.data.type === 'default') {
+      return {
+        ...node,
+        style: {
+          ...node.style,
+          borderRadius: 8,
+          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.2)',
+        },
+      }
+    }
+    return node
+  })
 
   // Template save
   const saveAsTemplate = () => {
@@ -928,6 +929,7 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
             onConnect={onConnect}
             nodeTypes={nodeTypes}
             fitView
+            defaultEdgeOptions={{ style: { stroke: 'rgba(234,179,8,0.6)', strokeWidth: 2 } }}
             onNodeDoubleClick={onNodeDoubleClick}
             defaultViewport={DEFAULT_VIEWPORT}
             selectNodesOnDrag={true}
@@ -938,7 +940,7 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
           >
             <MiniMap />
             <Controls />
-            <Background variant="dots" gap={24} size={1.5} color="rgba(255,255,255,0.06)" />
+            <Background variant={BackgroundVariant.Dots} gap={24} size={1.5} color="rgba(255,255,255,0.06)" />
           </ReactFlow>
         </div>
         {loading && <div className="mt-4 text-gray-500">Loading workflow...</div>}
