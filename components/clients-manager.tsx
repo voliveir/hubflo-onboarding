@@ -12,7 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { toast } from "@/hooks/use-toast"
 import { getAllClients, deleteClient } from "@/lib/database"
 import { type Client } from "@/lib/types"
-import { Plus, Search, Edit, Trash2, Eye, Users, Package, Calendar, Filter, X, ChevronDown, ChevronUp } from "lucide-react"
+import { Plus, Search, Edit, Trash2, Eye, Users, Package, Calendar, Filter, X, ChevronDown, ChevronUp, DollarSign, Clock } from "lucide-react"
 import Link from "next/link"
 import { EditClientForm } from "./edit-client-form"
 import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
@@ -242,28 +242,32 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800"
+        return "bg-green-500/20 text-green-300"
       case "inactive":
-        return "bg-red-100 text-red-800"
+        return "bg-red-500/20 text-red-300"
       case "pending":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-400/20 text-yellow-300"
+      case "draft":
+        return "bg-slate-400/20 text-slate-200"
+      case "completed":
+        return "bg-blue-500/20 text-blue-300"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-slate-400/20 text-slate-200"
     }
   }
 
   const getPackageColor = (pkg: string) => {
     switch (pkg) {
       case "light":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-500/20 text-blue-300"
       case "premium":
-        return "bg-purple-100 text-purple-800"
+        return "bg-purple-500/20 text-purple-300"
       case "gold":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-400/20 text-yellow-300"
       case "elite":
-        return "bg-red-100 text-red-800"
+        return "bg-red-500/20 text-red-300"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-slate-400/20 text-slate-200"
     }
   }
 
@@ -284,11 +288,11 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="bg-[#10122b]/90 ring-1 ring-[#F2C94C]/30 rounded-2xl">
         <CardContent className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading clients...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F2C94C] mx-auto mb-4"></div>
+            <p className="text-white/60">Loading clients...</p>
           </div>
         </CardContent>
       </Card>
@@ -299,49 +303,49 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Client Management</h2>
-          <p className="text-gray-600">Manage your client accounts and configurations</p>
+          <h2 className="text-2xl font-bold text-white">Client Management</h2>
+          <p className="text-white/80">Manage your client accounts and configurations</p>
         </div>
-        <Button asChild>
+        <Button asChild className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-white font-semibold h-11 px-6 text-[18px] shadow-md hover:brightness-110 border border-[#F2C94C]/70 flex items-center">
           <Link href="/admin/clients/new">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-5 w-5 mr-2" />
             Add New Client
           </Link>
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
+      <Card className="bg-[#10122b]/90 ring-1 ring-[#F2C94C]/30 rounded-2xl p-0">
+        <CardHeader className="pb-0">
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Users className="h-5 w-5 text-[#F2C94C]" />
             Clients ({filteredClients.length})
             {filteredClients.length !== clients.length && (
-              <span className="text-sm font-normal text-gray-500">
+              <span className="text-sm font-normal text-white/60">
                 of {clients.length} total
               </span>
             )}
           </CardTitle>
-          <CardDescription>Overview of all client accounts</CardDescription>
+          <CardDescription className="text-white/80">Overview of all client accounts</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           <div className="flex items-center space-x-2 mb-6">
-            <Search className="h-4 w-4 text-gray-400" />
+            <Search className="h-4 w-4 text-white/60" />
             <Input
               placeholder="Search clients by name, slug, or package..."
               value={filters.searchTerm}
               onChange={(e) => updateFilter("searchTerm", e.target.value)}
-              className="max-w-sm"
+              className="max-w-sm bg-[#181a2f] border border-slate-600 text-white placeholder-white/60 rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
             />
             <Button
               variant="outline"
               size="sm"
               onClick={() => setFiltersOpen(!filtersOpen)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-[#181a2f] border border-slate-600 text-white hover:bg-[#23244a] rounded-lg"
             >
               <Filter className="h-4 w-4" />
               Filters
               {hasActiveFilters() && (
-                <Badge variant="secondary" className="ml-1">
+                <Badge variant="secondary" className="ml-1 bg-[#F2C94C]/20 text-[#F2C94C]">
                   {getActiveFiltersCount()}
                 </Badge>
               )}
@@ -352,7 +356,7 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
                 variant="ghost"
                 size="sm"
                 onClick={clearFilters}
-                className="flex items-center gap-2 text-gray-500 hover:text-gray-700"
+                className="flex items-center gap-2 text-white/60 hover:text-white"
               >
                 <X className="h-4 w-4" />
                 Clear
@@ -362,12 +366,12 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
 
           <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
             <CollapsibleContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 gap-y-3 p-4 bg-[#181a2f]/50 rounded-lg">
                 {/* Status Filter */}
                 <div className="space-y-2">
-                  <Label htmlFor="status-filter" className="text-sm font-medium">Status</Label>
+                  <Label htmlFor="status-filter" className="text-sm font-medium text-white">Status</Label>
                   <Select value={filters.status} onValueChange={(value) => updateFilter("status", value)}>
-                    <SelectTrigger id="status-filter" className="h-9">
+                    <SelectTrigger id="status-filter" className="h-9 bg-[#181a2f] border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-[#F2C94C]">
                       <SelectValue placeholder="All statuses" />
                     </SelectTrigger>
                     <SelectContent>
@@ -382,9 +386,9 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
 
                 {/* Success Package Filter */}
                 <div className="space-y-2">
-                  <Label htmlFor="package-filter" className="text-sm font-medium">Success Package</Label>
+                  <Label htmlFor="package-filter" className="text-sm font-medium text-white">Success Package</Label>
                   <Select value={filters.successPackage} onValueChange={(value) => updateFilter("successPackage", value)}>
-                    <SelectTrigger id="package-filter" className="h-9">
+                    <SelectTrigger id="package-filter" className="h-9 bg-[#181a2f] border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-[#F2C94C]">
                       <SelectValue placeholder="All packages" />
                     </SelectTrigger>
                     <SelectContent>
@@ -399,9 +403,9 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
 
                 {/* Billing Type Filter */}
                 <div className="space-y-2">
-                  <Label htmlFor="billing-filter" className="text-sm font-medium">Billing Type</Label>
+                  <Label htmlFor="billing-filter" className="text-sm font-medium text-white">Billing Type</Label>
                   <Select value={filters.billingType} onValueChange={(value) => updateFilter("billingType", value)}>
-                    <SelectTrigger id="billing-filter" className="h-9">
+                    <SelectTrigger id="billing-filter" className="h-9 bg-[#181a2f] border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-[#F2C94C]">
                       <SelectValue placeholder="All billing types" />
                     </SelectTrigger>
                     <SelectContent>
@@ -415,9 +419,9 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
 
                 {/* Plan Type Filter */}
                 <div className="space-y-2">
-                  <Label htmlFor="plan-filter" className="text-sm font-medium">Plan Type</Label>
+                  <Label htmlFor="plan-filter" className="text-sm font-medium text-white">Plan Type</Label>
                   <Select value={filters.planType} onValueChange={(value) => updateFilter("planType", value)}>
-                    <SelectTrigger id="plan-filter" className="h-9">
+                    <SelectTrigger id="plan-filter" className="h-9 bg-[#181a2f] border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-[#F2C94C]">
                       <SelectValue placeholder="All plan types" />
                     </SelectTrigger>
                     <SelectContent>
@@ -431,82 +435,82 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
 
                 {/* Date Range Filters */}
                 <div className="space-y-2">
-                  <Label htmlFor="date-from" className="text-sm font-medium">Created From</Label>
+                  <Label htmlFor="date-from" className="text-sm font-medium text-white">Created From</Label>
                   <Input
                     id="date-from"
                     type="date"
                     value={filters.dateFrom}
                     onChange={(e) => updateFilter("dateFrom", e.target.value)}
-                    className="h-9"
+                    className="h-9 bg-[#181a2f] border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="date-to" className="text-sm font-medium">Created To</Label>
+                  <Label htmlFor="date-to" className="text-sm font-medium text-white">Created To</Label>
                   <Input
                     id="date-to"
                     type="date"
                     value={filters.dateTo}
                     onChange={(e) => updateFilter("dateTo", e.target.value)}
-                    className="h-9"
+                    className="h-9 bg-[#181a2f] border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
                   />
                 </div>
 
                 {/* Users Range Filters */}
                 <div className="space-y-2">
-                  <Label htmlFor="users-min" className="text-sm font-medium">Min Users</Label>
+                  <Label htmlFor="users-min" className="text-sm font-medium text-white">Min Users</Label>
                   <Input
                     id="users-min"
                     type="number"
                     placeholder="Min"
                     value={filters.usersMin}
                     onChange={(e) => updateFilter("usersMin", e.target.value)}
-                    className="h-9"
+                    className="h-9 bg-[#181a2f] border border-slate-600 text-white placeholder-white/60 rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="users-max" className="text-sm font-medium">Max Users</Label>
+                  <Label htmlFor="users-max" className="text-sm font-medium text-white">Max Users</Label>
                   <Input
                     id="users-max"
                     type="number"
                     placeholder="Max"
                     value={filters.usersMax}
                     onChange={(e) => updateFilter("usersMax", e.target.value)}
-                    className="h-9"
+                    className="h-9 bg-[#181a2f] border border-slate-600 text-white placeholder-white/60 rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
                   />
                 </div>
 
                 {/* Revenue Range Filters */}
                 <div className="space-y-2">
-                  <Label htmlFor="revenue-min" className="text-sm font-medium">Min Revenue ($)</Label>
+                  <Label htmlFor="revenue-min" className="text-sm font-medium text-white">Min Revenue ($)</Label>
                   <Input
                     id="revenue-min"
                     type="number"
                     placeholder="Min"
                     value={filters.revenueMin}
                     onChange={(e) => updateFilter("revenueMin", e.target.value)}
-                    className="h-9"
+                    className="h-9 bg-[#181a2f] border border-slate-600 text-white placeholder-white/60 rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="revenue-max" className="text-sm font-medium">Max Revenue ($)</Label>
+                  <Label htmlFor="revenue-max" className="text-sm font-medium text-white">Max Revenue ($)</Label>
                   <Input
                     id="revenue-max"
                     type="number"
                     placeholder="Max"
                     value={filters.revenueMax}
                     onChange={(e) => updateFilter("revenueMax", e.target.value)}
-                    className="h-9"
+                    className="h-9 bg-[#181a2f] border border-slate-600 text-white placeholder-white/60 rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
                   />
                 </div>
 
                 {/* Implementation Manager Filter */}
                 <div className="space-y-2">
-                  <Label htmlFor="manager-filter" className="text-sm font-medium">Implementation Manager</Label>
+                  <Label htmlFor="manager-filter" className="text-sm font-medium text-white">Implementation Manager</Label>
                   <Select value={filters.implementationManager} onValueChange={(value) => updateFilter("implementationManager", value)}>
-                    <SelectTrigger id="manager-filter" className="h-9">
+                    <SelectTrigger id="manager-filter" className="h-9 bg-[#181a2f] border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-[#F2C94C]">
                       <SelectValue placeholder="All managers" />
                     </SelectTrigger>
                     <SelectContent>
@@ -523,14 +527,14 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
 
           {/* Active Filters Summary */}
           {hasActiveFilters() && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="mb-4 p-3 bg-[#10122b]/70 ring-1 ring-[#F2C94C]/20 rounded-xl">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-blue-900">Active Filters</h4>
+                <h4 className="text-sm font-medium text-slate-100">Active Filters</h4>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={clearFilters}
-                  className="text-blue-600 hover:text-blue-800 h-6 px-2"
+                  className="text-gold-300 hover:text-gold-200 h-6 px-2"
                 >
                   <X className="h-3 w-3 mr-1" />
                   Clear All
@@ -538,59 +542,59 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
               </div>
               <div className="flex flex-wrap gap-2">
                 {filters.status && (
-                  <Badge variant="secondary" className="text-xs">
+                  <span className="bg-[#F2C94C]/20 text-[#F2C94C] px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                     Status: {filters.status}
-                  </Badge>
+                  </span>
                 )}
                 {filters.successPackage && (
-                  <Badge variant="secondary" className="text-xs">
+                  <span className="bg-[#F2C94C]/20 text-[#F2C94C] px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                     Package: {filters.successPackage}
-                  </Badge>
+                  </span>
                 )}
                 {filters.billingType && (
-                  <Badge variant="secondary" className="text-xs">
+                  <span className="bg-[#F2C94C]/20 text-[#F2C94C] px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                     Billing: {filters.billingType}
-                  </Badge>
+                  </span>
                 )}
                 {filters.planType && (
-                  <Badge variant="secondary" className="text-xs">
+                  <span className="bg-[#F2C94C]/20 text-[#F2C94C] px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                     Plan: {filters.planType}
-                  </Badge>
+                  </span>
                 )}
                 {filters.dateFrom && (
-                  <Badge variant="secondary" className="text-xs">
+                  <span className="bg-[#F2C94C]/20 text-[#F2C94C] px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                     From: {new Date(filters.dateFrom).toLocaleDateString()}
-                  </Badge>
+                  </span>
                 )}
                 {filters.dateTo && (
-                  <Badge variant="secondary" className="text-xs">
+                  <span className="bg-[#F2C94C]/20 text-[#F2C94C] px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                     To: {new Date(filters.dateTo).toLocaleDateString()}
-                  </Badge>
+                  </span>
                 )}
                 {filters.usersMin && (
-                  <Badge variant="secondary" className="text-xs">
+                  <span className="bg-[#F2C94C]/20 text-[#F2C94C] px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                     Users: ≥{filters.usersMin}
-                  </Badge>
+                  </span>
                 )}
                 {filters.usersMax && (
-                  <Badge variant="secondary" className="text-xs">
+                  <span className="bg-[#F2C94C]/20 text-[#F2C94C] px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                     Users: ≤{filters.usersMax}
-                  </Badge>
+                  </span>
                 )}
                 {filters.revenueMin && (
-                  <Badge variant="secondary" className="text-xs">
+                  <span className="bg-[#F2C94C]/20 text-[#F2C94C] px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                     Revenue: ≥${parseInt(filters.revenueMin).toLocaleString()}
-                  </Badge>
+                  </span>
                 )}
                 {filters.revenueMax && (
-                  <Badge variant="secondary" className="text-xs">
+                  <span className="bg-[#F2C94C]/20 text-[#F2C94C] px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                     Revenue: ≤${parseInt(filters.revenueMax).toLocaleString()}
-                  </Badge>
+                  </span>
                 )}
                 {filters.implementationManager && (
-                  <Badge variant="secondary" className="text-xs">
+                  <span className="bg-[#F2C94C]/20 text-[#F2C94C] px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                     Manager: {managers.find(m => m.manager_id === filters.implementationManager)?.name || filters.implementationManager}
-                  </Badge>
+                  </span>
                 )}
               </div>
             </div>
@@ -598,15 +602,15 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
 
           {filteredClients.length === 0 ? (
             <div className="text-center py-8">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No clients found</h3>
-              <p className="text-gray-600 mb-4">
+              <Users className="h-12 w-12 text-white/40 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-white mb-2">No clients found</h3>
+              <p className="text-white/60 mb-4">
                 {hasActiveFilters() ? "No clients match your filter criteria." : "Get started by adding your first client."}
               </p>
               {!hasActiveFilters() && (
-                <Button asChild>
+                <Button asChild className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-white font-semibold rounded-lg h-11 px-6 text-[18px] shadow-md hover:brightness-110 border border-[#F2C94C]/70">
                   <Link href="/admin/clients/new">
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-5 w-5 mr-2" />
                     Add New Client
                   </Link>
                 </Button>
@@ -615,67 +619,70 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
           ) : (
             <div className="grid gap-4">
               {filteredClients.map((client) => (
-                <div key={client.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div key={client.id} className="group bg-[#10122b]/90 ring-1 ring-[#F2C94C]/20 rounded-xl p-5 transition-all hover:ring-2 hover:ring-[#F2C94C]/40">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-lg">{client.name}</h3>
-                        <Badge className={getStatusColor(client.status)}>{client.status}</Badge>
-                        <Badge className={getPackageColor(client.success_package)}>{client.success_package}</Badge>
+                        <h3 className="font-medium text-[17px] text-white">{client.name}</h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getStatusColor(client.status)}`}>
+                          {client.status}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getPackageColor(client.success_package)}`}>
+                          {client.success_package}
+                        </span>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-white/60">
                         <div className="flex items-center gap-2">
-                          <Package className="h-4 w-4" />
+                          <Package className="h-4 w-4 text-[#F2C94C]" />
                           <span>Slug: {client.slug}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
+                          <Users className="h-4 w-4 text-[#F2C94C]" />
                           <span>{client.number_of_users || 0} users</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
+                          <Calendar className="h-4 w-4 text-[#F2C94C]" />
                           <span>Billing: {client.billing_type}</span>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mt-2">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-white/60 mt-2">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">Plan:</span>
-                          <Badge variant="outline">{client.plan_type}</Badge>
+                          <span className="font-medium text-white">Plan:</span>
+                          <span className="bg-[#23244a] text-white/80 px-2 py-0.5 rounded-full text-xs font-medium">{client.plan_type}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">Revenue:</span>
+                          <DollarSign className="h-4 w-4 text-[#F2C94C]" />
                           <span>${client.revenue_amount.toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">Created:</span>
+                          <Clock className="h-4 w-4 text-[#F2C94C]" />
                           <span>{new Date(client.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>
                       {client.custom_app && getCustomAppLabel(client.custom_app) !== "Not Applicable" && (
                         <div className="mt-2">
-                          <Badge variant="outline">Custom App: {getCustomAppLabel(client.custom_app)}</Badge>
+                          <span className="bg-[#23244a] text-white/80 px-2 py-0.5 rounded-full text-xs font-medium">
+                            Custom App: {getCustomAppLabel(client.custom_app)}
+                          </span>
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      <Button asChild variant="outline" size="sm">
+                    <div className="flex items-center gap-1 ml-4">
+                      <Button asChild variant="outline" size="sm" className="w-8 h-8 bg-[#181a2f] rounded-md flex items-center justify-center hidden group-hover:flex">
                         <Link href={`/admin/clients/${client.id}`}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
+                          <Eye className="h-4 w-4 text-[#F2C94C]" />
                         </Link>
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleEditClient(client)}>
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
+                      <Button variant="outline" size="sm" onClick={() => handleEditClient(client)} className="w-8 h-8 bg-[#181a2f] rounded-md flex items-center justify-center hidden group-hover:flex">
+                        <Edit className="h-4 w-4 text-[#F2C94C]" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleDeleteClient(client.id, client.name)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="w-8 h-8 bg-[#181a2f] rounded-md flex items-center justify-center hidden group-hover:flex text-red-400 hover:text-red-300"
                       >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
