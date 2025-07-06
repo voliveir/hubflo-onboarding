@@ -118,6 +118,7 @@ function transformClientFromDb(data: any): Client {
     white_label_android_url: data.white_label_android_url,
     white_label_ios_url: data.white_label_ios_url,
     feedback_board_enabled: data.feedback_board_enabled || false,
+    implementation_manager: data.implementation_manager || undefined,
   }
 }
 
@@ -229,6 +230,7 @@ export async function createClient(formData: any): Promise<Client> {
       workflow_builder_enabled: formData.workflow_builder_enabled || false,
       show_figma_workflow: formData.show_figma_workflow || false,
       figma_workflow_url: formData.figma_workflow_url || "",
+      implementation_manager: formData.implementation_manager || undefined,
     }
 
     const { data, error } = await supabase.from("clients").insert([clientData]).select().single()
