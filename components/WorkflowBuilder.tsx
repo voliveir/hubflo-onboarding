@@ -938,7 +938,7 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
           >
             <MiniMap />
             <Controls />
-            <Background gap={16} size={1} />
+            <Background variant="dots" gap={24} size={1.5} color="rgba(255,255,255,0.06)" />
           </ReactFlow>
         </div>
         {loading && <div className="mt-4 text-gray-500">Loading workflow...</div>}
