@@ -5,6 +5,8 @@ import type { WorkflowBuilderProps } from "./WorkflowBuilder"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { Button } from "@/components/ui/button"
 import { Dialog } from "@/components/ui/dialog"
+import { useReveal } from "@/hooks/useReveal"
+import { cn } from "@/lib/utils"
 import {
   Select,
   SelectTrigger,
@@ -28,6 +30,7 @@ const WorkflowBuilder = dynamic<WorkflowBuilderProps>(
 )
 
 export function ClientWorkflowBuilderWrapper({ enabled, clientId }: Props) {
+  const { ref, isVisible } = useReveal()
   const [showLoadModal, setShowLoadModal] = useState(false)
   const [templates, setTemplates] = useState<any[]>([])
   const [selectedTemplateId, setSelectedTemplateId] = useState("")
@@ -73,7 +76,7 @@ export function ClientWorkflowBuilderWrapper({ enabled, clientId }: Props) {
   console.log("Templates before rendering dropdown:", templates, Array.isArray(templates));
 
   return (
-    <div>
+    <div ref={ref} className={cn("", isVisible && "animate-fade-in-up")}>
       <WorkflowBuilder
         clientId={clientId}
         initialNodes={initialNodes}
@@ -82,25 +85,37 @@ export function ClientWorkflowBuilderWrapper({ enabled, clientId }: Props) {
       />
       {showLoadModal && (
         <Dialog open={true} onOpenChange={open => { if (!open) setShowLoadModal(false) }}>
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
-            <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-              <h3 className="text-xl font-bold mb-4">Load Template</h3>
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl p-8 w-full max-w-md">
+              <h3 className="text-xl font-bold mb-4 text-white">Load Template</h3>
               <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
-                <SelectTrigger className="w-full mb-4">
+                <SelectTrigger className="w-full mb-4 bg-white/10 border-white/20 text-white">
                   <SelectValue placeholder="Select a template..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20">
                   {templates.length === 0 && (
-                    <SelectItem value="" disabled>No templates available</SelectItem>
+                    <SelectItem value="" disabled className="text-white/60">No templates available</SelectItem>
                   )}
                   {templates.map(t => (
-                    <SelectItem key={String(t.id)} value={String(t.id)}>{t.name || t.id}</SelectItem>
+                    <SelectItem key={String(t.id)} value={String(t.id)} className="text-white hover:bg-white/10">{t.name || t.id}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <div className="flex justify-end gap-2 mt-6">
-                <Button variant="outline" onClick={() => setShowLoadModal(false)}>Cancel</Button>
-                <Button onClick={handleLoadTemplateConfirm} disabled={!selectedTemplateId}>Load</Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowLoadModal(false)}
+                  className="border-white/20 text-white hover:bg-white/10"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleLoadTemplateConfirm} 
+                  disabled={!selectedTemplateId}
+                  className="bg-brand-gold hover:bg-brand-gold/90 text-brand-DEFAULT transition-all duration-200 hover:scale-105"
+                >
+                  Load
+                </Button>
               </div>
             </div>
           </div>

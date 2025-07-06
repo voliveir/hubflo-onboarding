@@ -1,14 +1,12 @@
 // Removed 'use client' to make this a Server Component
 
-import { ClientImplementationProgress } from "@/components/client-implementation-progress"
+import { ClientImplementationProgressWrapper } from "@/components/ClientImplementationProgressWrapper"
 import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
-  Users,
   FileText,
-  Zap,
   Settings,
   Play,
   ArrowRight,
@@ -20,28 +18,26 @@ import {
   Star,
   CheckCircle,
   TrendingUp,
-  Mail,
-  Layout,
-  Calendar,
   Kanban,
-  ChevronDown,
 } from "lucide-react"
-import { OnboardingAccessGuide } from "@/components/onboarding-access-guide"
-import { ClientIntegrationsSection } from "@/components/client-integrations-section"
-import { ClientFeaturesSection } from "@/components/client-features-section"
+import { OnboardingAccessGuideWrapper } from "@/components/OnboardingAccessGuideWrapper"
+import { ClientIntegrationsSectionWrapper } from "@/components/ClientIntegrationsSectionWrapper"
+import { ClientFeaturesSectionWrapper } from "@/components/ClientFeaturesSectionWrapper"
 import { getClientBySlug, getClientIntegrations, getClientFeaturesForPortal } from "@/lib/database"
 import Image from "next/image"
 import type { ClientIntegration, ClientFeature } from "@/lib/types"
-import { IndustryWorkflows } from "@/components/industry-workflows"
+import { IndustryWorkflowsWrapper } from "@/components/IndustryWorkflowsWrapper"
 import { ClientWorkflowBuilderWrapper } from "@/components/ClientWorkflowBuilderWrapper"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
 import * as React from "react"
 import CollapsibleVideos, { CollapsibleLinks } from "@/components/CollapsibleVideos"
 import OnboardingProgressClient from './OnboardingProgressClient'
-import { Input } from "@/components/ui/input"
-import { FeedbackBoardClientView } from '@/components/FeedbackBoardClientView'
-import { Section } from "@/components/ui/section"
-import { CardHover } from "@/components/ui/card-hover"
+
+import { FeedbackBoardClientViewWrapper } from '@/components/FeedbackBoardClientViewWrapper'
+import { PortalSection } from "@/components/ui/PortalSection"
+import { PortalHeader, PortalNavLink } from "@/components/ui/PortalHeader"
+import { PackageHighlights } from "@/components/portal/PackageHighlights"
+import { ActionCards } from "@/components/portal/ActionCards"
 
 interface ClientPageProps {
   params: {
@@ -88,12 +84,8 @@ export default async function ClientPage({ params }: ClientPageProps) {
   const welcomeMessage = client?.welcome_message || `Welcome to your ${successPackage} onboarding experience!`
   const logoUrl = client?.logo_url || null
   const videoUrl = client?.video_url || null
-  const showZapierIntegrations = client?.show_zapier_integrations ?? true
   const projectsEnabled = client?.projects_enabled ?? false
   const customAppLabel = getCustomAppLabel(client?.custom_app)
-
-  // Safe string operations with null checks
-  const clientInitial = clientName && clientName.length > 0 ? clientName.charAt(0).toUpperCase() : "C"
   const packageDisplayName =
     successPackage && successPackage.length > 0
       ? successPackage.charAt(0).toUpperCase() + successPackage.slice(1)
@@ -144,11 +136,10 @@ export default async function ClientPage({ params }: ClientPageProps) {
   // Check if we should show the custom app section
   const showCustomAppSection = customAppLabel === "Gray Label" || customAppLabel === "White Label"
 
-  // Check if we should show the upselling section (all packages except Elite)
-  const showUpsellSection = successPackage.toLowerCase() !== "elite"
+
 
   // Add helper for progress calculation
-  function getWhiteLabelProgress(checklist: any) {
+  function getWhiteLabelProgress(checklist: Record<string, boolean>) {
     if (!checklist) return 0
     const steps = [
       "create_assets",
@@ -164,15 +155,15 @@ export default async function ClientPage({ params }: ClientPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-[#070720] to-[#0d0d25]">
       {/* Header */}
-      <header className="bg-[#010124] border-b border-[#ECB22D] sticky top-0 z-50">
+      <header className="bg-[#010124] border-b border-brand-gold sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Image src="/hubflo-logo.png" alt="Hubflo" width={32} height={32} className="w-8 h-8 object-contain" />
               <span className="text-xl font-bold text-white">Hubflo</span>
-              <span className="text-[#ECB22D]">×</span>
+              <span className="text-brand-gold">×</span>
               {logoUrl ? (
                 <Image
                   src={logoUrl || "/placeholder.svg"}
@@ -193,28 +184,26 @@ export default async function ClientPage({ params }: ClientPageProps) {
       </header>
 
       {/* Quick Navigation Bar */}
-      <nav className="sticky top-[64px] z-40 bg-white/90 border-b border-[#ECB22D] shadow-sm">
-        <div className="container mx-auto px-4 py-2 flex flex-wrap gap-2 justify-center">
-          <a href="#welcome" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Welcome</a>
-          <a href="#progress" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Progress</a>
-          <a href="#workflows" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Workflows</a>
-          <a href="#next-steps" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Next Steps</a>
-          <a href="#integrations" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Integrations</a>
-          <a href="#feedback" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Features/Bugs/Requests</a>
-          <a href="#apps" className="text-[#010124] hover:text-[#ECB22D] font-medium px-3 py-1 rounded transition-colors">Apps</a>
-        </div>
-      </nav>
+      <PortalHeader>
+        <PortalNavLink href="#welcome">Welcome</PortalNavLink>
+        <PortalNavLink href="#progress">Progress</PortalNavLink>
+        <PortalNavLink href="#workflows">Workflows</PortalNavLink>
+        <PortalNavLink href="#next-steps">Next Steps</PortalNavLink>
+        <PortalNavLink href="#integrations">Integrations</PortalNavLink>
+        <PortalNavLink href="#feedback">Features/Bugs/Requests</PortalNavLink>
+        <PortalNavLink href="#apps">Apps</PortalNavLink>
+      </PortalHeader>
 
       {/* Personalized Hero Section */}
-      <Section id="welcome" className="bg-gradient-to-b from-[#010124] via-[#070720] to-brand-navy-light text-white scroll-mt-32 shadow-xl rounded-3xl mt-8">
+      <PortalSection id="welcome" gradient={false} className="bg-gradient-to-b from-[#010124] via-[#070720] to-[#0d0d25] text-white scroll-mt-32 mt-8">
         <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg">
             Welcome, <span className="text-brand-gold">{clientName}</span>!
           </h1>
-          <p className="text-xl text-brand-foreground mb-8 max-w-3xl mx-auto" style={{textShadow: '0 2px 8px #07072055'}}>{welcomeMessage}</p>
+          <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto" style={{textShadow: '0 2px 8px rgba(7,7,32,0.3)'}}>{welcomeMessage}</p>
           <Button
             size="lg"
-            className="bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT text-lg px-8 py-3 rounded-full font-semibold shadow-glow"
+            className="bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT text-lg px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
             asChild
           >
             <a href="https://app.hubflo.com" target="_blank" rel="noopener noreferrer">
@@ -222,117 +211,58 @@ export default async function ClientPage({ params }: ClientPageProps) {
             </a>
           </Button>
         </div>
-      </Section>
+      </PortalSection>
 
       {/* Personalized Video */}
       {videoUrl && (
-        <section className="py-16 px-4 bg-white">
-          <div className="container mx-auto">
-            <div className="max-w-3xl mx-auto">
-              <Card className="border-[#ECB22D] border-2">
-                <CardHeader className="bg-[#010124] text-white">
-                  <CardTitle className="text-center">Your Personal Welcome Video</CardTitle>
-                  <CardDescription className="text-center text-gray-300">
-                    A customized walkthrough specifically for {clientName}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <Play className="h-16 w-16 text-[#ECB22D] mx-auto mb-4" />
-                      <p className="text-[#010124] font-semibold">Personal Welcome Video</p>
-                      <p className="text-sm text-gray-600">Customized for {clientName}</p>
-                      <p className="text-xs text-gray-400 mt-2">{videoUrl}</p>
-                    </div>
+        <PortalSection gradient={false} className="bg-white/10 backdrop-blur-sm">
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 overflow-hidden">
+              <div className="bg-[#010124] text-white p-6 text-center">
+                <h3 className="text-2xl font-bold mb-2">Your Personal Welcome Video</h3>
+                <p className="text-white/80">A customized walkthrough specifically for {clientName}</p>
+              </div>
+              <div className="p-6">
+                <div className="aspect-video bg-gray-100 rounded-2xl flex items-center justify-center">
+                  <div className="text-center">
+                    <Play className="h-16 w-16 text-brand-gold mx-auto mb-4" />
+                    <p className="text-[#010124] font-semibold">Personal Welcome Video</p>
+                    <p className="text-sm text-gray-600">Customized for {clientName}</p>
+                    <p className="text-xs text-gray-400 mt-2">{videoUrl}</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           </div>
-        </section>
+        </PortalSection>
       )}
 
       {/* Package-Specific Features */}
-      <Section className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl">
+      <PortalSection gradient={false} className="bg-white/10 backdrop-blur-sm">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-brand-DEFAULT mb-4">
+          <h2 className="text-3xl font-bold text-white mb-4">
             Your <span className="text-brand-gold">{getPackageEmoji(successPackage)} {packageDisplayName}</span> Package Includes
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="text-white/80 max-w-2xl mx-auto">
             {"Here's everything included in your success package to ensure a smooth onboarding experience."}
           </p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto items-stretch">
-          <CardHover
-            title={successPackage === "elite" ? "Unlimited" : successPackage === "gold" ? "Up to 3" : successPackage === "premium" ? "2" : "1" + " Onboarding Calls"}
-            icon={<Users className="h-6 w-6 text-brand-DEFAULT" />}
-            className="text-center h-full min-h-[260px]"
-          >
-            <p className="text-sm text-gray-600">Personal guidance from our onboarding specialists</p>
-          </CardHover>
-          <CardHover
-            title={successPackage === "elite" ? "Custom Integrations" : successPackage === "gold" ? "Advanced Zapier" : successPackage === "premium" ? "Basic Zapier" : "Video Tutorials"}
-            icon={<Zap className="h-6 w-6 text-brand-DEFAULT" />}
-            className="text-center h-full min-h-[260px]"
-          >
-            <p className="text-sm text-gray-600">
-              {successPackage === "elite"
-                ? "API and partner tool integrations"
-                : successPackage === "gold"
-                  ? "Advanced workflows and integrations"
-                  : successPackage === "premium"
-                    ? "Basic automation setup"
-                    : "Self-guided learning resources"}
-            </p>
-          </CardHover>
-          <CardHover
-            title={successPackage === "elite" ? "Full Migration" : successPackage === "gold" ? "Up to 4 Forms/SmartDocs" : successPackage === "premium" ? "Up to 2 Forms/SmartDocs" : "Chat Support"}
-            icon={<FileText className="h-6 w-6 text-brand-DEFAULT" />}
-            className="text-center h-full min-h-[260px]"
-          >
-            <p className="text-sm text-gray-600">
-              {successPackage === "elite"
-                ? "Complete data migration assistance"
-                : successPackage === "gold"
-                  ? "Advanced form and document setup"
-                  : successPackage === "premium"
-                    ? "Basic form and document setup"
-                    : "Real-time chat assistance"}
-            </p>
-          </CardHover>
-          <CardHover
-            title={successPackage === "elite" ? "Dedicated Manager" : successPackage === "gold" ? "Priority Support" : successPackage === "premium" ? "Priority Support" : "Standard Support"}
-            icon={<Settings className="h-6 w-6 text-brand-DEFAULT" />}
-            className="text-center h-full min-h-[260px]"
-          >
-            <p className="text-sm text-gray-600">
-              {successPackage === "elite"
-                ? "Direct Slack access to account manager"
-                : successPackage === "gold"
-                  ? "Priority support during onboarding"
-                  : successPackage === "premium"
-                    ? "Priority support during onboarding"
-                    : "Standard support channels"}
-            </p>
-          </CardHover>
-        </div>
-      </Section>
+        <PackageHighlights successPackage={successPackage} />
+      </PortalSection>
 
       {/* Implementation Progress Section - RESTORED */}
-      <section id="progress" className="py-16 px-4 bg-white scroll-mt-32">
-        <div className="container mx-auto">
-          <div className="max-w-6xl mx-auto">
-            <ClientImplementationProgress client={client} />
-          </div>
+      <PortalSection id="progress" gradient={false} className="bg-white/10 backdrop-blur-sm scroll-mt-32">
+        <div className="max-w-6xl mx-auto">
+          <ClientImplementationProgressWrapper client={client} />
         </div>
-      </section>
+      </PortalSection>
 
       {/* Onboarding Access Guide - NEW SECTION */}
-      <OnboardingAccessGuide clientName={clientName} />
+      <OnboardingAccessGuideWrapper clientName={clientName} />
 
       {/* Visual Workflows Section - move here before Next Steps */}
       <section id="workflows" className="scroll-mt-32">
-        <IndustryWorkflows />
+        <IndustryWorkflowsWrapper />
       </section>
 
       {/* Blueprint Your Process Section */}
@@ -383,93 +313,36 @@ export default async function ClientPage({ params }: ClientPageProps) {
       )}
 
       {/* Next Steps Section */}
-      <Section id="next-steps" className="bg-gradient-to-br from-brand-gold/10 to-white/80 rounded-3xl shadow-xl mt-16">
+      <PortalSection id="next-steps" gradient={false} className="bg-white/10 backdrop-blur-sm mt-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-brand-DEFAULT mb-4">
+          <h2 className="text-3xl font-bold text-white mb-4">
             Next Steps
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="text-white/80 max-w-2xl mx-auto">
             Get started with your onboarding journey using the steps below.
           </p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          <CardHover
-            title="Access your Hubflo Admin Workspace"
-            icon={<Mail className="h-6 w-6 text-brand-DEFAULT" />}
-            className="flex flex-col h-full min-h-[400px] text-center"
-          >
-            <p className="text-gray-600 mb-6 flex-grow text-center">
-              Log into your Hubflo Admin Workspace and start exploring!
-            </p>
-            <a
-              href="https://app.hubflo.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ background: '#EAB308', color: '#070720' }}
-              className="w-full mt-auto rounded-xl px-6 py-3 font-semibold text-center block transition"
-            >
-              Access Workspace
-            </a>
-          </CardHover>
-          <CardHover
-            title="Complete Onboarding Checklist"
-            icon={<Layout className="h-6 w-6 text-brand-DEFAULT" />}
-            className="flex flex-col h-full min-h-[400px] text-center"
-          >
-            <p className="text-gray-600 mb-6 flex-grow text-center">
-              Work through the essential setup tasks to get your Hubflo workspace ready for your business needs!
-            </p>
-            <a
-              href="https://hubflo-onboarding.hubflo.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ background: '#EAB308', color: '#070720' }}
-              className="w-full mt-auto rounded-xl px-6 py-3 font-semibold text-center block transition"
-            >
-              Start Setup
-            </a>
-          </CardHover>
-          {successPackage.toLowerCase() !== "light" && (
-            <CardHover
-              title="Schedule Your Next Onboarding Call"
-              icon={<Calendar className="h-6 w-6 text-brand-DEFAULT" />}
-              className="flex flex-col h-full min-h-[400px] text-center"
-            >
-              <p className="text-gray-600 mb-6 flex-grow text-center">
-                Book your next onboarding call once you've completed your tasks and are ready to proceed to automations and integrations (as well as any questions lingering from your initial play around in Hubflo!)
-              </p>
-              <a
-                href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ background: '#EAB308', color: '#070720' }}
-                className="w-full mt-auto rounded-xl px-6 py-3 font-semibold text-center block transition"
-              >
-                Schedule Call
-              </a>
-            </CardHover>
-          )}
-        </div>
+        <ActionCards successPackage={successPackage} />
         <div className="mt-12">
           <OnboardingProgressClient clientId={client.id} projectsEnabled={projectsEnabled} />
         </div>
-      </Section>
+      </PortalSection>
 
       {/* Helpful Resources & Tutorials Section */}
-      <Section className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl mt-16">
+      <PortalSection gradient={false} className="bg-white/10 backdrop-blur-sm mt-16">
         <div className="max-w-3xl mx-auto">
-          <h3 className="text-2xl font-semibold text-brand-DEFAULT mb-6 text-center">Helpful Resources & Tutorials</h3>
-          <div className="rounded-xl shadow-lg border-2 border-brand-gold bg-white/90">
+          <h3 className="text-2xl font-semibold text-white mb-6 text-center">Helpful Resources & Tutorials</h3>
+          <div className="rounded-3xl border border-brand-gold/40 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm">
             <Accordion type="multiple" className="">
               {/* Basics & Foundations */}
               <AccordionItem value="basics">
-                <AccordionTrigger className="text-lg font-bold flex items-center gap-2 px-6 py-4 hover:bg-yellow-50 transition rounded-t-xl">
-                  <Settings className="h-5 w-5 text-[#ECB22D]" />
+                <AccordionTrigger className="text-lg font-bold flex items-center gap-2 px-6 py-4 hover:bg-brand-gold/10 transition rounded-t-3xl text-white">
+                  <Settings className="h-5 w-5 text-brand-gold" />
                   <span>Setup Basics & Foundations</span>
                 </AccordionTrigger>
                 <AccordionContent className="px-8 pb-6 pt-2">
-                  <div className="flex items-center gap-2 mb-2"><span className="bg-[#ECB22D] text-[#010124] text-xs font-semibold px-2 py-1 rounded">Subtasks</span></div>
-                  <ul className="list-disc list-inside mb-4 text-gray-700 ml-4">
+                  <div className="flex items-center gap-2 mb-2"><span className="bg-brand-gold text-brand-DEFAULT text-xs font-semibold px-2 py-1 rounded">Subtasks</span></div>
+                  <ul className="list-disc list-inside mb-4 text-white/80 ml-4">
                     <li>Basic Setup</li>
                     <li>Invite & Manage Users</li>
                     <li>Setup General Settings/Domain</li>
@@ -510,13 +383,13 @@ export default async function ClientPage({ params }: ClientPageProps) {
               {/* Project Board - only if enabled */}
               {projectsEnabled && (
                 <AccordionItem value="project-board">
-                  <AccordionTrigger className="text-lg font-bold flex items-center gap-2 px-6 py-4 hover:bg-yellow-50 transition">
-                    <Kanban className="h-5 w-5 text-[#ECB22D]" />
+                  <AccordionTrigger className="text-lg font-bold flex items-center gap-2 px-6 py-4 hover:bg-brand-gold/10 transition text-white">
+                    <Kanban className="h-5 w-5 text-brand-gold" />
                     <span>Setup Your Project Board</span>
                   </AccordionTrigger>
                   <AccordionContent className="px-8 pb-6 pt-2">
-                    <div className="flex items-center gap-2 mb-2"><span className="bg-[#ECB22D] text-[#010124] text-xs font-semibold px-2 py-1 rounded">Subtasks</span></div>
-                    <ul className="list-disc list-inside mb-4 text-gray-700 ml-4">
+                    <div className="flex items-center gap-2 mb-2"><span className="bg-brand-gold text-brand-DEFAULT text-xs font-semibold px-2 py-1 rounded">Subtasks</span></div>
+                    <ul className="list-disc list-inside mb-4 text-white/80 ml-4">
                       <li>Add Custom Fields to your Project</li>
                       <li>Configure Your Project Board (Organize Internally)</li>
                     </ul>
@@ -548,13 +421,13 @@ export default async function ClientPage({ params }: ClientPageProps) {
               )}
               {/* Workspace Templates */}
               <AccordionItem value="workspace-templates">
-                <AccordionTrigger className="text-lg font-bold flex items-center gap-2 px-6 py-4 hover:bg-yellow-50 transition rounded-b-xl">
-                  <FileText className="h-5 w-5 text-[#ECB22D]" />
+                <AccordionTrigger className="text-lg font-bold flex items-center gap-2 px-6 py-4 hover:bg-brand-gold/10 transition rounded-b-3xl text-white">
+                  <FileText className="h-5 w-5 text-brand-gold" />
                   <span>Setup Workspace Template(s)</span>
                 </AccordionTrigger>
                 <AccordionContent className="px-8 pb-6 pt-2">
-                  <div className="flex items-center gap-2 mb-2"><span className="bg-[#ECB22D] text-[#010124] text-xs font-semibold px-2 py-1 rounded">Subtasks</span></div>
-                  <ul className="list-disc list-inside mb-4 text-gray-700 ml-4">
+                  <div className="flex items-center gap-2 mb-2"><span className="bg-brand-gold text-brand-DEFAULT text-xs font-semibold px-2 py-1 rounded">Subtasks</span></div>
+                  <ul className="list-disc list-inside mb-4 text-white/80 ml-4">
                     <li>Create Task Template(s)</li>
                     <li>Create Workspace Template(s)</li>
                   </ul>
@@ -582,12 +455,12 @@ export default async function ClientPage({ params }: ClientPageProps) {
             </Accordion>
           </div>
         </div>
-      </Section>
+      </PortalSection>
 
       {/* Dynamic Integrations Section - Pass showDefault=true to ensure default integrations show */}
-      <section id="integrations" className="scroll-mt-32">
+      <PortalSection id="integrations" gradient={false} className="bg-white/10 backdrop-blur-sm scroll-mt-32">
         {(client.show_zapier_integrations || integrations.length > 0) && (
-          <ClientIntegrationsSection
+          <ClientIntegrationsSectionWrapper
             clientId={client.id}
             clientName={clientName}
             integrations={integrationsError ? undefined : (integrations
@@ -606,33 +479,33 @@ export default async function ClientPage({ params }: ClientPageProps) {
             successPackage={successPackage}
           />
         )}
-      </section>
+      </PortalSection>
 
       {/* Feedback Board Section */}
-      <Section id="feedback" className="bg-gradient-to-br from-brand-navy-light/10 to-white/80 rounded-3xl shadow-xl mt-16 scroll-mt-32">
+      <PortalSection id="feedback" gradient={false} className="bg-white/10 backdrop-blur-sm mt-16 scroll-mt-32">
         {(client.feedback_board_enabled ?? true) && (
           <div className="max-w-6xl mx-auto">
-            <FeedbackBoardClientView clientId={client.id} />
+            <FeedbackBoardClientViewWrapper clientId={client.id} />
           </div>
         )}
-      </Section>
+      </PortalSection>
 
       {/* Custom Features Section */}
-      <Section className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl mt-16">
+      <PortalSection gradient={false} className="bg-white/10 backdrop-blur-sm mt-16">
         <div className="max-w-6xl mx-auto">
-          <ClientFeaturesSection features={features} />
+          <ClientFeaturesSectionWrapper features={features} />
         </div>
-      </Section>
+      </PortalSection>
 
       {/* Custom App Section - Only show for Gray Label or White Label */}
       {showCustomAppSection && (
-        <Section className="bg-gradient-to-br from-brand-gold/10 to-white/80 rounded-3xl shadow-xl mt-16">
+        <PortalSection gradient={false} className="bg-white/10 backdrop-blur-sm mt-16">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-brand-DEFAULT mb-4">
+              <h2 className="text-3xl font-bold text-white mb-4">
                 Your <span className="text-brand-gold">{customAppLabel}</span> Mobile App
               </h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
+              <p className="text-white/80 max-w-2xl mx-auto">
                 {customAppLabel === "Gray Label"
                   ? "Access your branded Hubflo mobile app and share it with your clients for seamless project management on the go."
                   : "Your custom white label mobile app is being prepared specifically for your brand and business needs."}
@@ -642,40 +515,44 @@ export default async function ClientPage({ params }: ClientPageProps) {
             {customAppLabel === "Gray Label" && (
               <div className="grid md:grid-cols-2 gap-8 items-stretch">
                 {/* Apple App Store */}
-                <CardHover
-                  title="iOS App Store"
-                  icon={<Smartphone className="h-8 w-8 text-brand-DEFAULT" />}
-                  className="flex flex-col h-full min-h-[400px] text-center"
-                >
-                  <div className="text-gray-600 mb-2">Download for iPhone and iPad</div>
-                  <div className="text-sm text-gray-600 mb-6">
+                <div className="flex flex-col h-full min-h-[400px] text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 transition-all duration-500 hover:border-brand-gold/40 hover:shadow-lg">
+                  <div className="flex flex-col items-center mb-6">
+                    <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-brand-gold/20">
+                      <Smartphone className="h-6 w-6 text-brand-gold" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-4">iOS App Store</h3>
+                  </div>
+                  <div className="text-white/80 mb-2">Download for iPhone and iPad</div>
+                  <div className="text-sm text-white/80 mb-6">
                     Your Gray Label Hubflo app is available on the Apple App Store. Please share this link with your clients to give them mobile access to their projects.
                   </div>
                   <a
                     href="https://apps.apple.com/us/app/client-portal-by-hubflo/id6740039450"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT font-semibold mt-auto rounded-xl px-6 py-3 text-center block transition"
+                    className="w-full bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT font-semibold mt-auto rounded-2xl px-6 py-3 text-center block transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
                   >
-                    <ExternalLink className="mr-2 h-4 w-4" />
+                    <ExternalLink className="h-4 w-4" />
                     View on App Store
                   </a>
-                </CardHover>
+                </div>
                 {/* Google Play Store */}
-                <CardHover
-                  title="Google Play Store"
-                  icon={<Smartphone className="h-8 w-8 text-gray-400" />}
-                  className="flex flex-col h-full min-h-[400px] text-center"
-                >
-                  <div className="text-gray-500 mb-2">Android app coming soon</div>
-                  <div className="text-sm text-gray-600 mb-6">
+                <div className="flex flex-col h-full min-h-[400px] text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 transition-all duration-500 hover:border-brand-gold/40 hover:shadow-lg">
+                  <div className="flex flex-col items-center mb-6">
+                    <div className="w-14 h-14 bg-gray-400/10 rounded-2xl flex items-center justify-center mb-4 border border-gray-400/20">
+                      <Smartphone className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-4">Google Play Store</h3>
+                  </div>
+                  <div className="text-gray-400 mb-2">Android app coming soon</div>
+                  <div className="text-sm text-white/80 mb-6">
                     The Android version of your branded Hubflo app is currently in development and will be available soon.
                   </div>
                   <Button className="w-full bg-gray-300 text-gray-500 cursor-not-allowed mt-auto" disabled>
                     <Clock className="mr-2 h-4 w-4" />
                     Coming Soon
                   </Button>
-                </CardHover>
+                </div>
               </div>
             )}
 
@@ -829,29 +706,31 @@ export default async function ClientPage({ params }: ClientPageProps) {
               })()
             )}
           </div>
-        </Section>
+        </PortalSection>
       )}
 
       {/* Hubflo Internal Apps Section - Always show for all packages */}
-      <Section id="apps" className="bg-gradient-to-br from-brand-navy-light/10 to-white/80 rounded-3xl shadow-xl mt-16 scroll-mt-32">
+      <PortalSection id="apps" gradient={false} className="bg-white/10 backdrop-blur-sm mt-16 scroll-mt-32">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-brand-DEFAULT mb-4">
+            <h2 className="text-3xl font-bold text-white mb-4">
               Hubflo Apps for <span className="text-brand-gold">Internal Users</span>
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-white/80 max-w-2xl mx-auto">
               Stay connected and productive with Hubflo apps designed for your team to manage clients and projects efficiently.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8 items-stretch">
             {/* Mobile App */}
-            <CardHover
-              title="Hubflo Mobile App"
-              icon={<Smartphone className="h-8 w-8 text-brand-DEFAULT" />}
-              className="flex flex-col h-full min-h-[400px] text-center"
-            >
-              <div className="text-gray-600 mb-2">Stay connected with your clients, tasks, and files—anytime, anywhere.</div>
-              <div className="text-sm text-gray-600 mb-6">
+            <div className="flex flex-col h-full min-h-[400px] text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 transition-all duration-500 hover:border-brand-gold/40 hover:shadow-lg">
+              <div className="flex flex-col items-center mb-6">
+                <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-brand-gold/20">
+                  <Smartphone className="h-6 w-6 text-brand-gold" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-4">Hubflo Mobile App</h3>
+              </div>
+              <div className="text-white/80 mb-2">Stay connected with your clients, tasks, and files—anytime, anywhere.</div>
+              <div className="text-sm text-white/80 mb-6">
                 <div className="mb-2">With the mobile app, you can:</div>
                 <ul className="text-left ml-4">
                   <li className="mb-1">• View and manage client workspaces</li>
@@ -860,8 +739,8 @@ export default async function ClientPage({ params }: ClientPageProps) {
                   <li className="mb-1">• Track invoice statuses</li>
                   <li className="mb-1">• Take meeting notes or upload files quickly</li>
                 </ul>
-                <div className="text-center bg-white rounded-lg p-4 border mt-4">
-                  <p className="text-sm text-gray-600 mb-3">
+                <div className="text-center bg-white/10 rounded-2xl p-4 border border-white/20 mt-4">
+                  <p className="text-sm text-white/80 mb-3">
                     Scan this QR code to download the app directly to your phone:
                   </p>
                   <div className="flex justify-center">
@@ -875,15 +754,17 @@ export default async function ClientPage({ params }: ClientPageProps) {
                   </div>
                 </div>
               </div>
-            </CardHover>
+            </div>
             {/* Desktop App */}
-            <CardHover
-              title="Hubflo Desktop App"
-              icon={<Monitor className="h-8 w-8 text-brand-DEFAULT" />}
-              className="flex flex-col h-full min-h-[400px] text-center"
-            >
-              <div className="text-gray-600 mb-2">Too many tabs open? Can't find Hubflo when you need it?</div>
-              <div className="text-sm text-gray-600 mb-6">
+            <div className="flex flex-col h-full min-h-[400px] text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 transition-all duration-500 hover:border-brand-gold/40 hover:shadow-lg">
+              <div className="flex flex-col items-center mb-6">
+                <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-brand-gold/20">
+                  <Monitor className="h-6 w-6 text-brand-gold" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-4">Hubflo Desktop App</h3>
+              </div>
+              <div className="text-white/80 mb-2">Too many tabs open? Can't find Hubflo when you need it?</div>
+              <div className="text-sm text-white/80 mb-6">
                 <div className="mb-2">Download the Hubflo Desktop App to:</div>
                 <ul className="text-left ml-4">
                   <li className="mb-1">• Keep Hubflo in its own dedicated window</li>
@@ -895,20 +776,21 @@ export default async function ClientPage({ params }: ClientPageProps) {
                 href="https://dl.todesktop.com/230531188e234vd"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ background: '#EAB308', color: '#070720' }}
-                className="w-full mt-auto rounded-xl px-6 py-3 font-semibold text-center block transition"
+                className="w-full mt-auto bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT font-semibold rounded-2xl px-6 py-3 text-center block transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 Download Desktop App
               </a>
-            </CardHover>
+            </div>
             {/* Chrome Extension */}
-            <CardHover
-              title="Hubflo Chrome Extension"
-              icon={<Chrome className="h-8 w-8 text-brand-DEFAULT" />}
-              className="flex flex-col h-full min-h-[400px] text-center"
-            >
-              <div className="text-gray-600 mb-2">Create contacts and capture information from anywhere on the web.</div>
-              <div className="text-sm text-gray-600 mb-6">
+            <div className="flex flex-col h-full min-h-[400px] text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 transition-all duration-500 hover:border-brand-gold/40 hover:shadow-lg">
+              <div className="flex flex-col items-center mb-6">
+                <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-brand-gold/20">
+                  <Chrome className="h-6 w-6 text-brand-gold" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-4">Hubflo Chrome Extension</h3>
+              </div>
+              <div className="text-white/80 mb-2">Create contacts and capture information from anywhere on the web.</div>
+              <div className="text-sm text-white/80 mb-6">
                 <div className="mb-2">With the Chrome extension, you can:</div>
                 <ul className="text-left ml-4">
                   <li className="mb-1">• Create contacts from LinkedIn, Gmail, or Outlook</li>
@@ -920,28 +802,27 @@ export default async function ClientPage({ params }: ClientPageProps) {
                 href="https://chrome.google.com/webstore/detail/hubflo-clipper/miionnbpcoinccnhekjjjloiknalhhfh/related?hl=fr"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ background: '#EAB308', color: '#070720' }}
-                className="w-full mt-auto rounded-xl px-6 py-3 font-semibold text-center block transition"
+                className="w-full mt-auto bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT font-semibold rounded-2xl px-6 py-3 text-center block transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 Add to Chrome
               </a>
-            </CardHover>
+            </div>
           </div>
         </div>
-      </Section>
+      </PortalSection>
 
       {/* Compliance Logos Row - always visible */}
-      <Section className="flex flex-col items-center mt-8 mb-8 bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl py-8">
+      <PortalSection gradient={false} className="flex flex-col items-center mt-8 mb-8 bg-white/10 backdrop-blur-sm py-8">
         <a href="https://hubflo.eu.trust.site/" target="_blank" rel="noopener noreferrer" className="flex gap-8 items-center justify-center">
           <img src="https://static.eu.sprinto.com/_next/static/images/framework/soc2.png" alt="SOC2 Compliant" className="h-12 w-auto" />
           <img src="https://static.eu.sprinto.com/_next/static/images/framework/hipaa.png" alt="HIPAA Compliant" className="h-12 w-auto" />
           <img src="https://static.eu.sprinto.com/_next/static/images/framework/gdpr.png" alt="GDPR Compliant" className="h-12 w-auto" />
         </a>
-        <span className="mt-2 text-xs text-gray-500">We are SOC2, HIPAA, and GDPR compliant. <a href="https://hubflo.eu.trust.site/" target="_blank" rel="noopener noreferrer" className="underline text-brand-gold">Learn more</a></span>
-      </Section>
+        <span className="mt-2 text-xs text-white/60">We are SOC2, HIPAA, and GDPR compliant. <a href="https://hubflo.eu.trust.site/" target="_blank" rel="noopener noreferrer" className="underline text-brand-gold">Learn more</a></span>
+      </PortalSection>
 
       {/* Footer */}
-      <footer className="bg-[#010124] bg-opacity-90 text-white py-12 px-4 rounded-t-3xl shadow-xl">
+      <footer className="bg-[#010124] bg-opacity-90 text-white py-12 px-4 rounded-t-3xl">
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Image src="/hubflo-logo.png" alt="Hubflo" width={32} height={32} className="w-8 h-8 object-contain" />

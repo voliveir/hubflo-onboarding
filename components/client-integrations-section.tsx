@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Zap, ExternalLink, Globe, Settings, Star } from "lucide-react"
+import { useReveal } from "@/hooks/useReveal"
+import { cn } from "@/lib/utils"
 import { getClientIntegrations } from "@/lib/database"
 
 interface Integration {
@@ -12,7 +13,7 @@ interface Integration {
   title: string
   description: string
   category: string
-  integration_type: "zapier" | "native" | "api"
+  integration_type: "zapier" | "native" | "api" | "makecom"
   external_url?: string
   is_featured?: boolean
   sort_order?: number
@@ -33,6 +34,7 @@ export function ClientIntegrationsSection({
   showDefault = false,
   successPackage = "premium",
 }: ClientIntegrationsSectionProps) {
+  const { ref, isVisible } = useReveal()
   const [integrations, setIntegrations] = useState<Integration[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -102,8 +104,8 @@ export function ClientIntegrationsSection({
         <div className="container mx-auto">
           <div className="text-center">
             <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/3 mx-auto"></div>
+              <div className="h-8 bg-white/20 rounded w-1/2 mx-auto mb-4"></div>
+              <div className="h-4 bg-white/20 rounded w-1/3 mx-auto"></div>
             </div>
           </div>
         </div>
@@ -114,30 +116,30 @@ export function ClientIntegrationsSection({
   // If no integrations are selected, show a message
   if (integrations.length === 0) {
     return (
-      <section className="py-16 px-4">
+      <section ref={ref} className={cn("py-16 px-4", isVisible && "animate-fade-in-up")}>
         <div className="container mx-auto">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Integrations for {clientName}</h2>
+            <h2 className="text-3xl font-bold text-white mb-4">Integrations for {clientName}</h2>
             <div className="max-w-2xl mx-auto">
-              <Card className="bg-gray-50 border-dashed">
-                <CardContent className="p-8 text-center">
-                  <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Integrations Selected</h3>
-                  <p className="text-gray-600 mb-4">
-                    Your Implementation Manager will customize and select the most relevant integrations for your
-                    workflow during your onboarding process.
-                  </p>
-                  <Button className="bg-[#010124] hover:bg-[#020135]" asChild>
-                    <a
-                      href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Schedule Integration Planning Call
-                    </a>
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-8 text-center">
+                <div className="w-16 h-16 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20 mx-auto mb-4">
+                  <Settings className="h-8 w-8 text-brand-gold" />
+                </div>
+                <h3 className="text-lg font-medium text-white mb-2">No Integrations Selected</h3>
+                <p className="text-white/80 mb-6">
+                  Your Implementation Manager will customize and select the most relevant integrations for your
+                  workflow during your onboarding process.
+                </p>
+                <Button className="bg-brand-gold hover:bg-brand-gold/90 text-brand-DEFAULT transition-all duration-200 hover:scale-105" asChild>
+                  <a
+                    href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Schedule Integration Planning Call
+                  </a>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -151,13 +153,13 @@ export function ClientIntegrationsSection({
   const getIntegrationIcon = (type: string) => {
     switch (type) {
       case "zapier":
-        return <Zap className="h-5 w-5 text-orange-500" />
+        return <Zap className="h-5 w-5 text-brand-gold" />
       case "native":
-        return <Globe className="h-5 w-5 text-blue-500" />
+        return <Globe className="h-5 w-5 text-brand-gold" />
       case "api":
-        return <Settings className="h-5 w-5 text-green-500" />
+        return <Settings className="h-5 w-5 text-brand-gold" />
       default:
-        return <ExternalLink className="h-5 w-5 text-gray-500" />
+        return <ExternalLink className="h-5 w-5 text-brand-gold" />
     }
   }
 
@@ -167,7 +169,7 @@ export function ClientIntegrationsSection({
         return (
           <Badge
             variant="secondary"
-            className="bg-orange-100 text-orange-800 text-xs font-semibold border border-orange-200"
+            className="bg-brand-gold/20 text-brand-gold text-xs font-semibold border border-brand-gold/40"
           >
             <Zap className="h-3 w-3 mr-1" />
             ZAPIER
@@ -175,7 +177,7 @@ export function ClientIntegrationsSection({
         )
       case "native":
         return (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs font-semibold border border-blue-200">
+          <Badge variant="secondary" className="bg-brand-gold/20 text-brand-gold text-xs font-semibold border border-brand-gold/40">
             <Globe className="h-3 w-3 mr-1" />
             NATIVE
           </Badge>
@@ -184,7 +186,7 @@ export function ClientIntegrationsSection({
         return (
           <Badge
             variant="secondary"
-            className="bg-green-100 text-green-800 text-xs font-semibold border border-green-200"
+            className="bg-brand-gold/20 text-brand-gold text-xs font-semibold border border-brand-gold/40"
           >
             <Settings className="h-3 w-3 mr-1" />
             API
@@ -192,7 +194,7 @@ export function ClientIntegrationsSection({
         )
       default:
         return (
-          <Badge variant="secondary" className="bg-gray-100 text-gray-800 text-xs font-semibold border border-gray-200">
+          <Badge variant="secondary" className="bg-brand-gold/20 text-brand-gold text-xs font-semibold border border-brand-gold/40">
             <ExternalLink className="h-3 w-3 mr-1" />
             INTEGRATION
           </Badge>
@@ -212,11 +214,11 @@ export function ClientIntegrationsSection({
   }
 
   return (
-    <section className="py-16 px-4">
+    <section ref={ref} className={cn("py-16 px-4", isVisible && "animate-fade-in-up")}>
       <div className="container mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Recommended Integrations for {clientName}</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-white mb-4">Recommended Integrations for {clientName}</h2>
+          <p className="text-white/80 max-w-2xl mx-auto">
             Based on your onboarding discussion, we've curated these integrations to help streamline your workflow and
             automate your processes.
           </p>
@@ -226,43 +228,45 @@ export function ClientIntegrationsSection({
           {/* Priority Integrations */}
           {featuredIntegrations.length > 0 && (
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                <Star className="text-yellow-500 mr-2 h-5 w-5" />
+              <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+                <div className="w-6 h-6 bg-brand-gold/20 rounded-lg flex items-center justify-center border border-brand-gold/40 mr-2">
+                  <Star className="text-brand-gold h-4 w-4" />
+                </div>
                 Priority Integrations
               </h3>
               <div className="grid gap-6">
                 {featuredIntegrations.map((integration) => (
-                  <Card key={integration.id} className="border-2 border-yellow-200 bg-yellow-50/50">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <div key={integration.id} className="bg-gradient-to-br from-brand-gold/10 to-brand-gold/5 backdrop-blur-sm rounded-3xl border border-brand-gold/40 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <div className="w-10 h-10 bg-brand-gold/20 rounded-xl flex items-center justify-center border border-brand-gold/40">
                           {getIntegrationIcon(integration.integration_type)}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-lg font-semibold text-gray-900 break-words mb-2">
-                              {integration.title}
-                            </h4>
-                            <div className="flex items-center space-x-2">
-                              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs">
-                                <Star className="h-3 w-3 mr-1" />
-                                Featured
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">
-                                Priority {integration.sort_order || 1}
-                              </Badge>
-                            </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-lg font-semibold text-white break-words mb-2">
+                            {integration.title}
+                          </h4>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant="secondary" className="bg-brand-gold/20 text-brand-gold text-xs border border-brand-gold/40">
+                              <Star className="h-3 w-3 mr-1" />
+                              Featured
+                            </Badge>
+                            <Badge variant="outline" className="text-xs text-white/80 border-white/20">
+                              Priority {integration.sort_order || 1}
+                            </Badge>
                           </div>
                         </div>
-                        <div className="ml-4 flex-shrink-0">{getIntegrationBadge(integration.integration_type)}</div>
                       </div>
-                      <p className="text-gray-600 mb-4">{integration.description}</p>
-                      <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white" asChild>
-                        <a href={integration.external_url || "#"} target="_blank" rel="noopener noreferrer">
-                          {getButtonText(integration.integration_type)}
-                          <ExternalLink className="ml-2 h-4 w-4" />
-                        </a>
-                      </Button>
-                    </CardContent>
-                  </Card>
+                      <div className="ml-4 flex-shrink-0">{getIntegrationBadge(integration.integration_type)}</div>
+                    </div>
+                    <p className="text-white/80 mb-4">{integration.description}</p>
+                    <Button className="w-full bg-brand-gold hover:bg-brand-gold/90 text-brand-DEFAULT transition-all duration-200 hover:scale-105" asChild>
+                      <a href={integration.external_url || "#"} target="_blank" rel="noopener noreferrer">
+                        {getButtonText(integration.integration_type)}
+                        <ExternalLink className="ml-2 h-4 w-4" />
+                      </a>
+                    </Button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -271,34 +275,34 @@ export function ClientIntegrationsSection({
           {/* Additional Integrations */}
           {additionalIntegrations.length > 0 && (
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Additional Integrations</h3>
+              <h3 className="text-xl font-semibold text-white mb-6">Additional Integrations</h3>
               <div className="grid md:grid-cols-2 gap-6">
                 {additionalIntegrations.map((integration) => (
-                  <Card key={integration.id} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <div key={integration.id} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-6 transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <div className="w-10 h-10 bg-brand-gold/20 rounded-xl flex items-center justify-center border border-brand-gold/40">
                           {getIntegrationIcon(integration.integration_type)}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-lg font-semibold text-gray-900 break-words mb-2">
-                              {integration.title}
-                            </h4>
-                            <Badge variant="outline" className="text-xs">
-                              Priority {integration.sort_order || 1}
-                            </Badge>
-                          </div>
                         </div>
-                        <div className="ml-4 flex-shrink-0">{getIntegrationBadge(integration.integration_type)}</div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-lg font-semibold text-white break-words mb-2">
+                            {integration.title}
+                          </h4>
+                          <Badge variant="outline" className="text-xs text-white/80 border-white/20">
+                            Priority {integration.sort_order || 1}
+                          </Badge>
+                        </div>
                       </div>
-                      <p className="text-gray-600 mb-4">{integration.description}</p>
-                      <Button variant="outline" className="w-full bg-transparent" asChild>
-                        <a href={integration.external_url || "#"} target="_blank" rel="noopener noreferrer">
-                          {getButtonText(integration.integration_type)}
-                          <ExternalLink className="ml-2 h-4 w-4" />
-                        </a>
-                      </Button>
-                    </CardContent>
-                  </Card>
+                      <div className="ml-4 flex-shrink-0">{getIntegrationBadge(integration.integration_type)}</div>
+                    </div>
+                    <p className="text-white/80 mb-4">{integration.description}</p>
+                    <Button variant="outline" className="w-full bg-transparent border-white/20 text-white hover:bg-white/10 transition-all duration-200 hover:scale-105" asChild>
+                      <a href={integration.external_url || "#"} target="_blank" rel="noopener noreferrer">
+                        {getButtonText(integration.integration_type)}
+                        <ExternalLink className="ml-2 h-4 w-4" />
+                      </a>
+                    </Button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -306,38 +310,34 @@ export function ClientIntegrationsSection({
 
           {/* Help Section */}
           {successPackage.toLowerCase() === "light" ? (
-            <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
-              <CardContent className="p-8 text-center">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Need More Help?</h3>
-                <p className="text-gray-600 mb-6">
-                  If you need hands-on help setting up integrations, you'll need to upgrade your success package to <strong>Premium</strong>, <strong>Gold</strong>, or <strong>Elite</strong>.
-                </p>
-                <p className="text-sm text-gray-500 mb-6">
-                  <strong>Contact support</strong> to discuss upgrading and unlocking advanced onboarding support.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="bg-gradient-to-br from-brand-gold/10 to-brand-gold/5 backdrop-blur-sm rounded-3xl border border-brand-gold/40 p-8 text-center">
+              <h3 className="text-xl font-semibold text-white mb-4">Need More Help?</h3>
+              <p className="text-white/80 mb-6">
+                If you need hands-on help setting up integrations, you'll need to upgrade your success package to <strong>Premium</strong>, <strong>Gold</strong>, or <strong>Elite</strong>.
+              </p>
+              <p className="text-sm text-white/60 mb-6">
+                <strong>Contact support</strong> to discuss upgrading and unlocking advanced onboarding support.
+              </p>
+            </div>
           ) : (
-            <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
-              <CardContent className="p-8 text-center">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Need Help Setting These Up?</h3>
-                <p className="text-gray-600 mb-6">
-                  Our implementation team can help configure these integrations during your onboarding calls.
-                </p>
-                <p className="text-sm text-gray-500 mb-6">
-                  <strong>Note:</strong> Advanced integration setup is included with Premium, Gold, and Elite packages.
-                </p>
-                <Button className="bg-[#010124] hover:bg-[#020135] text-white" asChild>
-                  <a
-                    href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Schedule Integration Call
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="bg-gradient-to-br from-brand-gold/10 to-brand-gold/5 backdrop-blur-sm rounded-3xl border border-brand-gold/40 p-8 text-center">
+              <h3 className="text-xl font-semibold text-white mb-4">Need Help Setting These Up?</h3>
+              <p className="text-white/80 mb-6">
+                Our implementation team can help configure these integrations during your onboarding calls.
+              </p>
+              <p className="text-sm text-white/60 mb-6">
+                <strong>Note:</strong> Advanced integration setup is included with Premium, Gold, and Elite packages.
+              </p>
+              <Button className="bg-brand-gold hover:bg-brand-gold/90 text-brand-DEFAULT transition-all duration-200 hover:scale-105" asChild>
+                <a
+                  href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Schedule Integration Call
+                </a>
+              </Button>
+            </div>
           )}
         </div>
       </div>
