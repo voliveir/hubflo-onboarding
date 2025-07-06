@@ -914,34 +914,36 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
           <span><b>Zoom/Pan:</b> Use controls</span>
         </div>
         {message && <div className="mb-4 text-center text-lg font-medium text-green-700">{message}</div>}
-        <div
-          style={isTemplateMode
-            ? { width: '100%', height: '600px', background: "#f9fafb", borderRadius: 12, pointerEvents: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }
-            : { height: 500, width: '100%', maxWidth: 1200, margin: '0 auto', background: "#f9fafb", borderRadius: 12, pointerEvents: 'auto' }}
-          className="overflow-hidden"
-        >
-          <ReactFlow
-            key={workflowKey}
-            nodes={coloredNodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            nodeTypes={nodeTypes}
-            fitView
-            defaultEdgeOptions={{ style: { stroke: 'rgba(234,179,8,0.6)', strokeWidth: 2 } }}
-            onNodeDoubleClick={onNodeDoubleClick}
-            defaultViewport={DEFAULT_VIEWPORT}
-            selectNodesOnDrag={true}
-            panOnDrag={false}
-            connectionMode={ConnectionMode.Loose}
-            snapToGrid={true}
-            snapGrid={SNAP_GRID}
+        <div className="overflow-auto max-h-[70vh]">
+          <div
+            style={isTemplateMode
+              ? { width: '100%', height: '600px', background: "#f9fafb", borderRadius: 12, pointerEvents: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }
+              : { height: 500, width: '100%', maxWidth: 1200, margin: '0 auto', background: "#f9fafb", borderRadius: 12, pointerEvents: 'auto' }}
+            className="overflow-hidden"
           >
-            <MiniMap />
-            <Controls />
-            <Background variant={BackgroundVariant.Dots} gap={24} size={1.5} color="rgba(255,255,255,0.06)" />
-          </ReactFlow>
+            <ReactFlow
+              key={workflowKey}
+              nodes={coloredNodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              nodeTypes={nodeTypes}
+              fitView
+              defaultEdgeOptions={{ style: { stroke: 'rgba(234,179,8,0.6)', strokeWidth: 2 } }}
+              onNodeDoubleClick={onNodeDoubleClick}
+              defaultViewport={DEFAULT_VIEWPORT}
+              selectNodesOnDrag={true}
+              panOnDrag={false}
+              connectionMode={ConnectionMode.Loose}
+              snapToGrid={true}
+              snapGrid={SNAP_GRID}
+            >
+              <MiniMap />
+              <Controls />
+              <Background variant={BackgroundVariant.Dots} gap={24} size={1.5} color="rgba(255,255,255,0.06)" />
+            </ReactFlow>
+          </div>
         </div>
         {loading && <div className="mt-4 text-gray-500">Loading workflow...</div>}
       </div>
