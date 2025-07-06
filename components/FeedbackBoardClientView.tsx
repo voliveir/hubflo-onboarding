@@ -61,13 +61,6 @@ export function FeedbackBoardClientView({ clientId }: { clientId: string }) {
                     <Package className="w-8 h-8 text-brand-gold" strokeWidth={1.5} />
                   </div>
                   <span className="text-center mb-4">No feedback submitted yet</span>
-                  <Button 
-                    variant="outline" 
-                    className="border-brand-gold/40 text-brand-gold hover:bg-brand-gold/10"
-                    onClick={() => window.open('/admin/feedback-board', '_blank')}
-                  >
-                    Submit Your First Request
-                  </Button>
                 </div>
               ) : (
                 colCards.map(card => (
