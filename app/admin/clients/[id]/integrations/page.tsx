@@ -19,15 +19,15 @@ export default async function ClientIntegrationsPage({ params }: ClientIntegrati
 
   return (
     <PasswordProtection>
-      <div className="flex h-screen bg-gray-100">
+      <div className="flex h-screen bg-gradient-to-b from-[#0a0b1a] to-[#10122b]">
         <AdminSidebar />
         <main className="flex-1 overflow-y-auto">
-          <div className="p-8">
+          <div className="max-w-[1320px] mx-auto px-8 py-10">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">{client.name} - Integrations</h1>
-              <p className="text-gray-600">Manage integrations for this client</p>
+              <h1 className="text-3xl font-bold text-white">{client.name} - Integrations</h1>
+              <p className="text-white/80">Manage integrations for this client</p>
             </div>
-            <ClientIntegrationManager clientId={client.id} />
+            <ClientIntegrationManager clientId={client.id} clientName={client.name} />
           </div>
         </main>
       </div>

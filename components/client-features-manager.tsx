@@ -35,7 +35,6 @@ export function ClientFeaturesManager({ clientFeatures, availableFeatures, clien
   const [editingFeature, setEditingFeature] = useState<ClientFeature | null>(null)
 
   const handleProposeFeature = async (featureId: string, salesPerson: string, customNotes?: string) => {
-    // The API route already inserts the new feature, so just close the dialog or trigger a refresh here
     setIsProposalDialogOpen(false)
   }
 
@@ -78,24 +77,17 @@ export function ClientFeaturesManager({ clientFeatures, availableFeatures, clien
     }
   };
 
-  const getStatusBadgeColor = (status: string) => {
+  // Pill color helpers
+  const getStatusPill = (status: string) => {
     switch (status) {
-      case "proposed":
-        return "bg-gray-100 text-gray-800"
-      case "interested":
-        return "bg-blue-100 text-blue-800"
-      case "approved":
-        return "bg-green-100 text-green-800"
-      case "implementing":
-        return "bg-orange-100 text-orange-800"
-      case "completed":
-        return "bg-purple-100 text-purple-800"
-      case "declined":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
+      case "completed": return "bg-[#10B981]/20 text-[#10B981]"
+      case "interested": return "bg-[#FACC15]/20 text-[#FACC15]"
+      default: return "bg-slate-700/60 text-slate-200"
     }
   }
+  const getCategoryPill = () => "bg-slate-800 text-slate-400"
+  const getUpsellPill = () => "bg-gradient-to-r from-[#F2C94C] via-[#F2994A] to-[#F2C94C] text-white"
+  const getPricePill = () => "bg-emerald-500/20 text-emerald-200"
 
   // Filter available features to exclude already assigned ones
   const unassignedFeatures = availableFeatures.filter(
@@ -103,133 +95,90 @@ export function ClientFeaturesManager({ clientFeatures, availableFeatures, clien
   )
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Rocket className="h-5 w-5 text-[#ECB22D]" />
-                Client Features
-              </CardTitle>
-              <CardDescription>
-                Manage features proposed and assigned to {client?.name || "this client"}
-              </CardDescription>
-            </div>
-            <Dialog open={isProposalDialogOpen} onOpenChange={setIsProposalDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Propose Feature
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Propose Feature to Client</DialogTitle>
-                  <DialogDescription>Select a feature to propose to {client?.name}</DialogDescription>
-                </DialogHeader>
-                <FeatureProposalForm
-                  availableFeatures={unassignedFeatures}
-                  clientPackage={client?.success_package || ""}
-                  onSubmit={handleProposeFeature}
-                  client={client}
-                />
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+    <div className="space-y-8">
+      {/* Main Panel with radial fade */}
+      <div className="rounded-lg border border-[#e7b86833] p-8 relative" style={{ background: 'radial-gradient(ellipse at 60% 0%, #02051b 60%, #090c25 100%)' }}>
+        {clientFeatures.length === 0 ? (
+          <div className="text-center py-12 text-slate-400">No features proposed or assigned yet.</div>
+        ) : (
+          <div className="flex flex-col gap-6">
             {clientFeatures.map((clientFeature) => {
               const feature = clientFeature.feature
               if (!feature) return null
-
               return (
-                <div key={clientFeature.id} className="border rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="font-medium">{feature.title}</h3>
-                        <Badge className={getStatusBadgeColor(clientFeature.status)}>{clientFeature.status}</Badge>
-                        {feature.category && <Badge variant="outline">{feature.category}</Badge>}
-                        {feature.pricing_amount && (
-                          <Badge variant="outline" className="text-green-600">
-                            <DollarSign className="h-3 w-3 mr-1" />${feature.pricing_amount}
-                          </Badge>
-                        )}
-                        {clientFeature.is_featured && (
-                          <Badge variant="secondary" className="bg-[#ECB22D] text-[#010124]">
-                            Featured
-                          </Badge>
-                        )}
-                      </div>
-
-                      <p className="text-sm text-gray-600 mb-2">{feature.description}</p>
-
-                      {/* Dates */}
-                      <div className="flex items-center space-x-4 text-xs text-gray-500 mb-2">
-                        <div className="flex items-center">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          Proposed: {new Date(clientFeature.proposed_date).toLocaleDateString()}
-                        </div>
-                        {clientFeature.sales_person && (
-                          <div className="flex items-center">
-                            <User className="h-3 w-3 mr-1" />
-                            By: {clientFeature.sales_person}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Custom Notes */}
-                      {clientFeature.custom_notes && (
-                        <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded mt-2">
-                          <strong>Notes:</strong> {clientFeature.custom_notes}
-                        </div>
+                <div
+                  key={clientFeature.id}
+                  className="flex items-start justify-between rounded-lg border border-[#e7b86833] bg-[#02051b] p-6 transition-all duration-150 hover:shadow-[0_4px_24px_0_rgba(231,184,104,0.18)] hover:-translate-y-1"
+                >
+                  {/* Left block */}
+                  <div className="w-7/10 min-w-0 pr-6">
+                    <div className="text-lg font-bold text-white mb-1 truncate">{feature.title}</div>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${getStatusPill(clientFeature.status)}`}>{clientFeature.status}</span>
+                      {feature.category && (
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${getCategoryPill()}`}>{feature.category}</span>
+                      )}
+                      {feature.pricing_amount && (
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${getPricePill()}`}><DollarSign className="h-3 w-3 mr-1" />${feature.pricing_amount}</span>
+                      )}
+                      {feature.is_upsell_eligible && (
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${getUpsellPill()}`}>Upsell</span>
                       )}
                     </div>
-
-                    <div className="flex space-x-2 ml-4">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" onClick={() => setEditingFeature(clientFeature)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Update Feature Status</DialogTitle>
-                            <DialogDescription>Update the status and settings for this feature</DialogDescription>
-                          </DialogHeader>
-                          <FeatureUpdateForm
-                            clientFeature={clientFeature}
-                            onSubmit={(updates) => handleUpdateFeature(clientFeature.id, updates)}
-                          />
-                        </DialogContent>
-                      </Dialog>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700"
-                        onClick={() => handleDeleteClientFeature(clientFeature.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <p className="text-slate-300 line-clamp-2 mb-2">{feature.description}</p>
+                    <div className="flex items-center gap-2 text-xs text-slate-400 mt-2">
+                      <span>Proposed {new Date(clientFeature.proposed_date).toLocaleDateString()}</span>
+                      {clientFeature.sales_person && <span>• By {clientFeature.sales_person}</span>}
                     </div>
+                  </div>
+                  {/* Right block: controls */}
+                  <div className="flex flex-col items-end gap-2 min-w-[120px]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Switch
+                        id={`enabled-${clientFeature.id}`}
+                        checked={clientFeature.is_enabled}
+                        onCheckedChange={async (checked) => handleUpdateFeature(clientFeature.id, { is_enabled: checked })}
+                        className="data-[state=checked]:bg-[#F2C94C] data-[state=checked]:border-[#F2C94C]"
+                      />
+                      <span className="text-xs text-slate-300">Enabled</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClientFeature(clientFeature.id)}
+                      className="rounded-full border border-red-500 text-red-400 hover:bg-red-900/20 flex items-center gap-2 px-4 py-1 h-8"
+                    >
+                      <Trash2 className="h-4 w-4" /> Delete
+                    </Button>
                   </div>
                 </div>
               )
             })}
-          </div>
-
-          {clientFeatures.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <Rocket className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>No features proposed to this client yet.</p>
-              <p className="text-sm">Click "Propose Feature" to get started.</p>
+            {/* Propose Feature Button (bottom-right, gold gradient pill) */}
+            <div className="flex justify-end mt-8">
+              <Dialog open={isProposalDialogOpen} onOpenChange={setIsProposalDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-[#F2C94C] via-[#F2994A] to-[#F2C94C] text-white font-semibold rounded-full px-6 py-2 shadow-md hover:shadow-gold-400/40 transition-all duration-150">
+                    <Plus className="h-4 w-4 mr-2" /> Propose Feature
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl bg-[#10122b] border border-[#F2C94C]/30">
+                  <DialogHeader>
+                    <DialogTitle className="text-white">Propose Feature to Client</DialogTitle>
+                    <DialogDescription className="text-white/80">Select a feature to propose to {client?.name}</DialogDescription>
+                  </DialogHeader>
+                  <FeatureProposalForm
+                    availableFeatures={unassignedFeatures}
+                    clientPackage={client?.success_package || ""}
+                    onSubmit={handleProposeFeature}
+                    client={client}
+                  />
+                </DialogContent>
+              </Dialog>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -288,50 +237,52 @@ function FeatureProposalForm({ availableFeatures, clientPackage, onSubmit, clien
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="feature">Select Feature</Label>
+        <Label htmlFor="feature" className="text-white">Select Feature</Label>
         <Select value={selectedFeatureId} onValueChange={setSelectedFeatureId} required>
-          <SelectTrigger>
-            <SelectValue placeholder="Choose a feature to propose" />
+          <SelectTrigger className="text-white bg-[#181a2f] border border-slate-700 rounded-lg focus:ring-2 focus:ring-[#F2C94C]">
+            <SelectValue placeholder="Choose a feature to propose" className="text-white placeholder-white/60" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-[#181a2f] text-white">
             {relevantFeatures.map((feature) => (
-              <SelectItem key={feature.id} value={feature.id}>
+              <SelectItem key={feature.id} value={feature.id} className="text-white">
                 <div className="flex items-center justify-between w-full">
                   <span>{feature.title}</span>
-                  {feature.pricing_amount && <span className="text-green-600 ml-2">${feature.pricing_amount}</span>}
+                  {feature.pricing_amount && <span className="text-emerald-300 ml-2">${feature.pricing_amount}</span>}
                 </div>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         {relevantFeatures.length === 0 && (
-          <p className="text-sm text-gray-500 mt-1">No features available for the {clientPackage} package.</p>
+          <p className="text-sm text-slate-400 mt-1">No features available for the {clientPackage} package.</p>
         )}
       </div>
 
       <div>
-        <Label htmlFor="salesPerson">Sales Person</Label>
+        <Label htmlFor="salesPerson" className="text-white">Sales Person</Label>
         <Input
           id="salesPerson"
           value={salesPerson}
           onChange={(e) => setSalesPerson(e.target.value)}
           placeholder="Your name"
           required
+          className="text-white placeholder-white/60 bg-[#181a2f] border border-slate-700 rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
         />
       </div>
 
       <div>
-        <Label htmlFor="customNotes">Custom Notes</Label>
+        <Label htmlFor="customNotes" className="text-white">Custom Notes</Label>
         <Textarea
           id="customNotes"
           value={customNotes}
           onChange={(e) => setCustomNotes(e.target.value)}
           placeholder="Add any notes for the proposal (optional)"
           rows={2}
+          className="text-white placeholder-white/60 bg-[#181a2f] border border-slate-700 rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
         />
       </div>
 
-      <Button type="submit" className="w-full bg-[#ECB22D] text-[#010124] hover:bg-[#d4a029]" disabled={submitting}>
+      <Button type="submit" className="w-full bg-gradient-to-r from-[#F2C94C] via-[#F2994A] to-[#F2C94C] text-[#010124] font-semibold rounded-lg hover:brightness-110 h-12" disabled={submitting}>
         {submitting ? "Submitting..." : "Propose Feature"}
       </Button>
     </form>
@@ -362,18 +313,18 @@ function FeatureUpdateForm({ clientFeature, onSubmit }: FeatureUpdateFormProps) 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="status">Status</Label>
+        <Label htmlFor="status" className="text-white">Status</Label>
         <Select value={status} onValueChange={(value) => setStatus(value as typeof status)}>
-          <SelectTrigger>
-            <SelectValue />
+          <SelectTrigger className="text-white bg-[#181a2f] border border-slate-700 rounded-lg focus:ring-2 focus:ring-[#F2C94C]">
+            <SelectValue className="text-white placeholder-white/60" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="proposed">Proposed</SelectItem>
-            <SelectItem value="interested">Interested</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="implementing">Implementing</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="declined">Declined</SelectItem>
+          <SelectContent className="bg-[#181a2f] text-white">
+            <SelectItem value="proposed" className="text-white">Proposed</SelectItem>
+            <SelectItem value="interested" className="text-white">Interested</SelectItem>
+            <SelectItem value="approved" className="text-white">Approved</SelectItem>
+            <SelectItem value="implementing" className="text-white">Implementing</SelectItem>
+            <SelectItem value="completed" className="text-white">Completed</SelectItem>
+            <SelectItem value="declined" className="text-white">Declined</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -381,27 +332,28 @@ function FeatureUpdateForm({ clientFeature, onSubmit }: FeatureUpdateFormProps) 
       <div className="flex items-center space-x-6">
         <div className="flex items-center space-x-2">
           <Switch id="is_enabled" checked={isEnabled} onCheckedChange={setIsEnabled} />
-          <Label htmlFor="is_enabled">Show in Client Portal</Label>
+          <Label htmlFor="is_enabled" className="text-white">Show in Client Portal</Label>
         </div>
         <div className="flex items-center space-x-2">
           <Switch id="is_featured" checked={isFeatured} onCheckedChange={setIsFeatured} />
-          <Label htmlFor="is_featured">Featured</Label>
+          <Label htmlFor="is_featured" className="text-white">Featured</Label>
         </div>
       </div>
 
       <div>
-        <Label htmlFor="customNotes">Notes</Label>
+        <Label htmlFor="customNotes" className="text-white">Notes</Label>
         <Textarea
           id="customNotes"
           value={customNotes}
           onChange={(e) => setCustomNotes(e.target.value)}
           placeholder="Update notes about this feature for the client"
           rows={3}
+          className="text-white placeholder-white/60 bg-[#181a2f] border border-slate-700 rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
         />
       </div>
 
       <div className="flex justify-end space-x-2">
-        <Button type="submit">Update Feature</Button>
+        <Button type="submit" className="bg-gradient-to-r from-[#F2C94C] via-[#F2994A] to-[#F2C94C] text-[#010124] font-semibold rounded-lg hover:brightness-110 h-12">Update Feature</Button>
       </div>
     </form>
   )
