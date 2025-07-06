@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { CheckCircle, Users, FileText, BookOpen, Zap, Database, MessageSquare } from "lucide-react"
+import { useReveal } from "@/hooks/useReveal"
+import { cn } from "@/lib/utils"
 import type { Client } from "@/lib/types"
 
 interface ClientImplementationProgressProps {
@@ -12,6 +12,7 @@ interface ClientImplementationProgressProps {
 }
 
 export function ClientImplementationProgress({ client }: ClientImplementationProgressProps) {
+  const { ref, isVisible } = useReveal()
   const [progress, setProgress] = useState({
     overall: 0,
     calls: 0,
@@ -155,22 +156,22 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
 
   const getServiceStatus = (completed: number, total: number, isEliteFeature = false) => {
     if (isEliteFeature) {
-      return completed ? { text: "Completed", color: "text-[#ECB22D]" } : { text: "Pending", color: "text-gray-500" }
+      return completed ? { text: "Completed", color: "text-brand-gold" } : { text: "Pending", color: "text-white/60" }
     }
 
     if (total === 0) {
-      return { text: "Not Included", color: "text-gray-400" }
+      return { text: "Not Included", color: "text-white/40" }
     }
 
     if (completed >= total) {
-      return { text: "Completed", color: "text-[#ECB22D]" }
+      return { text: "Completed", color: "text-brand-gold" }
     }
 
     if (completed > 0) {
-      return { text: "In Progress", color: "text-[#010124]" }
+      return { text: "In Progress", color: "text-white" }
     }
 
-    return { text: "Pending", color: "text-gray-500" }
+    return { text: "Pending", color: "text-white/60" }
   }
 
   const callsStatus = getServiceStatus(
@@ -182,218 +183,218 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
   const integrationsStatus = getServiceStatus(client.zapier_integrations_setup, packageLimits.integrations)
 
   return (
-    <div className="space-y-6">
+    <div ref={ref} className={cn("space-y-6", isVisible && "animate-fade-in-up")}>
       {/* Overall Progress */}
-      <Card className="border-[#ECB22D] border-2">
-        <CardHeader>
-          <div className="flex items-center space-x-3">
-            <CheckCircle className="h-6 w-6 text-[#ECB22D]" />
-            <div>
-              <CardTitle className="text-[#010124]">Overall Implementation Progress</CardTitle>
-              <CardDescription>Your complete onboarding progress across all services</CardDescription>
-            </div>
+      <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-8">
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="w-12 h-12 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20">
+            <CheckCircle className="h-6 w-6 text-brand-gold" />
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-[#010124]">Completion Status</span>
-              <span className="text-2xl font-bold text-[#010124]">{progress.overall}% Complete</span>
-            </div>
-            <Progress value={progress.overall} className="h-3 bg-gray-200">
-              <div
-                className="h-full bg-[#ECB22D] rounded-full transition-all duration-300"
-                style={{ width: `${progress.overall}%` }}
-              />
-            </Progress>
-            <div className="flex items-center space-x-2 text-sm text-[#010124]">
-              <span>🚀</span>
-              <span>
-                {progress.overall === 100
-                  ? "Congratulations! Your implementation is complete."
-                  : "Let's get started with your Hubflo onboarding journey."}
-              </span>
-            </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Overall Implementation Progress</h2>
+            <p className="text-white/80">Your complete onboarding progress across all services</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-white/80">Completion Status</span>
+            <span className="text-3xl font-bold text-white">{progress.overall}% Complete</span>
+          </div>
+          <div className="w-full bg-white/20 rounded-full h-4 overflow-hidden">
+            <div
+              className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progress.overall}%` }}
+            />
+          </div>
+          <div className="flex items-center space-x-2 text-sm text-white/80">
+            <span>🚀</span>
+            <span>
+              {progress.overall === 100
+                ? "Congratulations! Your implementation is complete."
+                : "Let's get started with your Hubflo onboarding journey."}
+            </span>
+          </div>
+        </div>
+      </div>
 
       {/* Service Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Onboarding Calls */}
-        <Card className="border-[#ECB22D] border">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <Users className="h-8 w-8 text-[#010124]" />
-              <Badge variant="outline" className={`${callsStatus.color} border-[#ECB22D]`}>
-                {callsStatus.text}
-              </Badge>
+        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-6 transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
+              <Users className="h-5 w-5 text-brand-gold" />
             </div>
-            <h3 className="font-semibold text-lg mb-2 text-[#010124]">Onboarding Calls</h3>
-            <div className="text-2xl font-bold mb-2 text-[#010124]">
-              {client.calls_completed}/
-              {isUnlimited(packageLimits.calls) ||
-              client.success_package === "elite" ||
-              client.success_package === "enterprise"
-                ? "∞"
-                : packageLimits.calls}
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              {isUnlimited(packageLimits.calls) ||
-              client.success_package === "elite" ||
-              client.success_package === "enterprise"
-                ? `${client.calls_completed} calls completed`
-                : `${client.calls_completed}/${packageLimits.calls} calls completed`}
-            </p>
-            <Progress value={progress.calls} className="h-2 bg-gray-200">
-              <div
-                className="h-full bg-[#ECB22D] rounded-full transition-all duration-300"
-                style={{ width: `${progress.calls}%` }}
-              />
-            </Progress>
-          </CardContent>
-        </Card>
+            <Badge variant="outline" className={`${callsStatus.color} border-brand-gold/40 bg-white/10`}>
+              {callsStatus.text}
+            </Badge>
+          </div>
+          <h3 className="font-semibold text-lg mb-2 text-white">Onboarding Calls</h3>
+          <div className="text-2xl font-bold mb-2 text-white">
+            {client.calls_completed}/
+            {isUnlimited(packageLimits.calls) ||
+            client.success_package === "elite" ||
+            client.success_package === "enterprise"
+              ? "∞"
+              : packageLimits.calls}
+          </div>
+          <p className="text-sm text-white/80 mb-4">
+            {isUnlimited(packageLimits.calls) ||
+            client.success_package === "elite" ||
+            client.success_package === "enterprise"
+              ? `${client.calls_completed} calls completed`
+              : `${client.calls_completed}/${packageLimits.calls} calls completed`}
+          </p>
+          <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+            <div
+              className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progress.calls}%` }}
+            />
+          </div>
+        </div>
 
         {/* Forms Setup */}
-        <Card className="border-[#ECB22D] border">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <FileText className="h-8 w-8 text-[#010124]" />
-              <Badge variant="outline" className={`${formsStatus.color} border-[#ECB22D]`}>
-                {formsStatus.text}
-              </Badge>
+        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-6 transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
+              <FileText className="h-5 w-5 text-brand-gold" />
             </div>
-            <h3 className="font-semibold text-lg mb-2 text-[#010124]">Forms Setup</h3>
-            <div className="text-2xl font-bold mb-2 text-[#010124]">
-              {client.forms_setup}/{isUnlimited(packageLimits.forms) ? "∞" : packageLimits.forms}
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              {packageLimits.forms === 0
-                ? "Not included in your package"
-                : isUnlimited(packageLimits.forms)
-                  ? `${client.forms_setup} forms configured`
-                  : `${client.forms_setup}/${packageLimits.forms} forms configured`}
-            </p>
-            <Progress value={progress.forms} className="h-2 bg-gray-200">
-              <div
-                className="h-full bg-[#ECB22D] rounded-full transition-all duration-300"
-                style={{ width: `${progress.forms}%` }}
-              />
-            </Progress>
-          </CardContent>
-        </Card>
+            <Badge variant="outline" className={`${formsStatus.color} border-brand-gold/40 bg-white/10`}>
+              {formsStatus.text}
+            </Badge>
+          </div>
+          <h3 className="font-semibold text-lg mb-2 text-white">Forms Setup</h3>
+          <div className="text-2xl font-bold mb-2 text-white">
+            {client.forms_setup}/{isUnlimited(packageLimits.forms) ? "∞" : packageLimits.forms}
+          </div>
+          <p className="text-sm text-white/80 mb-4">
+            {packageLimits.forms === 0
+              ? "Not included in your package"
+              : isUnlimited(packageLimits.forms)
+                ? `${client.forms_setup} forms configured`
+                : `${client.forms_setup}/${packageLimits.forms} forms configured`}
+          </p>
+          <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+            <div
+              className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progress.forms}%` }}
+            />
+          </div>
+        </div>
 
         {/* SmartDocs */}
-        <Card className="border-[#ECB22D] border">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <BookOpen className="h-8 w-8 text-[#010124]" />
-              <Badge variant="outline" className={`${smartdocsStatus.color} border-[#ECB22D]`}>
-                {smartdocsStatus.text}
-              </Badge>
+        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-6 transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
+              <BookOpen className="h-5 w-5 text-brand-gold" />
             </div>
-            <h3 className="font-semibold text-lg mb-2 text-[#010124]">SmartDocs</h3>
-            <div className="text-2xl font-bold mb-2 text-[#010124]">
-              {client.smartdocs_setup}/{isUnlimited(packageLimits.smartdocs) ? "∞" : packageLimits.smartdocs}
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              {packageLimits.smartdocs === 0
-                ? "Not included in your package"
-                : isUnlimited(packageLimits.smartdocs)
-                  ? `${client.smartdocs_setup} SmartDocs configured`
-                  : `${client.smartdocs_setup}/${packageLimits.smartdocs} SmartDocs configured`}
-            </p>
-            <Progress value={progress.smartdocs} className="h-2 bg-gray-200">
-              <div
-                className="h-full bg-[#ECB22D] rounded-full transition-all duration-300"
-                style={{ width: `${progress.smartdocs}%` }}
-              />
-            </Progress>
-          </CardContent>
-        </Card>
+            <Badge variant="outline" className={`${smartdocsStatus.color} border-brand-gold/40 bg-white/10`}>
+              {smartdocsStatus.text}
+            </Badge>
+          </div>
+          <h3 className="font-semibold text-lg mb-2 text-white">SmartDocs</h3>
+          <div className="text-2xl font-bold mb-2 text-white">
+            {client.smartdocs_setup}/{isUnlimited(packageLimits.smartdocs) ? "∞" : packageLimits.smartdocs}
+          </div>
+          <p className="text-sm text-white/80 mb-4">
+            {packageLimits.smartdocs === 0
+              ? "Not included in your package"
+              : isUnlimited(packageLimits.smartdocs)
+                ? `${client.smartdocs_setup} SmartDocs configured`
+                : `${client.smartdocs_setup}/${packageLimits.smartdocs} SmartDocs configured`}
+          </p>
+          <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+            <div
+              className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progress.smartdocs}%` }}
+            />
+          </div>
+        </div>
 
         {/* Integrations */}
-        <Card className="border-[#ECB22D] border">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <Zap className="h-8 w-8 text-[#010124]" />
-              <Badge variant="outline" className={`${integrationsStatus.color} border-[#ECB22D]`}>
-                {integrationsStatus.text}
-              </Badge>
+        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-6 transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
+              <Zap className="h-5 w-5 text-brand-gold" />
             </div>
-            <h3 className="font-semibold text-lg mb-2 text-[#010124]">Integrations</h3>
-            <div className="text-2xl font-bold mb-2 text-[#010124]">
-              {client.zapier_integrations_setup}/
-              {isUnlimited(packageLimits.integrations) ? "∞" : packageLimits.integrations}
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              {packageLimits.integrations === 0
-                ? "Not included in your package"
-                : isUnlimited(packageLimits.integrations)
-                  ? `${client.zapier_integrations_setup} integrations active`
-                  : `${client.zapier_integrations_setup}/${packageLimits.integrations} integrations active`}
-            </p>
-            <Progress value={progress.integrations} className="h-2 bg-gray-200">
-              <div
-                className="h-full bg-[#ECB22D] rounded-full transition-all duration-300"
-                style={{ width: `${progress.integrations}%` }}
-              />
-            </Progress>
-          </CardContent>
-        </Card>
+            <Badge variant="outline" className={`${integrationsStatus.color} border-brand-gold/40 bg-white/10`}>
+              {integrationsStatus.text}
+            </Badge>
+          </div>
+          <h3 className="font-semibold text-lg mb-2 text-white">Integrations</h3>
+          <div className="text-2xl font-bold mb-2 text-white">
+            {client.zapier_integrations_setup}/
+            {isUnlimited(packageLimits.integrations) ? "∞" : packageLimits.integrations}
+          </div>
+          <p className="text-sm text-white/80 mb-4">
+            {packageLimits.integrations === 0
+              ? "Not included in your package"
+              : isUnlimited(packageLimits.integrations)
+                ? `${client.zapier_integrations_setup} integrations active`
+                : `${client.zapier_integrations_setup}/${packageLimits.integrations} integrations active`}
+          </p>
+          <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+            <div
+              className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progress.integrations}%` }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Elite Features */}
       {(packageLimits.migration || packageLimits.slack) && (
-        <Card className="border-[#ECB22D] border-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Database className="h-6 w-6 text-[#010124]" />
-                <div>
-                  <CardTitle className="text-[#010124]">Elite Features</CardTitle>
-                  <CardDescription>Premium services included in your package</CardDescription>
-                </div>
+        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20">
+                <Database className="h-6 w-6 text-brand-gold" />
               </div>
-              <Badge variant="secondary" className="bg-[#ECB22D] text-[#010124]">
-                {client.success_package.toUpperCase()}
-              </Badge>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Elite Features</h2>
+                <p className="text-white/80">Premium services included in your package</p>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {packageLimits.migration && (
-                <div className="flex items-center justify-between p-4 border border-[#ECB22D] rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Database className="h-5 w-5 text-[#010124]" />
-                    <span className="font-medium text-[#010124]">Migration Completed</span>
+            <Badge variant="secondary" className="bg-brand-gold text-brand-DEFAULT">
+              {client.success_package.toUpperCase()}
+            </Badge>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {packageLimits.migration && (
+              <div className="flex items-center justify-between p-4 border border-brand-gold/40 rounded-2xl bg-white/5">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-brand-gold/10 rounded-lg flex items-center justify-center border border-brand-gold/20">
+                    <Database className="h-4 w-4 text-brand-gold" />
                   </div>
-                  <Badge
-                    variant={client.migration_completed ? "default" : "secondary"}
-                    className={client.migration_completed ? "bg-[#ECB22D] text-[#010124]" : ""}
-                  >
-                    {client.migration_completed ? "Completed" : "Pending"}
-                  </Badge>
+                  <span className="font-medium text-white">Migration Completed</span>
                 </div>
-              )}
+                <Badge
+                  variant={client.migration_completed ? "default" : "secondary"}
+                  className={client.migration_completed ? "bg-brand-gold text-brand-DEFAULT" : "bg-white/10 text-white/80"}
+                >
+                  {client.migration_completed ? "Completed" : "Pending"}
+                </Badge>
+              </div>
+            )}
 
-              {packageLimits.slack && (
-                <div className="flex items-center justify-between p-4 border border-[#ECB22D] rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <MessageSquare className="h-5 w-5 text-[#010124]" />
-                    <span className="font-medium text-[#010124]">Slack Access Granted</span>
+            {packageLimits.slack && (
+              <div className="flex items-center justify-between p-4 border border-brand-gold/40 rounded-2xl bg-white/5">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-brand-gold/10 rounded-lg flex items-center justify-center border border-brand-gold/20">
+                    <MessageSquare className="h-4 w-4 text-brand-gold" />
                   </div>
-                  <Badge
-                    variant={client.slack_access_granted ? "default" : "secondary"}
-                    className={client.slack_access_granted ? "bg-[#ECB22D] text-[#010124]" : ""}
-                  >
-                    {client.slack_access_granted ? "Completed" : "Pending"}
-                  </Badge>
+                  <span className="font-medium text-white">Slack Access Granted</span>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                <Badge
+                  variant={client.slack_access_granted ? "default" : "secondary"}
+                  className={client.slack_access_granted ? "bg-brand-gold text-brand-DEFAULT" : "bg-white/10 text-white/80"}
+                >
+                  {client.slack_access_granted ? "Completed" : "Pending"}
+                </Badge>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )

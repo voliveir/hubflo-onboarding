@@ -1,7 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+"use client"
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ExternalLink, Star, Clock, CheckCircle, AlertCircle } from "lucide-react"
+import { useReveal } from "@/hooks/useReveal"
+import { cn } from "@/lib/utils"
 import type { ClientFeature } from "@/lib/types"
 
 interface ClientFeaturesSectionProps {
@@ -9,14 +12,16 @@ interface ClientFeaturesSectionProps {
 }
 
 export function ClientFeaturesSection({ features }: ClientFeaturesSectionProps) {
+  const { ref, isVisible } = useReveal()
+
   if (features.length === 0) {
     return (
-      <div className="text-center py-8">
-        <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-          <Star className="w-8 h-8 text-gray-400" />
+      <div ref={ref} className={cn("text-center py-8", isVisible && "animate-fade-in-up")}>
+        <div className="mx-auto w-24 h-24 bg-brand-gold/10 rounded-full flex items-center justify-center mb-4 border border-brand-gold/20">
+          <Star className="w-8 h-8 text-brand-gold" />
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No Features Available</h3>
-        <p className="text-gray-500">No features have been proposed or approved for your account yet.</p>
+        <h3 className="text-lg font-medium text-white mb-2">No Features Available</h3>
+        <p className="text-white/80">No features have been proposed or approved for your account yet.</p>
       </div>
     )
   }
@@ -25,41 +30,41 @@ export function ClientFeaturesSection({ features }: ClientFeaturesSectionProps) 
     switch (status) {
       case "proposed":
         return (
-          <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200">
+          <Badge variant="secondary" className="bg-brand-gold/20 text-brand-gold border-brand-gold/40">
             <AlertCircle className="w-3 h-3 mr-1" />
             Proposed
           </Badge>
         )
       case "interested":
         return (
-          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+          <Badge variant="secondary" className="bg-brand-gold/20 text-brand-gold border-brand-gold/40">
             <Clock className="w-3 h-3 mr-1" />
             Under Review
           </Badge>
         )
       case "approved":
         return (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+          <Badge variant="secondary" className="bg-brand-gold/20 text-brand-gold border-brand-gold/40">
             <Star className="w-3 h-3 mr-1" />
             Coming Soon
           </Badge>
         )
       case "implementing":
         return (
-          <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
+          <Badge variant="secondary" className="bg-brand-gold/20 text-brand-gold border-brand-gold/40">
             <Clock className="w-3 h-3 mr-1" />
             In Development
           </Badge>
         )
       case "completed":
         return (
-          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+          <Badge variant="secondary" className="bg-brand-gold/20 text-brand-gold border-brand-gold/40">
             <CheckCircle className="w-3 h-3 mr-1" />
             Available Now
           </Badge>
         )
       default:
-        return <Badge variant="secondary">{status}</Badge>
+        return <Badge variant="secondary" className="bg-brand-gold/20 text-brand-gold border-brand-gold/40">{status}</Badge>
     }
   }
 
@@ -81,10 +86,10 @@ export function ClientFeaturesSection({ features }: ClientFeaturesSectionProps) 
   }
 
   return (
-    <div className="space-y-6">
+    <div ref={ref} className={cn("space-y-6", isVisible && "animate-fade-in-up")}>
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Available Features</h2>
-        <p className="text-gray-600">
+        <h2 className="text-2xl font-bold text-white mb-2">Available Features</h2>
+        <p className="text-white/80">
           Explore features that have been proposed, approved, or are available for your account.
         </p>
       </div>
@@ -95,27 +100,29 @@ export function ClientFeaturesSection({ features }: ClientFeaturesSectionProps) 
           if (!feature) return null
 
           return (
-            <Card key={clientFeature.id} className="h-full flex flex-col">
-              <CardHeader className="flex-shrink-0">
+            <div key={clientFeature.id} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-6 h-full flex flex-col transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+              <div className="flex-shrink-0 mb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg mb-2">{feature.title}</CardTitle>
+                    <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
                     {getStatusBadge(clientFeature.status)}
                   </div>
                   {clientFeature.is_featured && (
-                    <Star className="w-5 h-5 text-yellow-500 fill-current flex-shrink-0 ml-2" />
+                    <div className="w-6 h-6 bg-brand-gold/20 rounded-lg flex items-center justify-center border border-brand-gold/40 flex-shrink-0 ml-2">
+                      <Star className="w-4 h-4 text-brand-gold" />
+                    </div>
                   )}
                 </div>
-                <CardDescription className="text-sm">{getStatusDescription(clientFeature.status)}</CardDescription>
-              </CardHeader>
+                <p className="text-sm text-white/80 mt-2">{getStatusDescription(clientFeature.status)}</p>
+              </div>
 
-              <CardContent className="flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col">
                 <div className="flex-1">
-                  <p className="text-gray-600 mb-4">{feature.description}</p>
+                  <p className="text-white/90 mb-4">{feature.description}</p>
 
                   {clientFeature.custom_notes && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                      <p className="text-sm text-blue-800">
+                    <div className="bg-brand-gold/10 border border-brand-gold/40 rounded-2xl p-3 mb-4">
+                      <p className="text-sm text-white/90">
                         <strong>Note:</strong> {clientFeature.custom_notes}
                       </p>
                     </div>
@@ -123,7 +130,7 @@ export function ClientFeaturesSection({ features }: ClientFeaturesSectionProps) 
 
                   {feature.category && (
                     <div className="mb-4">
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs text-white/80 border-white/20">
                         {feature.category}
                       </Badge>
                     </div>
@@ -135,7 +142,7 @@ export function ClientFeaturesSection({ features }: ClientFeaturesSectionProps) 
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full bg-transparent"
+                      className="w-full bg-transparent border-white/20 text-white hover:bg-white/10 transition-all duration-200 hover:scale-105"
                       onClick={() => window.open(feature.demo_url, "_blank")}
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
@@ -149,15 +156,15 @@ export function ClientFeaturesSection({ features }: ClientFeaturesSectionProps) 
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-full text-xs"
+                      className="w-full text-xs text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
                       onClick={() => window.open(feature.documentation_url, "_blank")}
                     >
                       View Documentation
                     </Button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )
         })}
       </div>

@@ -2432,3 +2432,13 @@ export async function deleteFeedbackBoardCard(id: string): Promise<void> {
     .eq("id", id);
   if (error) throw error;
 }
+
+// Get all client follow-ups due in the next X days (alias for getUpcomingClientFollowUps)
+export async function getDueClientFollowUps({ daysAhead = 7 } = {}): Promise<(ClientFollowUp & { client_name?: string, client_email?: string, client_package?: string })[]> {
+  return getUpcomingClientFollowUps({ daysAhead, includeCompleted: false })
+}
+
+// Mark a client follow-up as done (alias for completeClientFollowUp)
+export async function markClientFollowUpDone(id: string): Promise<ClientFollowUp | null> {
+  return completeClientFollowUp(id)
+}

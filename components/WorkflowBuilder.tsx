@@ -5,24 +5,24 @@ import ReactFlow, {
   MiniMap,
   Controls,
   Background,
+  BackgroundVariant,
   addEdge,
   useNodesState,
   useEdgesState,
-  Node,
-  Edge,
-  Connection,
   NodeTypes,
   useReactFlow,
   Handle,
   Position,
   ConnectionMode,
 } from "reactflow"
+import type { Node, Edge, Connection } from "reactflow"
 import "reactflow/dist/style.css"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { Dialog } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { PrimaryButton } from "@/components/ui/button-variants"
 import { CheckCircle, FileText, Calendar, ClipboardList, Users, FileSignature, UploadCloud, Zap, ListChecks, Bell, UserCheck, GitBranch, Flag, HelpCircle } from "lucide-react"
 import isEqual from "lodash.isequal"
 
@@ -203,7 +203,7 @@ function TaskNode({ data, selected }: any) {
         <CheckCircle />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
       {software && (
         <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
@@ -238,7 +238,7 @@ function ApprovalNode({ data, selected }: any) {
             <FileSignature />
             {software && <span className="text-lg">{software.logo}</span>}
           </div>
-          <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
           {software && (
             <div className="text-xs opacity-80 mt-1">{software.name}</div>
           )}
@@ -258,7 +258,7 @@ function MeetingNode({ data, selected }: any) {
         <Calendar />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
       {software && (
         <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
@@ -277,7 +277,7 @@ function FormNode({ data, selected }: any) {
         <ClipboardList />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
       {software && (
         <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
@@ -298,7 +298,7 @@ function DocNode({ data, selected }: any) {
         <FileText />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
       {software && (
         <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
@@ -321,7 +321,7 @@ function FileUploadNode({ data, selected }: any) {
           <UploadCloud />
           {software && <span className="text-lg">{software.logo}</span>}
         </div>
-        <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 17 }}>{data.label}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
         {software && (
           <div className="text-xs opacity-80 mt-1" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{software.name}</div>
         )}
@@ -343,7 +343,7 @@ function AutomationNode({ data, selected }: any) {
           <Zap />
           {software && <span className="text-lg">{software.logo}</span>}
         </div>
-        <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
         {software && (
           <div className="text-xs opacity-80 mt-1">{software.name}</div>
         )}
@@ -362,7 +362,7 @@ function ChecklistNode({ data, selected }: any) {
         <ListChecks />
         {software && <span className="text-lg">{software.logo}</span>}
       </div>
-      <div className="font-bold text-base" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>{data.label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
       {software && (
         <div className="text-xs opacity-80 mt-1" style={{ textAlign: 'center', whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis', padding: '0 8px' }}>
           {software.name}
@@ -385,7 +385,7 @@ function DueDateNode({ data, selected }: any) {
           <Bell />
           {software && <span className="text-lg">{software.logo}</span>}
         </div>
-        <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
         {software && (
           <div className="text-xs opacity-80 mt-1" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{software.name}</div>
         )}
@@ -419,7 +419,7 @@ function ClientActionNode({ data, selected }: any) {
             <UserCheck />
             {software && <span className="text-lg">{software.logo}</span>}
           </div>
-          <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
           {software && (
             <div className="text-xs opacity-80 mt-1">{software.name}</div>
           )}
@@ -454,7 +454,7 @@ function DecisionNode({ data, selected }: any) {
             <HelpCircle />
             {software && <span className="text-lg">{software.logo}</span>}
           </div>
-          <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
           {software && (
             <div className="text-xs opacity-80 mt-1">{software.name}</div>
           )}
@@ -489,7 +489,7 @@ function MilestoneNode({ data, selected }: any) {
             <Flag />
             {software && <span className="text-lg">{software.logo}</span>}
           </div>
-          <div className="font-bold text-base" style={{ whiteSpace: 'pre-line', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, fill: '#F9FAFB', letterSpacing: .25, textAnchor: 'middle', textAlign: 'center', whiteSpace: 'pre-wrap', lineHeight: 1.25, padding: '4px 6px' }}>{data.label}</div>
           {software && (
             <div className="text-xs opacity-80 mt-1">{software.name}</div>
           )}
@@ -833,17 +833,19 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
   }
 
   // Color code nodes by type (for default fallback)
-  const coloredNodes = nodes.map((node) => ({
-    ...node,
-    type: node.data?.type || 'task',
-    style: node.data?.type ? {} : {
-      ...node.style,
-      background: typeColors[node.data?.type] || typeColors.default,
-      color: "#fff",
-      border: "2px solid #222",
-      fontWeight: 600,
-    },
-  }))
+  const coloredNodes = nodes.map((node) => {
+    if (!node.data?.type || node.data.type === 'default') {
+      return {
+        ...node,
+        style: {
+          ...node.style,
+          borderRadius: 8,
+          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.2)',
+        },
+      }
+    }
+    return node
+  })
 
   // Template save
   const saveAsTemplate = () => {
@@ -883,243 +885,174 @@ export function WorkflowBuilder({ clientId, initialNodes, initialEdges, onChange
   }
 
   return (
-    <section
-      className={isTemplateMode ? undefined : "py-16 px-4 bg-transparent"}
-      style={isTemplateMode ? { width: '100%', background: 'transparent', padding: 0, margin: 0 } : undefined}
-    >
-      <div
-        className={isTemplateMode ? undefined : "container mx-auto flex flex-col items-center"}
-        style={isTemplateMode ? { width: '100%', padding: 0, margin: 0, display: 'block' } : undefined}
-      >
-        <div
-          className={isTemplateMode ? undefined : "w-full max-w-7xl"}
-          style={isTemplateMode ? { width: '100%', maxWidth: '1200px', margin: '40px auto 0 auto' } : undefined}
-        >
+    <section>
+      <div className="rounded-t-2xl bg-gradient-to-r from-brand-DEFAULT via-emerald-900/0 to-brand-gold/30 h-12 flex items-center px-8">
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold text-brand-foreground">Workflow Builder</h3>
+        </div>
+        <div className="flex gap-2 items-center">
+          <Button variant="ghost" className="text-brand-foreground" onClick={addNode}>+ Add Step</Button>
+          <PrimaryButton onClick={saveWorkflow} disabled={saving}>Save Workflow</PrimaryButton>
+        </div>
+      </div>
+      <div className={isTemplateMode ? undefined : "px-8 pt-6 pb-8"} style={isTemplateMode ? { padding: 24 } : undefined}>
+        <p className="mt-1 text-sm text-brand-foreground/70 text-center">Collaboratively design your onboarding and service workflows here.</p>
+        <p className="px-6 pb-4 text-xs leading-relaxed text-brand-foreground/60">Pan <kbd>Space</kbd>, Select <kbd>Ctrl/Cmd</kbd>, Copy <kbd>Ctrl/Cmd C</kbd>, Paste <kbd>Ctrl/Cmd V</kbd>, Delete <kbd>Del</kbd></p>
+        {message && <div className="mb-4 text-center text-lg font-medium text-green-700">{message}</div>}
+        <div className="overflow-auto max-h-[70vh]">
           <div
-            className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-visible"
-            style={isTemplateMode ? { width: '100%', display: 'block', padding: 0 } : undefined}
+            style={isTemplateMode
+              ? { width: '100%', height: '600px', background: "#f9fafb", borderRadius: 12, pointerEvents: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }
+              : { height: 500, width: '100%', maxWidth: 1200, margin: '0 auto', background: "#f9fafb", borderRadius: 12, pointerEvents: 'auto' }}
+            className="overflow-hidden"
           >
-            <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-[#ECB22D]/30 to-[#FFFBEA] rounded-t-2xl">
-              <h2 className="text-2xl font-bold text-[#010124]">Workflow Builder</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={addNode}
-                  className="bg-[#ECB22D] hover:bg-[#d4a029] text-[#010124] font-semibold px-5 py-2 rounded shadow border border-[#ECB22D] transition"
-                  disabled={loading || saving}
-                >
-                  + Add Step
-                </button>
-                <button
-                  onClick={saveWorkflow}
-                  className="bg-[#010124] hover:bg-[#22223b] text-[#ECB22D] font-semibold px-5 py-2 rounded shadow border border-[#010124] transition"
-                  disabled={loading || saving}
-                >
-                  {saving ? "Saving..." : "Save Workflow"}
-                </button>
-                <button
-                  onClick={() => {
-                    if (isTemplateMode && onSaveTemplate) {
-                      onSaveTemplate(nodes, edges)
-                    } else {
-                      setTemplateModal('save')
-                    }
-                  }}
-                  className="bg-[#ECB22D] hover:bg-[#d4a029] text-[#010124] font-semibold px-5 py-2 rounded shadow border border-[#ECB22D] transition"
-                  style={{ display: showSaveAsTemplate ? undefined : 'none' }}
-                >
-                  Save as Template
-                </button>
-                {(onLoadTemplate) && (
-                  <button
-                    onClick={() => {
-                      if (isTemplateMode && onLoadTemplate) {
-                        onLoadTemplate()
-                      } else if (onLoadTemplate) {
-                        onLoadTemplate()
-                      } else {
-                        setTemplateModal('load')
-                      }
-                    }}
-                    className="bg-[#010124] hover:bg-[#22223b] text-[#ECB22D] font-semibold px-5 py-2 rounded shadow border border-[#010124] transition"
-                  >
-                    Load Template
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className={isTemplateMode ? undefined : "px-8 pt-6 pb-8"} style={isTemplateMode ? { padding: 24 } : undefined}>
-              <p className="text-gray-600 text-lg mb-4 text-center">
-                Collaboratively design your onboarding and service workflows here.
-              </p>
-              {/* Instructions Box */}
-              <div className="mb-2 max-w-3xl text-xs text-gray-500 flex flex-wrap gap-x-4 gap-y-1 items-center justify-start">
-                <span className="font-semibold text-gray-600 mr-2">Shortcuts:</span>
-                <span><b>Pan:</b> <kbd className="px-1 py-0.5 bg-white border rounded">Space</kbd> + drag</span>
-                <span><b>Select:</b> Click, <kbd className="px-1 py-0.5 bg-white border rounded">Ctrl</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Cmd</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Shift</kbd> + click, or drag box</span>
-                <span><b>Drag:</b> Drag node(s)</span>
-                <span><b>Edit:</b> Double-click node</span>
-                <span><b>Connect:</b> Drag from connector</span>
-                <span><b>Copy:</b> <kbd className="px-1 py-0.5 bg-white border rounded">Ctrl</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Cmd</kbd> + <kbd className="px-1 py-0.5 bg-white border rounded">C</kbd></span>
-                <span><b>Paste:</b> <kbd className="px-1 py-0.5 bg-white border rounded">Ctrl</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Cmd</kbd> + <kbd className="px-1 py-0.5 bg-white border rounded">V</kbd></span>
-                <span><b>Duplicate:</b> <kbd className="px-1 py-0.5 bg-white border rounded">Ctrl</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Cmd</kbd> + <kbd className="px-1 py-0.5 bg-white border rounded">D</kbd></span>
-                <span><b>Delete:</b> Select, then <kbd className="px-1 py-0.5 bg-white border rounded">Delete</kbd>/<kbd className="px-1 py-0.5 bg-white border rounded">Backspace</kbd></span>
-                <span><b>Zoom/Pan:</b> Use controls</span>
-              </div>
-              {message && <div className="mb-4 text-center text-lg font-medium text-green-700">{message}</div>}
-              <div
-                style={isTemplateMode
-                  ? { width: '100%', height: '600px', background: "#f9fafb", borderRadius: 12, pointerEvents: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }
-                  : { height: 500, width: '100%', maxWidth: 1200, margin: '0 auto', background: "#f9fafb", borderRadius: 12, pointerEvents: 'auto' }}
-                className="overflow-hidden"
-              >
-                <ReactFlow
-                  key={workflowKey}
-                  nodes={coloredNodes}
-                  edges={edges}
-                  onNodesChange={onNodesChange}
-                  onEdgesChange={onEdgesChange}
-                  onConnect={onConnect}
-                  nodeTypes={nodeTypes}
-                  fitView
-                  onNodeDoubleClick={onNodeDoubleClick}
-                  defaultViewport={DEFAULT_VIEWPORT}
-                  selectNodesOnDrag={true}
-                  panOnDrag={false}
-                  connectionMode={ConnectionMode.Loose}
-                  snapToGrid={true}
-                  snapGrid={SNAP_GRID}
-                >
-                  <MiniMap />
-                  <Controls />
-                  <Background gap={16} size={1} />
-                </ReactFlow>
-              </div>
-              {loading && <div className="mt-4 text-gray-500">Loading workflow...</div>}
-            </div>
+            <ReactFlow
+              key={workflowKey}
+              nodes={coloredNodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              nodeTypes={nodeTypes}
+              fitView
+              defaultEdgeOptions={{ style: { stroke: 'rgba(234,179,8,0.6)', strokeWidth: 2 } }}
+              onNodeDoubleClick={onNodeDoubleClick}
+              defaultViewport={DEFAULT_VIEWPORT}
+              selectNodesOnDrag={true}
+              panOnDrag={false}
+              connectionMode={ConnectionMode.Loose}
+              snapToGrid={true}
+              snapGrid={SNAP_GRID}
+            >
+              <MiniMap />
+              <Controls />
+              <Background variant={BackgroundVariant.Dots} gap={24} size={1.5} color="rgba(255,255,255,0.06)" />
+            </ReactFlow>
           </div>
         </div>
-        {/* Node Edit Modal */}
-        {editingNode && typeof editingNode.id === 'string' && editingNode.id.length > 0 && userInitiatedEdit && (
-          <Dialog open={true} onOpenChange={(open) => { if (!open) { setEditingNode(null); setUserInitiatedEdit(false); } }}>
-            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
-              <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-                <h3 className="text-xl font-bold mb-4">Edit Step</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Label/Title</label>
-                    <Input
-                      value={editData?.label || ""}
-                      onChange={e => setEditData((d: any) => ({ ...d, label: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Type</label>
-                    <select
-                      className="w-full border rounded px-3 py-2"
-                      value={editData?.type || "task"}
-                      onChange={e => setEditData((d: any) => ({ ...d, type: e.target.value }))}
-                    >
-                      <option value="task">Task</option>
-                      <option value="approval">Approval Required</option>
-                      <option value="meeting">Meeting/Call</option>
-                      <option value="form">Client Form</option>
-                      <option value="doc">Document</option>
-                      <option value="file_upload">Upload/Deliverable</option>
-                      <option value="automation">Automation / Integration</option>
-                      <option value="checklist">Checklist</option>
-                      <option value="due_date">Due Date / Reminder</option>
-                      <option value="client_action">Client To-Do</option>
-                      <option value="decision">Decision Point</option>
-                      <option value="milestone">Milestone</option>
-                      <option value="sticky_note">Sticky Note</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Software/Tool (optional)</label>
-                    <select
-                      className="w-full border rounded px-3 py-2"
-                      value={editData?.software || ""}
-                      onChange={e => setEditData((d: any) => ({ ...d, software: e.target.value }))}
-                    >
-                      <option value="">None</option>
-                      {Object.entries(getSoftwareByCategory()).map(([category, softwares]) => (
-                        <optgroup key={category} label={category}>
-                          {softwares.map(software => (
-                            <option key={software.key} value={software.key}>
-                              {software.logo} {software.name}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Description/Notes</label>
-                    <Textarea
-                      value={editData?.description || ""}
-                      onChange={e => setEditData((d: any) => ({ ...d, description: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Link</label>
-                    <Input
-                      value={editData?.link || ""}
-                      onChange={e => setEditData((d: any) => ({ ...d, link: e.target.value }))}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2 mt-6">
-                  <Button variant="outline" onClick={() => { setEditingNode(null); setUserInitiatedEdit(false); }}>Cancel</Button>
-                  <Button onClick={saveNodeEdit}>Save</Button>
-                </div>
-              </div>
-            </div>
-          </Dialog>
-        )}
-        {/* Template Modals */}
-        {templateModal === 'save' && (
-          <Dialog open={true} onOpenChange={open => { if (!open) setTemplateModal(null) }}>
-            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
-              <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-                <h3 className="text-xl font-bold mb-4">Save as Template</h3>
-                <Input
-                  placeholder="Template Name"
-                  value={templateName}
-                  onChange={e => setTemplateName(e.target.value)}
-                  className="mb-4"
-                />
-                <div className="flex justify-end gap-2 mt-6">
-                  <Button variant="outline" onClick={() => setTemplateModal(null)}>Cancel</Button>
-                  <Button onClick={saveAsTemplate} disabled={!templateName.trim()}>Save</Button>
-                </div>
-              </div>
-            </div>
-          </Dialog>
-        )}
-        {templateModal === 'load' && (
-          <Dialog open={true} onOpenChange={open => { if (!open) setTemplateModal(null) }}>
-            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
-              <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-                <h3 className="text-xl font-bold mb-4">Load Template</h3>
-                <select
-                  className="w-full border rounded px-3 py-2 mb-4"
-                  value={selectedTemplate}
-                  onChange={e => setSelectedTemplate(e.target.value)}
-                >
-                  <option value="">Select a template...</option>
-                  {templates.map(t => (
-                    <option key={t.name} value={t.name}>{t.name}</option>
-                  ))}
-                </select>
-                <div className="flex justify-end gap-2 mt-6">
-                  <Button variant="outline" onClick={() => setTemplateModal(null)}>Cancel</Button>
-                  <Button onClick={loadTemplate} disabled={!selectedTemplate}>Load</Button>
-                </div>
-              </div>
-            </div>
-          </Dialog>
-        )}
+        {loading && <div className="mt-4 text-gray-500">Loading workflow...</div>}
       </div>
+      {/* Node Edit Modal */}
+      {editingNode && typeof editingNode.id === 'string' && editingNode.id.length > 0 && userInitiatedEdit && (
+        <Dialog open={true} onOpenChange={(open) => { if (!open) { setEditingNode(null); setUserInitiatedEdit(false); } }}>
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
+            <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+              <h3 className="text-xl font-bold mb-4">Edit Step</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Label/Title</label>
+                  <Input
+                    value={editData?.label || ""}
+                    onChange={e => setEditData((d: any) => ({ ...d, label: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Type</label>
+                  <select
+                    className="w-full border rounded px-3 py-2"
+                    value={editData?.type || "task"}
+                    onChange={e => setEditData((d: any) => ({ ...d, type: e.target.value }))}
+                  >
+                    <option value="task">Task</option>
+                    <option value="approval">Approval Required</option>
+                    <option value="meeting">Meeting/Call</option>
+                    <option value="form">Client Form</option>
+                    <option value="doc">Document</option>
+                    <option value="file_upload">Upload/Deliverable</option>
+                    <option value="automation">Automation / Integration</option>
+                    <option value="checklist">Checklist</option>
+                    <option value="due_date">Due Date / Reminder</option>
+                    <option value="client_action">Client To-Do</option>
+                    <option value="decision">Decision Point</option>
+                    <option value="milestone">Milestone</option>
+                    <option value="sticky_note">Sticky Note</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Software/Tool (optional)</label>
+                  <select
+                    className="w-full border rounded px-3 py-2"
+                    value={editData?.software || ""}
+                    onChange={e => setEditData((d: any) => ({ ...d, software: e.target.value }))}
+                  >
+                    <option value="">None</option>
+                    {Object.entries(getSoftwareByCategory()).map(([category, softwares]) => (
+                      <optgroup key={category} label={category}>
+                        {softwares.map(software => (
+                          <option key={software.key} value={software.key}>
+                            {software.logo} {software.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description/Notes</label>
+                  <Textarea
+                    value={editData?.description || ""}
+                    onChange={e => setEditData((d: any) => ({ ...d, description: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Link</label>
+                  <Input
+                    value={editData?.link || ""}
+                    onChange={e => setEditData((d: any) => ({ ...d, link: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-6">
+                <Button variant="outline" onClick={() => { setEditingNode(null); setUserInitiatedEdit(false); }}>Cancel</Button>
+                <Button onClick={saveNodeEdit}>Save</Button>
+              </div>
+            </div>
+          </div>
+        </Dialog>
+      )}
+      {/* Template Modals */}
+      {templateModal === 'save' && (
+        <Dialog open={true} onOpenChange={open => { if (!open) setTemplateModal(null) }}>
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
+            <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+              <h3 className="text-xl font-bold mb-4">Save as Template</h3>
+              <Input
+                placeholder="Template Name"
+                value={templateName}
+                onChange={e => setTemplateName(e.target.value)}
+                className="mb-4"
+              />
+              <div className="flex justify-end gap-2 mt-6">
+                <Button variant="outline" onClick={() => setTemplateModal(null)}>Cancel</Button>
+                <Button onClick={saveAsTemplate} disabled={!templateName.trim()}>Save</Button>
+              </div>
+            </div>
+          </div>
+        </Dialog>
+      )}
+      {templateModal === 'load' && (
+        <Dialog open={true} onOpenChange={open => { if (!open) setTemplateModal(null) }}>
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
+            <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+              <h3 className="text-xl font-bold mb-4">Load Template</h3>
+              <select
+                className="w-full border rounded px-3 py-2 mb-4"
+                value={selectedTemplate}
+                onChange={e => setSelectedTemplate(e.target.value)}
+              >
+                <option value="">Select a template...</option>
+                {templates.map(t => (
+                  <option key={t.name} value={t.name}>{t.name}</option>
+                ))}
+              </select>
+              <div className="flex justify-end gap-2 mt-6">
+                <Button variant="outline" onClick={() => setTemplateModal(null)}>Cancel</Button>
+                <Button onClick={loadTemplate} disabled={!selectedTemplate}>Load</Button>
+              </div>
+            </div>
+          </div>
+        </Dialog>
+      )}
     </section>
   )
 } 
