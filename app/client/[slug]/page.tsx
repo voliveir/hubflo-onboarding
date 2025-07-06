@@ -39,6 +39,7 @@ import { PortalHeader, PortalNavLink } from "@/components/ui/PortalHeader"
 import { PackageHighlights } from "@/components/portal/PackageHighlights"
 import { ActionCards } from "@/components/portal/ActionCards"
 import { WhiteLabelProgress } from "@/components/WhiteLabelProgress"
+import { IMPLEMENTATION_MANAGERS } from '@/lib/implementationManagers'
 
 interface ClientPageProps {
   params: {
@@ -137,6 +138,8 @@ export default async function ClientPage({ params }: ClientPageProps) {
   // Check if we should show the custom app section
   const showCustomAppSection = customAppLabel === "Gray Label" || customAppLabel === "White Label"
 
+  const mgr = IMPLEMENTATION_MANAGERS[client.implementation_manager || 'vanessa']
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#070720] to-[#0d0d25]">
       {/* Header */}
@@ -163,6 +166,9 @@ export default async function ClientPage({ params }: ClientPageProps) {
               {packageDisplayName} Package
             </Badge>
           </div>
+          {mgr.name && (
+            <p className="text-sm text-brand-foreground/70">Implementation Manager: {mgr.name}</p>
+          )}
         </div>
       </header>
 
@@ -189,8 +195,8 @@ export default async function ClientPage({ params }: ClientPageProps) {
             className="bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT text-lg px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
             asChild
           >
-            <a href="https://app.hubflo.com" target="_blank" rel="noopener noreferrer">
-              Start Your Setup <ArrowRight className="ml-2 h-5 w-5" />
+            <a href={mgr.calendars.onboarding} target="_blank" rel="noopener noreferrer">
+              Schedule Call <ArrowRight className="ml-2 h-5 w-5" />
             </a>
           </Button>
         </div>

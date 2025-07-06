@@ -53,6 +53,7 @@ export interface Client {
   white_label_android_url?: string | null
   white_label_ios_url?: string | null
   feedback_board_enabled?: boolean
+  implementation_manager: 'vanessa' | 'vishal'
 }
 
 export interface Integration {

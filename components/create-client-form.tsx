@@ -87,6 +87,7 @@ export default function CreateClientForm() {
     notes: "",
     workflow_builder_enabled: false,
     feedback_board_enabled: false,
+    implementation_manager: 'vanessa',
   })
 
   const handleInputChange = (field: string, value: any) => {
@@ -307,6 +308,21 @@ export default function CreateClientForm() {
                 onChange={(e) => handleInputChange("revenue_amount", Number.parseInt(e.target.value) || 0)}
               />
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="implementation_manager">Implementation Manager</Label>
+            <select
+              name="implementation_manager"
+              id="implementation_manager"
+              className="input"
+              value={formData.implementation_manager}
+              onChange={e => handleInputChange('implementation_manager', e.target.value)}
+              required
+            >
+              <option value="vanessa">Vanessa Oliveira</option>
+              <option value="vishal">Vishal Jassal</option>
+            </select>
           </div>
         </CardContent>
       </Card>
