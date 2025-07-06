@@ -90,9 +90,9 @@ export function AdminSidebar() {
   }
 
   return (
-    <div className="flex h-full w-64 flex-col bg-[#010124] border-r border-[#ECB22D]">
-      <div className="flex h-16 items-center px-6 border-b border-[#ECB22D]">
-        <Building2 className="h-8 w-8 text-[#ECB22D]" />
+    <div className="flex h-full w-64 flex-col bg-gradient-to-b from-[#010124] via-[#0a0a2a] to-[#1a1a40] border-r border-[#F2C94C] shadow-xl backdrop-blur-md">
+      <div className="flex h-16 items-center px-6 border-b border-[#F2C94C]">
+        <Building2 className="h-8 w-8 stroke-[1.5] text-[#F2C94C]" />
         <span className="ml-2 text-xl font-bold text-white">Hubflo Admin</span>
       </div>
 
@@ -109,16 +109,16 @@ export function AdminSidebar() {
                     variant="ghost"
                     className={cn(
                       "w-full justify-start px-3 py-2 text-left font-normal text-white",
-                      "hover:bg-[#ECB22D] hover:text-[#010124]",
+                      "hover:bg-[#F2C94C] hover:text-[#010124]",
                     )}
                     onClick={() => toggleExpanded(item.name)}
                   >
-                    <item.icon className="mr-3 h-4 w-4" />
+                    <item.icon className="mr-3 h-4 w-4 stroke-[1.5] text-[#F2C94C]" />
                     {item.name}
                     {isExpanded ? (
-                      <ChevronDown className="ml-auto h-4 w-4" />
+                      <ChevronDown className="ml-auto h-4 w-4 stroke-[1.5] text-[#F2C94C]" />
                     ) : (
-                      <ChevronRight className="ml-auto h-4 w-4" />
+                      <ChevronRight className="ml-auto h-4 w-4 stroke-[1.5] text-[#F2C94C]" />
                     )}
                   </Button>
 
@@ -132,8 +132,8 @@ export function AdminSidebar() {
                             className={cn(
                               "w-full justify-start px-3 py-2 text-left font-normal text-sm",
                               pathname === child.href
-                                ? "bg-[#ECB22D] text-[#010124]"
-                                : "text-gray-300 hover:bg-[#ECB22D] hover:text-[#010124]",
+                                ? "bg-[#F2C94C] text-[#010124]"
+                                : "text-gray-300 hover:bg-[#F2C94C] hover:text-[#010124]",
                             )}
                             asChild
                           >
@@ -154,13 +154,13 @@ export function AdminSidebar() {
                 className={cn(
                   "w-full justify-start px-3 py-2 text-left font-normal",
                   pathname === item.href
-                    ? "bg-[#ECB22D] text-[#010124]"
-                    : "text-white hover:bg-[#ECB22D] hover:text-[#010124]",
+                    ? "border-l-4 border-[#F2C94C] bg-transparent text-[#F2C94C]"
+                    : "text-white hover:bg-[#F2C94C]/10 hover:text-[#F2C94C]",
                 )}
                 asChild
               >
                 <Link href={item.href || "#"}>
-                  <item.icon className="mr-3 h-4 w-4" />
+                  <item.icon className="mr-3 h-4 w-4 stroke-[1.5] text-[#F2C94C]" />
                   {item.name}
                 </Link>
               </Button>
@@ -169,9 +169,9 @@ export function AdminSidebar() {
         </nav>
       </ScrollArea>
 
-      <div className="border-t border-[#ECB22D] p-4">
+      <div className="border-t border-[#F2C94C] p-4">
         <div className="flex items-center">
-          <div className="h-8 w-8 rounded-full bg-[#ECB22D] flex items-center justify-center">
+          <div className="h-8 w-8 rounded-full bg-[#F2C94C] flex items-center justify-center">
             <span className="text-sm font-medium text-[#010124]">A</span>
           </div>
           <div className="ml-3">

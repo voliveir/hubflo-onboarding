@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { DatabaseStatusCheck } from "@/components/database-status-check"
 import { ImplementationManagerDashboard } from "@/components/implementation-manager-dashboard"
 import { getAllClients, getDueClientFollowUps, markClientFollowUpDone } from "@/lib/database"
-import { Users, Package, TrendingUp, AlertCircle, Plus } from "lucide-react"
+import { Users, Package, TrendingUp, AlertCircle, Plus, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { format, parseISO, isBefore } from "date-fns"
 import type { ClientFollowUp } from "@/lib/types"
@@ -92,6 +92,16 @@ export function AdminDashboard() {
     setMarking(null)
   }
 
+  // Helper to group follow-ups by due date (YYYY-MM-DD)
+  function groupByDueDate(followUps: ClientFollowUp[]): Record<string, ClientFollowUp[]> {
+    return followUps.reduce((acc: Record<string, ClientFollowUp[]>, fu: ClientFollowUp) => {
+      const date = fu.due_date.split('T')[0]
+      if (!acc[date]) acc[date] = []
+      acc[date].push(fu)
+      return acc
+    }, {})
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -134,173 +144,124 @@ export function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Clients</p>
-                <p className="text-2xl font-bold">{stats.totalClients}</p>
-              </div>
-              <Users className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active Clients</p>
-                <p className="text-2xl font-bold">{stats.activeClients}</p>
-              </div>
-              <Users className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Avg Progress</p>
-                <p className="text-2xl font-bold">{stats.averageProgress}%</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Premium+</p>
-                <p className="text-2xl font-bold">
-                  {stats.packageBreakdown.premium + stats.packageBreakdown.gold + stats.packageBreakdown.elite}
-                </p>
-              </div>
-              <Package className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+        {[
+          {
+            label: 'Total Clients',
+            value: stats.totalClients,
+            icon: <Users className="h-10 w-10 text-blue-400 drop-shadow-glow" />,
+            labelColor: 'text-blue-400',
+          },
+          {
+            label: 'Active Clients',
+            value: stats.activeClients,
+            icon: <Users className="h-10 w-10 text-green-400 drop-shadow-glow" />,
+            labelColor: 'text-green-400',
+          },
+          {
+            label: 'Avg Progress',
+            value: `${stats.averageProgress}%`,
+            icon: <TrendingUp className="h-10 w-10 text-yellow-400 drop-shadow-glow" />,
+            labelColor: 'text-yellow-400',
+          },
+          {
+            label: 'Premium+',
+            value: stats.packageBreakdown.premium + stats.packageBreakdown.gold + stats.packageBreakdown.elite,
+            icon: <Package className="h-10 w-10 text-purple-400 drop-shadow-glow" />,
+            labelColor: 'text-purple-400',
+          },
+        ].map((stat, i) => (
+          <div key={i} className="rounded-2xl bg-white/10 backdrop-blur-md shadow-[inset_0_2px_8px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center p-6 min-h-[140px] border border-white/10">
+            <div className="mb-2">{stat.icon}</div>
+            <div className="text-3xl font-bold text-white drop-shadow-glow">{stat.value}</div>
+            <div className={`text-sm mt-1 font-medium tracking-wide ${stat.labelColor}`}>{stat.label}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Package Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Package Distribution</CardTitle>
-          <CardDescription>Breakdown of clients by success package</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{stats.packageBreakdown.light}</div>
-              <Badge className="bg-green-100 text-green-800">Light</Badge>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{stats.packageBreakdown.premium}</div>
-              <Badge className="bg-blue-100 text-blue-800">Premium</Badge>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-600">{stats.packageBreakdown.gold}</div>
-              <Badge className="bg-yellow-100 text-yellow-800">Gold</Badge>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{stats.packageBreakdown.elite}</div>
-              <Badge className="bg-purple-100 text-purple-800">Elite</Badge>
-            </div>
+      {/* Package Breakdown as mini cards */}
+      <div className="grid grid-cols-4 gap-4">
+        {[
+          { label: 'Light', value: stats.packageBreakdown.light, color: 'bg-green-500', emoji: '🟢' },
+          { label: 'Premium', value: stats.packageBreakdown.premium, color: 'bg-blue-500', emoji: '🔵' },
+          { label: 'Gold', value: stats.packageBreakdown.gold, color: 'bg-yellow-400', emoji: '🟡' },
+          { label: 'Elite', value: stats.packageBreakdown.elite, color: 'bg-purple-500', emoji: '🟣' },
+        ].map((pkg, i) => (
+          <div key={i} className={`rounded-2xl border border-[#F2C94C] bg-white/10 backdrop-blur-md shadow-inner-glass flex flex-col items-center justify-center p-4 min-h-[90px]`}>
+            <span className="text-2xl mb-1">{pkg.emoji}</span>
+            <div className={`text-2xl font-bold text-white drop-shadow-glow`}>{pkg.value}</div>
+            <div className={`text-xs mt-1 px-2 py-0.5 rounded-full ${pkg.color} text-white font-semibold tracking-wide`}>{pkg.label}</div>
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
 
       {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Common administrative tasks</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button
-              asChild
-              variant="outline"
-              className="h-auto p-4 flex flex-col items-center space-y-2 bg-transparent"
-            >
-              <Link href="/admin/clients/new">
-                <Plus className="h-6 w-6" />
-                <span>Add New Client</span>
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="h-auto p-4 flex flex-col items-center space-y-2 bg-transparent"
-            >
-              <Link href="/admin/integrations">
-                <Package className="h-6 w-6" />
-                <span>Manage Integrations</span>
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="h-auto p-4 flex flex-col items-center space-y-2 bg-transparent"
-            >
-              <Link href="/admin/setup">
-                <AlertCircle className="h-6 w-6" />
-                <span>Database Setup</span>
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Database Status */}
-      <DatabaseStatusCheck />
+      <div className="rounded-2xl border border-[#F2C94C] bg-white/10 backdrop-blur-md shadow-inner-glass p-6 flex flex-col items-center">
+        <div className="flex flex-col sm:flex-row gap-6 w-full justify-center">
+          <Button asChild className="flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] font-bold rounded-xl shadow-gold-glow py-6 px-4 w-48 mx-auto hover:scale-105 transition-transform" size="lg">
+            <Link href="/admin/clients/new">
+              <Plus className="h-7 w-7 mb-1" />
+              <span>Add New Client</span>
+            </Link>
+          </Button>
+          <Button asChild className="flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] font-bold rounded-xl shadow-gold-glow py-6 px-4 w-48 mx-auto hover:scale-105 transition-transform" size="lg">
+            <Link href="/admin/integrations">
+              <Package className="h-7 w-7 mb-1" />
+              <span>Manage Integrations</span>
+            </Link>
+          </Button>
+        </div>
+      </div>
 
       {/* Implementation Manager Dashboard */}
       {stats.totalClients > 0 && <ImplementationManagerDashboard />}
 
-      {/* Follow-up Reminders Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Follow-up Reminders</CardTitle>
-          <CardDescription>Clients due for follow-up in the next 7 days</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loadingFollowUps ? (
-            <div className="text-gray-500">Loading follow-ups...</div>
-          ) : followUps.length === 0 ? (
-            <div className="text-green-600">No follow-ups due this week!</div>
-          ) : (
-            <div className="space-y-3">
-              {followUps.map((fu) => (
-                <div key={fu.id} className="flex items-center justify-between border-b pb-2 last:border-b-0 last:pb-0">
-                  <div>
-                    <div className="font-medium text-[#010124]">
-                      {fu.type === "sale" ? "Sale" : "Graduation"} {fu.milestone}-Day Follow-up
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Due: {format(parseISO(fu.due_date), "MMM d, yyyy")} {isBefore(parseISO(fu.due_date), new Date()) ? <span className="text-red-600">(Overdue)</span> : null}
-                    </div>
+      {/* Follow-up Reminders: group by due date in accordion */}
+      <div className="rounded-2xl border border-[#F2C94C] bg-white/10 backdrop-blur-md shadow-inner-glass p-6">
+        <h2 className="text-xl font-bold text-white mb-4">Follow-up Reminders</h2>
+        {loadingFollowUps ? (
+          <div className="text-[#F2C94C]">Loading follow-ups...</div>
+        ) : followUps.length === 0 ? (
+          <div className="text-green-400">No follow-ups due this week!</div>
+        ) : (
+          <div className="space-y-2">
+            {Object.entries(groupByDueDate(followUps)).map(([date, items]) => {
+              const reminders = items as ClientFollowUp[];
+              return (
+                <div key={date} className="mb-2">
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-2 rounded-xl bg-gradient-to-r from-[#010124]/60 to-[#1a1a40]/60 border border-[#F2C94C] text-[#F2C94C] font-semibold focus:outline-none">
+                    <span>{new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <span className="text-xs text-[#F2C94C]">{reminders.length} reminder{reminders.length > 1 ? 's' : ''}</span>
+                  </button>
+                  <div className="mt-2 space-y-1">
+                    {reminders.map((fu: ClientFollowUp & { client_name?: string }) => (
+                      <div key={fu.id} className="flex items-center justify-between px-4 py-2 rounded-lg bg-white/10 border border-white/10 shadow-inner-glass">
+                        <div>
+                          {fu.client_name && (
+                            <div className="text-xs font-semibold text-[#F2C94C] mb-0.5">{fu.client_name}</div>
+                          )}
+                          <div className="font-medium text-white">{fu.title}</div>
+                          <div className="text-xs text-[#F2C94C]">Due: {new Date(fu.due_date).toLocaleDateString()}</div>
+                        </div>
+                        <button
+                          className="ml-4 p-2 rounded-full bg-gradient-to-br from-[#F2C94C] to-[#F2994A] shadow-gold-glow hover:scale-110 transition-transform"
+                          disabled={marking === fu.id}
+                          onClick={() => handleMarkDone(fu.id)}
+                          title="Mark as done"
+                        >
+                          <CheckCircle className="h-6 w-6 text-[#010124]" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={marking === fu.id}
-                    onClick={() => handleMarkDone(fu.id)}
-                  >
-                    {marking === fu.id ? "Marking..." : "Mark Done"}
-                  </Button>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

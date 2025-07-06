@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { format, parseISO, isBefore, differenceInCalendarDays } from "date-fns"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { PasswordProtection } from "@/components/password-protection"
+import { AlertCircle } from "lucide-react"
 
 export default function ClientFollowUpsPage() {
   const [followUps, setFollowUps] = useState<(ClientFollowUp & { client_name?: string, client_email?: string, client_package?: string, milestone?: number })[]>([])
@@ -48,48 +49,45 @@ export default function ClientFollowUpsPage() {
   function renderSection(title: string, items: typeof followUps) {
     if (!items.length) return null
     return (
-      <div className="mb-8">
-        <h2 className="text-lg font-bold mb-3">{title}</h2>
+      <div className="mb-12">
+        <div className="inline-block mb-4">
+          <span className="bg-[#F2C94C]/20 text-[#F2C94C] px-3 py-1 rounded-full text-xs font-semibold tracking-wide">{title}</span>
+        </div>
         <div className="space-y-4">
-          {items.map((fu) => (
-            <Card key={fu.id} className="border-2 border-[#ECB22D] shadow-sm">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-xl text-[#010124]">{fu.client_name || "Unknown Client"}</CardTitle>
-                    <div className="text-sm text-gray-600">{fu.client_email}</div>
+          {items.map((fu) => {
+            const isOverdue = isBefore(parseISO(fu.due_date), now)
+            return (
+              <div
+                key={fu.id}
+                className={`rounded-xl p-6 lg:p-5 space-y-1 border-2 ${isOverdue ? 'border-[#ff4d4f]' : 'border-[#F2C94C]'} bg-white/5 shadow-sm shadow-black/30 flex flex-col md:flex-row md:items-center md:justify-between`}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    {isOverdue && <AlertCircle className="h-4 w-4 text-[#ff4d4f]" />}
+                    <span className="text-lg font-semibold text-white truncate">{fu.client_name || "Unknown Client"}</span>
                     {fu.client_package && (
-                      <span className="inline-block mt-1 px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold">
-                        {fu.client_package}
-                      </span>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ml-2 ${fu.client_package === 'Light' ? 'bg-green-500/20 text-green-300' : fu.client_package === 'Premium' ? 'bg-blue-500/20 text-blue-300' : fu.client_package === 'Gold' ? 'bg-yellow-400/20 text-yellow-300' : fu.client_package === 'Elite' ? 'bg-purple-500/20 text-purple-300' : 'bg-gray-500/20 text-gray-300'}`}>{fu.client_package}</span>
                     )}
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-semibold text-gray-700">{fu.title}</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Due: {format(parseISO(fu.due_date), "MMM d, yyyy")} {isBefore(parseISO(fu.due_date), now) ? <span className="ml-2 px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold">Overdue</span> : null}
-                    </div>
-                    {fu.milestone && (
-                      <div className="text-xs text-yellow-700 mt-1">{fu.milestone}-day follow-up</div>
-                    )}
-                  </div>
+                  <div className="text-sm text-gray-300 mb-1">{fu.client_email}</div>
+                  <div className="text-sm text-gray-200 font-medium">{fu.title}</div>
                 </div>
-              </CardHeader>
-              <CardContent className="flex items-center justify-between">
-                <div>
-                  {fu.notes && <div className="text-sm text-gray-700 mb-2 max-w-md">{fu.notes}</div>}
+                <div className="flex flex-col items-end mt-3 md:mt-0 md:ml-8 min-w-[180px]">
+                  <div className="text-sm text-gray-400 italic">{fu.milestone ? `${fu.milestone}-day follow-up` : ''}</div>
+                  <div className="text-sm text-gray-400">Due: {format(parseISO(fu.due_date), "MMM d, yyyy")}</div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-2 border border-white text-white rounded-full bg-transparent hover:bg-white/10 px-5 py-1.5 font-semibold transition"
+                    disabled={marking === fu.id}
+                    onClick={() => handleMarkDone(fu.id)}
+                  >
+                    {marking === fu.id ? "Marking..." : "Mark Complete"}
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={marking === fu.id}
-                  onClick={() => handleMarkDone(fu.id)}
-                >
-                  {marking === fu.id ? "Marking..." : "Mark Complete"}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            )
+          })}
         </div>
       </div>
     )
@@ -97,14 +95,14 @@ export default function ClientFollowUpsPage() {
 
   return (
     <PasswordProtection>
-      <div className="flex h-screen bg-gray-100">
+      <div className="flex h-screen bg-gradient-to-br from-[#0d0f2b] to-[#15173d]">
         <AdminSidebar />
         <main className="flex-1 overflow-y-auto">
           <div className="p-8 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">Client Follow-ups</h1>
-            <p className="mb-8 text-gray-600">Follow-ups grouped by due date. Mark them complete as you go!</p>
+            <h1 className="text-3xl font-bold mb-6 text-white">Client Follow-ups</h1>
+            <p className="mb-8 text-gray-400">Follow-ups grouped by due date. Mark them complete as you go!</p>
             {loading ? (
-              <div className="text-gray-500">Loading follow-ups...</div>
+              <div className="text-gray-400">Loading follow-ups...</div>
             ) : (
               <>
                 {renderSection("Overdue", overdue)}

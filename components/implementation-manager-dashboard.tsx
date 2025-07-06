@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { getAllClients } from "@/lib/database"
-import type { Client } from "@/lib/supabase"
-import { TrendingUp } from "lucide-react"
+import type { Client } from "@/lib/types"
+import { TrendingUp, Users, AlertCircle, Package } from "lucide-react"
 import Link from "next/link"
 
 export function ImplementationManagerDashboard() {
@@ -72,100 +72,77 @@ export function ImplementationManagerDashboard() {
   const completedClients = activeClients.filter((c) => c.project_completion_percentage >= 90)
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Implementation Overview</CardTitle>
-          <CardDescription>Track client implementation progress and milestones</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{activeClients.length}</div>
-              <div className="text-sm text-gray-600">Active Implementations</div>
+    <div className="space-y-8">
+      {/* Implementation Overview */}
+      <div className="rounded-2xl border border-[#F2C94C] bg-white/10 backdrop-blur-md shadow-inner-glass p-6">
+        <div className="flex flex-wrap gap-4 justify-between mb-6">
+          {[
+            { label: 'Active', value: activeClients.length, icon: <Users className="h-4 w-4 mr-1 text-[#F2C94C]" /> },
+            { label: 'Need Attention', value: urgentClients.length, icon: <AlertCircle className="h-4 w-4 mr-1 text-[#F2C94C]" /> },
+            { label: 'Near Completion', value: completedClients.length, icon: <TrendingUp className="h-4 w-4 mr-1 text-[#F2C94C]" /> },
+            { label: 'Avg Progress', value: `${Math.round((activeClients.reduce((sum, c) => sum + c.project_completion_percentage, 0) / activeClients.length) || 0)}%`, icon: <Package className="h-4 w-4 mr-1 text-[#F2C94C]" /> },
+          ].map((stat, i) => (
+            <div key={i} className="flex items-center px-5 py-2 rounded-full font-bold shadow-gold-glow text-sm bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-[#010124]">
+              {stat.icon}{stat.value} <span className="ml-2 font-medium">{stat.label}</span>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{urgentClients.length}</div>
-              <div className="text-sm text-gray-600">Need Attention</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{completedClients.length}</div>
-              <div className="text-sm text-gray-600">Near Completion</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {Math.round(
-                  activeClients.reduce((sum, c) => sum + c.project_completion_percentage, 0) / activeClients.length ||
-                    0,
-                )}
-                %
+          ))}
+        </div>
+        <div className="space-y-4">
+          <h4 className="font-medium text-white">Recent Activity</h4>
+          {activeClients.slice(0, 5).map((client) => (
+            <div key={client.id} className="flex items-center justify-between p-4 rounded-xl bg-white/10 border border-[#F2C94C] shadow-inner-glass">
+              <div className="flex items-center space-x-4">
+                <div>
+                  <div className="font-medium text-white">{client.name}</div>
+                  <div className="flex items-center space-x-2 text-sm text-[#F2C94C]">
+                    <Badge className={getPackageBadgeColor(client.success_package)}>{client.success_package}</Badge>
+                    <span>•</span>
+                    <span>{client.number_of_users} users</span>
+                  </div>
+                </div>
               </div>
-              <div className="text-sm text-gray-600">Avg Progress</div>
+              <div className="flex items-center space-x-4">
+                <div className="text-right">
+                  <div className="font-medium text-[#F2C94C] drop-shadow-glow">{client.project_completion_percentage}%</div>
+                  <div className="w-24 h-3 bg-white/10 rounded-full overflow-hidden mt-1">
+                    <div className="h-full rounded-full bg-gradient-to-r from-[#F2C94C] to-[#F2994A]" style={{ width: `${client.project_completion_percentage}%` }} />
+                  </div>
+                </div>
+                <Button asChild size="sm" variant="outline" className="border-2 border-[#F2C94C] text-[#F2C94C] rounded-full px-4 font-bold hover:bg-[#F2C94C]/10">
+                  <Link href={`/admin/clients/${client.id}/tracking`}>
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                    Track
+                  </Link>
+                </Button>
+              </div>
             </div>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="font-medium">Recent Activity</h4>
-            {activeClients.slice(0, 5).map((client) => (
-              <div key={client.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <div className="font-medium">{client.name}</div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Badge className={getPackageBadgeColor(client.success_package)}>{client.success_package}</Badge>
-                      <span>•</span>
-                      <span>{client.number_of_users} users</span>
-                    </div>
+          ))}
+        </div>
+      </div>
+      {/* Clients Needing Attention */}
+      {urgentClients.length > 0 && (
+        <div className="rounded-2xl border border-[#F2C94C] bg-white/10 backdrop-blur-md shadow-inner-glass p-6">
+          <h4 className="font-bold text-[#F87171] mb-4">Clients Needing Attention</h4>
+          <div className="space-y-3">
+            {urgentClients.map((client, idx) => (
+              <div
+                key={client.id}
+                className={`flex items-center justify-between p-3 rounded-xl border-l-4 border-[#F2C94C] shadow-inner-glass ${idx % 2 === 0 ? 'bg-[#1c1e39]/[0.85]' : 'bg-white/10'} mb-2`}
+                style={{ marginBottom: '8px' }}
+              >
+                <div>
+                  <div className="font-medium text-white">{client.name}</div>
+                  <div className="text-sm text-[#F2C94C]">
+                    Progress: {client.project_completion_percentage}% • Calls: {client.calls_completed}/{client.calls_scheduled}
                   </div>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <div className="text-right">
-                    <div className={`font-medium ${getProgressColor(client.project_completion_percentage)}`}>
-                      {client.project_completion_percentage}%
-                    </div>
-                    <Progress value={client.project_completion_percentage} className="w-24" />
-                  </div>
-                  <Button asChild size="sm" variant="outline">
-                    <Link href={`/admin/clients/${client.id}/tracking`}>
-                      <TrendingUp className="h-4 w-4 mr-1" />
-                      Track
-                    </Link>
-                  </Button>
-                </div>
+                <Button asChild size="sm" variant="outline" className="border-2 border-[#F2C94C] text-[#F2C94C] rounded-full px-4 font-bold hover:bg-[#F2C94C]/10">
+                  <Link href={`/admin/clients/${client.id}/tracking`}>Review</Link>
+                </Button>
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
-
-      {urgentClients.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-red-600">Clients Needing Attention</CardTitle>
-            <CardDescription>Implementations with low progress that may need intervention</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {urgentClients.map((client) => (
-                <div
-                  key={client.id}
-                  className="flex items-center justify-between p-3 border border-red-200 rounded-lg bg-red-50"
-                >
-                  <div>
-                    <div className="font-medium">{client.name}</div>
-                    <div className="text-sm text-gray-600">
-                      Progress: {client.project_completion_percentage}% • Calls: {client.calls_completed}/
-                      {client.calls_scheduled}
-                    </div>
-                  </div>
-                  <Button asChild size="sm" variant="outline">
-                    <Link href={`/admin/clients/${client.id}/tracking`}>Review</Link>
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        </div>
       )}
     </div>
   )
