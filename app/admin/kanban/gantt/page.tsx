@@ -126,7 +126,7 @@ export default function GanttChartPage() {
     const start = new Date(minDate)
     const end = new Date(maxDate)
     const ticks = []
-    let d = new Date(start)
+    const d = new Date(start)
     if (timeScale === "week") {
       d.setDate(d.getDate() - d.getDay()) // align to week start
       while (d <= end) {
@@ -214,7 +214,7 @@ export default function GanttChartPage() {
         )}
         {/* Segmented bar */}
         {(() => {
-          let left = x
+          const left = x
           return payload.segments.map((seg: any, idx: number) => {
             const segStart = seg.start.getTime()
             const segEnd = seg.end.getTime()
@@ -355,7 +355,7 @@ export default function GanttChartPage() {
   // X-axis: reduce tick count, monthly for large ranges, rotate 45°, center-align
   const getXTicks = (minDate: Date, maxDate: Date, timeScale: string) => {
     const ticks = []
-    let d = new Date(minDate)
+    const d = new Date(minDate)
     if (timeScale === 'month' || (maxDate.getTime() - minDate.getTime()) > 60 * 86400000) {
       d.setDate(1)
       while (d <= maxDate) {
