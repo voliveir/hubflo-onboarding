@@ -77,12 +77,28 @@ export function ClientWorkflowBuilderWrapper({ enabled, clientId }: Props) {
 
   return (
     <div ref={ref} className={cn("", isVisible && "animate-fade-in-up")}>
-      <WorkflowBuilder
-        clientId={clientId}
-        initialNodes={initialNodes}
-        initialEdges={initialEdges}
-        showSaveAsTemplate={false}
-      />
+      <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl border border-brand-gold/40 overflow-visible">
+        <div className="flex items-center justify-between px-8 py-6 bg-gradient-to-r from-[#010124] to-brand-gold/20 rounded-t-2xl">
+          <h2 className="text-2xl font-bold text-white">Workflow Builder</h2>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowLoadModal(true)}
+              className="border-brand-gold/40 text-brand-gold hover:bg-brand-gold/10"
+            >
+              Load Template
+            </Button>
+          </div>
+        </div>
+        <div className="p-8">
+          <WorkflowBuilder
+            clientId={clientId}
+            initialNodes={initialNodes}
+            initialEdges={initialEdges}
+            showSaveAsTemplate={false}
+          />
+        </div>
+      </div>
       {showLoadModal && (
         <Dialog open={true} onOpenChange={open => { if (!open) setShowLoadModal(false) }}>
           <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
