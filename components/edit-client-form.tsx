@@ -18,6 +18,7 @@ import { type Client } from "@/lib/types"
 import { Save, ArrowLeft, CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { Checkbox } from "@/components/ui/checkbox"
+import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
 
 // --- Admin Onboarding Task Checklist Component ---
 interface OnboardingTaskAdminChecklistProps {
@@ -122,6 +123,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
   const [checkingSlug, setCheckingSlug] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [managers, setManagers] = useState<ImplementationManager[]>([])
 
   useEffect(() => {
     if (formData.slug && formData.slug !== client.slug) {
@@ -130,6 +132,26 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
       setSlugAvailable(null)
     }
   }, [formData.slug, client.slug])
+
+  useEffect(() => {
+    getImplementationManagers().then((data) => {
+      setManagers(data)
+      // Set initial calendar links if not set
+      if (!client.calendar_contact_success || !client.calendar_schedule_call || !client.calendar_integrations_call || !client.calendar_upgrade_consultation) {
+        const defaultManager = data.find(m => m.manager_id === (client.implementation_manager || 'vanessa')) || data[0]
+        if (defaultManager) {
+          setFormData((prev) => ({
+            ...prev,
+            implementation_manager: defaultManager.manager_id,
+            calendar_contact_success: client.calendar_contact_success || defaultManager.calendar_contact_success,
+            calendar_schedule_call: client.calendar_schedule_call || defaultManager.calendar_schedule_call,
+            calendar_integrations_call: client.calendar_integrations_call || defaultManager.calendar_integrations_call,
+            calendar_upgrade_consultation: client.calendar_upgrade_consultation || defaultManager.calendar_upgrade_consultation,
+          }))
+        }
+      }
+    })
+  }, [client])
 
   const checkSlugAvailability = async (slug: string) => {
     if (slug.length < 3) {
@@ -226,6 +248,20 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
       ],
     }
     return features[pkg as keyof typeof features] || []
+  }
+
+  const handleManagerChange = (managerId: string) => {
+    setFormData((prev) => {
+      const selected = managers.find(m => m.manager_id === managerId)
+      return selected ? {
+        ...prev,
+        implementation_manager: selected.manager_id,
+        calendar_contact_success: selected.calendar_contact_success,
+        calendar_schedule_call: selected.calendar_schedule_call,
+        calendar_integrations_call: selected.calendar_integrations_call,
+        calendar_upgrade_consultation: selected.calendar_upgrade_consultation,
+      } : prev
+    })
   }
 
   return (
@@ -760,6 +796,89 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                     <span aria-label="Clear date">×</span>
                   </button>
                 )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Implementation Manager */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Implementation Manager</CardTitle>
+            <CardDescription>Select the implementation manager for this client</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <Label htmlFor="implementation_manager">Implementation Manager</Label>
+              <select
+                name="implementation_manager"
+                id="implementation_manager"
+                className="input"
+                value={formData.implementation_manager}
+                onChange={e => handleManagerChange(e.target.value)}
+                required
+              >
+                {managers.map((manager) => (
+                  <option key={manager.manager_id} value={manager.manager_id}>
+                    {manager.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mt-6">
+              <Label htmlFor="calendar_contact_success">Contact Success Calendar Link</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  id="calendar_contact_success"
+                  value={formData.calendar_contact_success || ""}
+                  onChange={e => setFormData(prev => ({ ...prev, calendar_contact_success: e.target.value }))}
+                  placeholder="Contact Success Calendar Link"
+                />
+                <Button type="button" variant="outline" onClick={() => setFormData(prev => ({ ...prev, calendar_contact_success: managers.find(m => m.manager_id === formData.implementation_manager)?.calendar_contact_success || "" }))}>
+                  Reset to Default
+                </Button>
+              </div>
+            </div>
+            <div className="mt-6">
+              <Label htmlFor="calendar_schedule_call">Schedule Call Calendar Link</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  id="calendar_schedule_call"
+                  value={formData.calendar_schedule_call || ""}
+                  onChange={e => setFormData(prev => ({ ...prev, calendar_schedule_call: e.target.value }))}
+                  placeholder="Schedule Call Calendar Link"
+                />
+                <Button type="button" variant="outline" onClick={() => setFormData(prev => ({ ...prev, calendar_schedule_call: managers.find(m => m.manager_id === formData.implementation_manager)?.calendar_schedule_call || "" }))}>
+                  Reset to Default
+                </Button>
+              </div>
+            </div>
+            <div className="mt-6">
+              <Label htmlFor="calendar_integrations_call">Integrations Call Calendar Link</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  id="calendar_integrations_call"
+                  value={formData.calendar_integrations_call || ""}
+                  onChange={e => setFormData(prev => ({ ...prev, calendar_integrations_call: e.target.value }))}
+                  placeholder="Integrations Call Calendar Link"
+                />
+                <Button type="button" variant="outline" onClick={() => setFormData(prev => ({ ...prev, calendar_integrations_call: managers.find(m => m.manager_id === formData.implementation_manager)?.calendar_integrations_call || "" }))}>
+                  Reset to Default
+                </Button>
+              </div>
+            </div>
+            <div className="mt-6">
+              <Label htmlFor="calendar_upgrade_consultation">Upgrade Consultation Calendar Link</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  id="calendar_upgrade_consultation"
+                  value={formData.calendar_upgrade_consultation || ''}
+                  onChange={e => setFormData(prev => ({ ...prev, calendar_upgrade_consultation: e.target.value }))}
+                  placeholder="Upgrade Consultation Calendar Link"
+                />
+                <Button type="button" variant="outline" onClick={() => setFormData(prev => ({ ...prev, calendar_upgrade_consultation: managers.find(m => m.manager_id === formData.implementation_manager)?.calendar_upgrade_consultation || "" }))}>
+                  Reset to Default
+                </Button>
               </div>
             </div>
           </CardContent>

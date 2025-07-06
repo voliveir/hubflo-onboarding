@@ -31,6 +31,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react"
+import { getImplementationManagers, updateImplementationManager, ImplementationManager } from "@/lib/implementationManagers"
 
 export function SettingsManager() {
   const [settings, setSettings] = useState<PlatformSettings>({
@@ -60,8 +61,13 @@ export function SettingsManager() {
   const [emailTestResult, setEmailTestResult] = useState<boolean | null>(null)
   const [databaseTestResult, setDatabaseTestResult] = useState<boolean | null>(null)
 
+  const [managers, setManagers] = useState<ImplementationManager[]>([])
+  const [managersLoading, setManagersLoading] = useState(true)
+  const [managersSaving, setManagersSaving] = useState<string | null>(null)
+
   useEffect(() => {
     loadSettings()
+    loadManagers()
   }, [])
 
   const loadSettings = async () => {
@@ -79,6 +85,18 @@ export function SettingsManager() {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadManagers = async () => {
+    setManagersLoading(true)
+    try {
+      const data = await getImplementationManagers()
+      setManagers(data)
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to load implementation managers", variant: "destructive" })
+    } finally {
+      setManagersLoading(false)
     }
   }
 
@@ -152,6 +170,29 @@ export function SettingsManager() {
     setSettings((prev) => ({ ...prev, [key]: value }))
   }
 
+  const handleManagerChange = (manager_id: string, field: keyof ImplementationManager, value: string) => {
+    setManagers((prev: ImplementationManager[]) => prev.map((m) => m.manager_id === manager_id ? { ...m, [field]: value } : m))
+  }
+
+  const handleSaveManager = async (manager: ImplementationManager) => {
+    setManagersSaving(manager.manager_id)
+    try {
+      await updateImplementationManager(manager.manager_id, {
+        name: manager.name,
+        calendar_contact_success: manager.calendar_contact_success,
+        calendar_schedule_call: manager.calendar_schedule_call,
+        calendar_integrations_call: manager.calendar_integrations_call,
+        calendar_upgrade_consultation: manager.calendar_upgrade_consultation,
+      })
+      toast({ title: "Success", description: `Saved changes for ${manager.name}` })
+      await loadManagers()
+    } catch (error) {
+      toast({ title: "Error", description: `Failed to save changes for ${manager.name}`, variant: "destructive" })
+    } finally {
+      setManagersSaving(null)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -183,7 +224,7 @@ export function SettingsManager() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             General
@@ -203,6 +244,10 @@ export function SettingsManager() {
           <TabsTrigger value="system" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
             System
+          </TabsTrigger>
+          <TabsTrigger value="implementation_managers" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Implementation Managers
           </TabsTrigger>
         </TabsList>
 
@@ -599,6 +644,58 @@ export function SettingsManager() {
                   )}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="implementation_managers" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Implementation Manager Calendar Links</CardTitle>
+              <CardDescription>Edit default calendar links for each implementation manager</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {managersLoading ? (
+                <div className="flex items-center justify-center h-24"><Loader2 className="h-6 w-6 animate-spin" /></div>
+              ) : (
+                <div className="space-y-8">
+                  {managers.map((manager) => (
+                    <div key={manager.manager_id} className="border-b pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0">
+                      <div className="flex flex-col md:flex-row md:items-center md:gap-6 mb-4">
+                        <div className="flex-1 space-y-2">
+                          <Label>Name</Label>
+                          <Input value={manager.name} onChange={e => handleManagerChange(manager.manager_id, 'name', e.target.value)} />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <Label>Contact Success Link</Label>
+                          <Input value={manager.calendar_contact_success || ''} onChange={e => handleManagerChange(manager.manager_id, 'calendar_contact_success', e.target.value)} />
+                        </div>
+                      </div>
+                      <div className="flex flex-col md:flex-row md:items-center md:gap-6">
+                        <div className="flex-1 space-y-2">
+                          <Label>Schedule Call Link</Label>
+                          <Input value={manager.calendar_schedule_call || ''} onChange={e => handleManagerChange(manager.manager_id, 'calendar_schedule_call', e.target.value)} />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <Label>Integrations Call Link</Label>
+                          <Input value={manager.calendar_integrations_call || ''} onChange={e => handleManagerChange(manager.manager_id, 'calendar_integrations_call', e.target.value)} />
+                        </div>
+                      </div>
+                      <div className="flex flex-col md:flex-row md:items-center md:gap-6 mt-4">
+                        <div className="flex-1 space-y-2">
+                          <Label>Upgrade Consultation Calendar Link</Label>
+                          <Input value={manager.calendar_upgrade_consultation || ''} onChange={e => handleManagerChange(manager.manager_id, 'calendar_upgrade_consultation', e.target.value)} />
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <Button onClick={() => handleSaveManager(manager)} disabled={managersSaving === manager.manager_id}>
+                          {managersSaving === manager.manager_id ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</> : <>Save</>}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

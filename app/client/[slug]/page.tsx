@@ -19,6 +19,8 @@ import {
   CheckCircle,
   TrendingUp,
   Kanban,
+  Rocket,
+  MessageCircle,
 } from "lucide-react"
 import { OnboardingAccessGuideWrapper } from "@/components/OnboardingAccessGuideWrapper"
 import { ClientIntegrationsSectionWrapper } from "@/components/ClientIntegrationsSectionWrapper"
@@ -39,7 +41,8 @@ import { PortalHeader, PortalNavLink } from "@/components/ui/PortalHeader"
 import { PackageHighlights } from "@/components/portal/PackageHighlights"
 import { ActionCards } from "@/components/portal/ActionCards"
 import { WhiteLabelProgress } from "@/components/WhiteLabelProgress"
-import { IMPLEMENTATION_MANAGERS } from '@/lib/implementationManagers'
+import { getImplementationManagerById } from '@/lib/implementationManagers'
+import { clsx } from "clsx"
 
 interface ClientPageProps {
   params: {
@@ -138,7 +141,15 @@ export default async function ClientPage({ params }: ClientPageProps) {
   // Check if we should show the custom app section
   const showCustomAppSection = customAppLabel === "Gray Label" || customAppLabel === "White Label"
 
-  const mgr = IMPLEMENTATION_MANAGERS[client.implementation_manager || 'vanessa']
+  // Fetch implementation manager from DB
+  const managerId = client.implementation_manager || 'vanessa'
+  const mgr = (await getImplementationManagerById(managerId)) as Partial<import('@/lib/types').ImplementationManager> || {}
+
+  // Compute effective calendar links
+  const calendar_contact_success = client.calendar_contact_success || mgr?.calendar_contact_success || '';
+  const calendar_schedule_call = client.calendar_schedule_call || mgr?.calendar_schedule_call || '';
+  const calendar_integrations_call = client.calendar_integrations_call || mgr?.calendar_integrations_call || '';
+  const calendar_upgrade_consultation = client.calendar_upgrade_consultation || mgr?.calendar_upgrade_consultation || '';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#070720] to-[#0d0d25]">
@@ -195,7 +206,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
             className="bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT text-lg px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
             asChild
           >
-            <a href={mgr.calendars.onboarding} target="_blank" rel="noopener noreferrer">
+            <a href={calendar_schedule_call} target="_blank" rel="noopener noreferrer">
               Schedule Call <ArrowRight className="ml-2 h-5 w-5" />
             </a>
           </Button>
@@ -308,9 +319,6 @@ export default async function ClientPage({ params }: ClientPageProps) {
           </p>
         </div>
         <ActionCards successPackage={successPackage} />
-        <div className="mt-12">
-          <OnboardingProgressClient clientId={client.id} projectsEnabled={projectsEnabled} />
-        </div>
       </PortalSection>
 
       {/* Helpful Resources & Tutorials Section */}
@@ -656,6 +664,16 @@ export default async function ClientPage({ params }: ClientPageProps) {
         </div>
       </PortalSection>
 
+      {/* Upsell Section - only render upsell cards here, based on current package */}
+      {["light", "premium", "gold"].includes(successPackage.toLowerCase()) && (
+        <UpgradePackageSection 
+          clientId={client.id}
+          clientName={clientName}
+          currentPackage={successPackage}
+          calendarUpgradeConsultation={calendar_upgrade_consultation}
+        />
+      )}
+
       {/* Compliance Logos Row - always visible */}
       <PortalSection gradient={false} className="flex flex-col items-center mt-8 mb-8 bg-white/10 backdrop-blur-sm py-8">
         <a href="https://hubflo.eu.trust.site/" target="_blank" rel="noopener noreferrer" className="flex gap-8 items-center justify-center">
@@ -687,7 +705,8 @@ function UpgradePackageSection({
   clientId,
   clientName,
   currentPackage,
-}: { clientId: string; clientName: string; currentPackage: string }) {
+  calendarUpgradeConsultation,
+}: { clientId: string; clientName: string; currentPackage: string; calendarUpgradeConsultation: string }) {
   // Define all packages
   const allPackages = [
     {
@@ -761,83 +780,58 @@ function UpgradePackageSection({
   const popularPackage = getPopularPackage()
 
   return (
-    <section className="py-16 px-4 bg-white">
-      <div className="container mx-auto">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center bg-[#ECB22D] bg-opacity-20 rounded-full px-6 py-3 mb-6">
-              <TrendingUp className="h-5 w-5 text-[#ECB22D] mr-2" />
-              <span className="font-semibold text-[#010124]">Upgrade Available</span>
-            </div>
-            <h2 className="text-3xl font-bold text-[#010124] mb-4">
-              Ready to <span className="text-[#ECB22D]">Level Up</span> Your Hubflo Experience?
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Unlock more features, get additional support, and accelerate your business growth with our advanced
-              success packages.
-            </p>
-          </div>
-
-          <div
-            className={`grid gap-8 ${availableUpgrades.length === 1 ? "max-w-md mx-auto" : availableUpgrades.length === 2 ? "md:grid-cols-2 max-w-4xl mx-auto" : "md:grid-cols-3"}`}
-          >
-            {availableUpgrades.map((pkg) => (
-              <Card
-                key={pkg.name}
-                className={`relative border-2 hover:shadow-lg transition-all duration-300 ${
-                  pkg.name === popularPackage ? "border-[#ECB22D] scale-105" : "border-gray-200 hover:border-[#ECB22D]"
-                }`}
-              >
-                {pkg.name === popularPackage && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-[#ECB22D] text-[#010124] px-4 py-2 rounded-full text-sm font-semibold flex items-center">
-                      <Star className="h-4 w-4 mr-1" />
-                      Recommended
-                    </div>
+    <section className="px-2 sm:px-4 pt-10 pb-4">
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-3xl md:text-4xl font-bold text-center text-white mb-2">Ready to Level-Up Your Hubflo Experience?</h2>
+        <p className="text-lg text-center text-white/80 mb-8">Unlock deeper automations and hands-on guidance by moving up to the next Success Package.</p>
+        <div className={`flex flex-col gap-8 md:flex-row md:gap-12 justify-center items-stretch`}>
+          {availableUpgrades.map((pkg) => (
+            <Card
+              key={pkg.name}
+              className={
+                `flex flex-col rounded-2xl border border-[#F2C94C] shadow-inner backdrop-blur bg-slate-900/70 text-white px-8 py-8 items-center justify-between min-w-[260px] max-w-xs mx-auto` +
+                (pkg.name === popularPackage ? ' ring-2 ring-[#F2C94C]' : '')
+              }
+            >
+              {pkg.name === popularPackage && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-[#F2C94C] text-[#010124] px-4 py-2 rounded-full text-sm font-semibold flex items-center">
+                    <Star className="h-4 w-4 mr-1" />
+                    Recommended
                   </div>
-                )}
-                <CardHeader className="text-center pb-4">
-                  <div className="text-4xl mb-2">{pkg.emoji}</div>
-                  <CardTitle className="text-2xl text-[#010124]">{pkg.name} Package</CardTitle>
-                  <CardDescription className="text-gray-600">{pkg.description}</CardDescription>
-                  <div className="text-xl font-bold text-[#010124] mt-2">{pkg.price}</div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-3">
-                    {pkg.features.map((feature, index) => (
-                      <li key={index} className="flex items-start">
-                        <CheckCircle className="h-5 w-5 text-[#ECB22D] mr-3 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <Card className="bg-gray-50 border-[#ECB22D] border">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-[#010124] mb-2">Questions About Upgrading?</h3>
-                <p className="text-gray-600 mb-4">
-                  Our team is here to help you choose the perfect package for your business needs.
-                </p>
-                <Button
-                  variant="outline"
-                  className="border-[#ECB22D] text-[#010124] hover:bg-[#ECB22D] bg-transparent"
-                  asChild
-                >
-                  <a
-                    href="https://calendly.com/vanessa-hubflo/onboarding-upgrade"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Schedule a Consultation
-                  </a>
-                </Button>
+                </div>
+              )}
+              <CardHeader className="text-center pb-4">
+                <div className="text-4xl mb-2">{pkg.emoji}</div>
+                <CardTitle className="text-2xl text-white">{pkg.name} Package</CardTitle>
+                <CardDescription className="text-white/80">{pkg.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-3">
+                  {pkg.features.map((feature, index) => (
+                    <li key={index} className="flex items-start">
+                      <CheckCircle className="h-5 w-5 text-[#F2C94C] mr-3 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-white/90">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
               </CardContent>
             </Card>
-          </div>
+          ))}
+        </div>
+        <div className="flex justify-center mt-10">
+          <Button
+            className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] hover:from-[#F2994A] hover:to-[#F2C94C] text-slate-900 font-semibold rounded-2xl px-8 py-4 text-lg shadow-lg"
+            asChild
+          >
+            <a
+              href={calendarUpgradeConsultation}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Schedule a Consultation
+            </a>
+          </Button>
         </div>
       </div>
     </section>

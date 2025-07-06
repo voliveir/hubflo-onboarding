@@ -53,7 +53,11 @@ export interface Client {
   white_label_android_url?: string | null
   white_label_ios_url?: string | null
   feedback_board_enabled?: boolean
-  implementation_manager: 'vanessa' | 'vishal'
+  implementation_manager: string
+  calendar_contact_success?: string | null
+  calendar_schedule_call?: string | null
+  calendar_integrations_call?: string | null
+  calendar_upgrade_consultation?: string | null
 }
 
 export interface Integration {
@@ -670,5 +674,17 @@ export interface FeedbackBoardCard {
   client_id: string;
   submission_date: string;
   created_by?: string | null;
+  updated_at: string;
+}
+
+export interface ImplementationManager {
+  id: string;
+  manager_id: string;
+  name: string;
+  calendar_contact_success: string;
+  calendar_schedule_call: string;
+  calendar_integrations_call: string;
+  calendar_upgrade_consultation: string;
+  created_at: string;
   updated_at: string;
 }
