@@ -5,7 +5,7 @@ import { PasswordProtection } from "@/components/password-protection"
 export default function KanbanPage() {
   return (
     <PasswordProtection>
-      <div className="flex h-screen bg-gray-100">
+      <div className="flex h-screen bg-gradient-to-br from-[#10122b] to-[#181a2f]">
         <AdminSidebar />
         <main className="flex-1 overflow-y-auto">
           <div className="p-8">

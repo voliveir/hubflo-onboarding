@@ -39,6 +39,11 @@ const packageMilestones = {
   },
 }
 
+// Capitalize helper for package names
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function getClientSegments(client: Client, pkg: string) {
   const packageData = packageMilestones[pkg as keyof typeof packageMilestones]
   const { keys, labels, colors } = packageData
@@ -81,7 +86,7 @@ export default function GanttChartPage() {
   const pathname = usePathname();
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const [chartWidth, setChartWidth] = useState(800)
-  const [dateRange, setDateRange] = useState<{ start: Date | null, end: Date | null }>({ start: null, end: null })
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined, to?: Date | undefined }>({ from: undefined })
   const [packageType, setPackageType] = useState<string>("light")
   const [timeScale, setTimeScale] = useState<string>("week")
 
@@ -108,8 +113,8 @@ export default function GanttChartPage() {
     if (c.success_package !== packageType) return false
     if (!c.created_at) return false
     const created = new Date(c.created_at)
-    if (dateRange.start && isBefore(created, dateRange.start)) return false
-    if (dateRange.end && isAfter(created, dateRange.end)) return false
+    if (dateRange.from && isBefore(created, dateRange.from)) return false
+    if (dateRange.to && isAfter(created, dateRange.to)) return false
     return true
   })
 
@@ -265,12 +270,12 @@ export default function GanttChartPage() {
 
   // Dynamic legend for the selected package
   const Legend = () => (
-    <div className="flex gap-3 mb-4 items-center">
+    <div className="flex gap-3 items-center mb-2">
       {packageMilestones[packageType as keyof typeof packageMilestones].labels.map((label, i) => (
         <span
           key={label}
-          className="px-3 py-1 rounded-full text-xs font-medium"
-          style={{ background: packageMilestones[packageType as keyof typeof packageMilestones].colors[i], color: '#fff', boxShadow: '0 1px 4px #0001' }}
+          className="px-3 py-1 rounded-full text-xs font-bold shadow-[0_1px_4px_rgba(0,0,0,0.10)]"
+          style={{ background: packageMilestones[packageType as keyof typeof packageMilestones].colors[i], color: '#fff', boxShadow: '0 1px 8px #0002' }}
         >
           {label}
         </span>
@@ -292,7 +297,7 @@ export default function GanttChartPage() {
 
   // Reset filters
   const resetFilters = () => {
-    setDateRange({ start: null, end: null })
+    setDateRange({ from: undefined })
     setPackageType("light")
   }
 
@@ -304,34 +309,41 @@ export default function GanttChartPage() {
     const [hovered, setHovered] = useState(false)
     return (
       <div
-        className={`flex items-center relative transition-colors ${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'} ${hovered ? 'ring-2 ring-blue-200 z-10' : ''}`}
-        style={{ minHeight: 56, borderBottom: '1px solid #F1F5F9', padding: '8px 0', gap: 0 }}
+        className={`flex items-center relative transition-colors ${idx % 2 === 0 ? 'bg-[#15173d]' : 'bg-[#181a2f]'} ${hovered ? 'ring-2 ring-[#F2C94C]/40 z-10' : ''}`}
+        style={{ minHeight: 56, borderBottom: '1px solid #23244a', padding: '8px 0', gap: 0 }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {/* Client name */}
-        <div className="sticky left-0 z-20 bg-inherit pr-4" style={{ minWidth: 180, fontWeight: 500, color: '#334155' }}>{d.client}</div>
-        {/* Milestone bar with anchored labels */}
+        {/* Client name sticky column */}
+        <div className="sticky left-0 z-30 pr-4 bg-[#10122b] border-l-4 border-[#F2C94C] shadow-lg" style={{ minWidth: 180, fontWeight: 600, color: '#fff', borderTopLeftRadius: 12, borderBottomLeftRadius: 12 }}>{d.client}</div>
+        {/* Milestone bar with anchored labels and grid lines */}
         <div className="relative flex-1" style={{ minWidth: chartWidth }}>
+          {/* Vertical grid lines (weekly) */}
+          <div className="absolute inset-0 flex" style={{ zIndex: 0 }}>
+            {Array.from({ length: Math.ceil(chartWidth / 100) }).map((_, i) => (
+              <div key={i} style={{ left: i * 100, width: 1, height: '100%' }} className="absolute top-0 border-l border-[#F2C94C]/25" />
+            ))}
+          </div>
+          {/* Milestone labels above segments */}
           <div className="absolute top-0 left-0 w-full h-full flex items-center" style={{ pointerEvents: 'none' }}>
             {d.segments.map((seg: any, i: number) => {
               const segStart = seg.start.getTime()
               const segEnd = seg.end.getTime()
               const segWidth = ((segEnd - segStart) / totalDuration) * chartWidth
               const segLeft = ((segStart - minDate.getTime()) / totalDuration) * chartWidth
-              // Center label above segment
               return (
                 <div
                   key={i}
                   style={{ position: 'absolute', left: segLeft, width: segWidth, textAlign: 'center', top: -22 }}
                 >
-                  <span className="text-xs text-gray-500 font-medium" style={{ background: 'rgba(255,255,255,0.85)', padding: '0 4px', borderRadius: 4, marginBottom: 4, display: 'inline-block' }}>
+                  <span className="text-xs text-gray-200 font-medium" style={{ background: 'rgba(24,26,47,0.95)', padding: '0 4px', borderRadius: 4, marginBottom: 4, display: 'inline-block' }}>
                     {seg.fromLabel} <span className="font-normal">({format(seg.fromDate, 'M/d/yyyy')})</span>
                   </span>
                 </div>
               )
             })}
           </div>
+          {/* Milestone bars */}
           <div className="absolute left-0 w-full flex items-center" style={{ height: 20, top: 8 }}>
             {d.segments.map((seg: any, i: number) => {
               const segStart = seg.start.getTime()
@@ -341,7 +353,21 @@ export default function GanttChartPage() {
               return (
                 <div
                   key={i}
-                  style={{ position: 'absolute', left: segLeft, width: segWidth, height: 14, borderRadius: 7, background: seg.color, boxShadow: '0 1px 4px #0001', border: '1px solid #e5e7eb', transition: 'box-shadow 0.2s', zIndex: 1, opacity: hovered ? 0.85 : 1 }}
+                  style={{
+                    position: 'absolute',
+                    left: segLeft,
+                    width: segWidth,
+                    height: 16,
+                    borderRadius: 8,
+                    background: seg.color,
+                    boxShadow: hovered ? '0 4px 16px #F2C94C33, 0 1px 8px #0004' : '0 1px 4px #0002',
+                    border: hovered ? '2px solid #F2C94C99' : '1px solid #e5e7eb22',
+                    transition: 'box-shadow 0.2s, border 0.2s, transform 0.2s',
+                    zIndex: 2,
+                    opacity: hovered ? 0.92 : 1,
+                    transform: hovered ? 'translateY(-1px)' : 'none',
+                    cursor: 'pointer',
+                  }}
                   title={`${seg.fromLabel} → ${seg.toLabel}: ${format(seg.fromDate, 'M/d/yyyy')} - ${format(seg.toDate, 'M/d/yyyy')} (${Math.max(1, Math.round((seg.toDate.getTime() - seg.fromDate.getTime()) / 86400000))} days)`}
                 />
               )
@@ -374,97 +400,53 @@ export default function GanttChartPage() {
 
   return (
     <PasswordProtection>
-      <div className="flex h-screen bg-gray-100">
+      <div className="flex h-screen bg-gradient-to-br from-[#10122b] to-[#181a2f]">
         <AdminSidebar />
         <main className="flex-1 overflow-y-auto">
           <div className="p-8">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Project Management</h1>
-              <p className="text-gray-600">Track clients through their success package workflows</p>
-            </div>
-            {/* Tab navigation for Kanban/Gantt */}
-            <div className="mb-4">
-              <div className="flex space-x-2 border-b border-gray-200">
-                <Link href="/admin/kanban" legacyBehavior>
-                  <a className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${pathname === "/admin/kanban" ? "border-[#ECB22D] text-[#010124] bg-white" : "border-transparent text-gray-500 hover:text-[#010124]"}`}>Kanban Board</a>
-                </Link>
-                <Link href="/admin/kanban/gantt" legacyBehavior>
-                  <a className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${pathname === "/admin/kanban/gantt" ? "border-[#ECB22D] text-[#010124] bg-white" : "border-transparent text-gray-500 hover:text-[#010124]"}`}>Gantt Chart</a>
-                </Link>
+            <h1 className="text-3xl font-bold text-white mb-8">Project Management</h1>
+            <div className="w-full rounded-2xl ring-1 ring-[#F2C94C] bg-gradient-to-br from-[#10122b] to-[#181a2f] shadow-lg p-6">
+              {/* Tab navigation for Kanban/Gantt */}
+              <div className="mb-4">
+                <div className="flex space-x-2 border-b border-gray-200">
+                  <Link href="/admin/kanban" legacyBehavior>
+                    <a className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${pathname === "/admin/kanban" ? "border-[#ECB22D] text-[#010124] bg-white" : "border-transparent text-gray-500 hover:text-[#010124]"}`}>Kanban Board</a>
+                  </Link>
+                  <Link href="/admin/kanban/gantt" legacyBehavior>
+                    <a className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${pathname === "/admin/kanban/gantt" ? "border-[#ECB22D] text-[#010124] bg-white" : "border-transparent text-gray-500 hover:text-[#010124]"}`}>Gantt Chart</a>
+                  </Link>
+                </div>
               </div>
-            </div>
-            {/* Filters */}
-            <div className="mb-2 flex items-center justify-between">
-              <div className="text-lg font-semibold text-gray-800 mb-2">Filter by Date Range</div>
-              <div className="flex-1" />
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 mr-2">Time Scale:</span>
-                <Select value={timeScale} onValueChange={setTimeScale}>
-                  <SelectTrigger className="w-28">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeScales.map(ts => (
-                      <SelectItem key={ts.value} value={ts.value}>{ts.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {/* Compact filter bar: only package dropdown as dark pill with colored dot */}
+              <div className="flex items-center mb-6 px-2 py-2 rounded-xl bg-[#181a2f]/80 ring-1 ring-[#F2C94C]/10 shadow-inner-glass backdrop-blur-md min-h-[44px]">
+                <div className="flex items-center gap-2">
+                  <Select value={packageType} onValueChange={setPackageType}>
+                    <SelectTrigger className="bg-[#181a2f] border border-[#23244a] rounded-full px-4 py-1 text-white text-xs font-semibold flex items-center gap-2 min-w-[110px]">
+                      <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ background: packageMilestones[packageType as keyof typeof packageMilestones].colors[0] }} />
+                      <span className="text-white">{capitalize(packageType)}</span>
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#181a2f] border border-[#23244a] rounded-xl mt-2">
+                      {Object.keys(packageMilestones).map((pkg) => (
+                        <SelectItem key={pkg} value={pkg} className="flex items-center gap-2 text-xs text-white">
+                          <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ background: packageMilestones[pkg as keyof typeof packageMilestones].colors[0] }} />
+                          <span className="text-white">{capitalize(pkg)}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
-            <div className="flex flex-wrap items-end gap-4 mb-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Package</label>
-                <Select value={packageType} onValueChange={setPackageType}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="light">Light</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
-                    <SelectItem value="gold">Gold</SelectItem>
-                    <SelectItem value="elite">Elite</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
-                <Calendar
-                  mode="single"
-                  selected={dateRange.start ?? undefined}
-                  onSelect={date => setDateRange(r => ({ ...r, start: date ?? null }))}
-                  className="border rounded-md shadow-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">End Date</label>
-                <Calendar
-                  mode="single"
-                  selected={dateRange.end ?? undefined}
-                  onSelect={date => setDateRange(r => ({ ...r, end: date ?? null }))}
-                  className="border rounded-md shadow-sm"
-                />
-              </div>
-              <div className="flex-1" />
-              <div className="pt-5 flex justify-end w-full">
-                <Button variant="outline" onClick={resetFilters}>Reset Filters</Button>
-              </div>
-            </div>
-            <div className="mb-6" />
-            <Legend />
-            <div className="relative" style={{
-              overflowX: 'auto',
-              overflowY: journeyData.length > 15 ? 'auto' : 'visible',
-              height: `calc(90vh - 220px)`, // 90vh minus estimated header/filters height
-              minHeight: 400,
-              maxHeight: 'none',
-              borderRadius: 16,
-              border: '1px solid #E5E7EB',
-              boxShadow: '0 2px 8px #0001',
-              background: '#F9FAFB',
-              marginBottom: 0,
-            }}>
-              <div style={{ minWidth: 1200, width: '100%' }}>
-                {journeyData.map((d, idx) => (
+              <div className="mb-6" />
+              <Legend />
+              <div className="relative overflow-x-auto scrollbar-thin scrollbar-thumb-[#F2C94C]/70 scrollbar-track-transparent" style={{ minWidth: chartWidth, WebkitOverflowScrolling: 'touch' }}>
+                {journeyData.length === 0 ? (
+                  <div className="flex items-center justify-center h-48">
+                    <div className="bg-[#181a2f] border border-[#F2C94C]/30 rounded-xl px-8 py-10 text-center text-white/80 text-lg shadow-lg">
+                      <span className="text-3xl mb-2 block">🗂️</span>
+                      No projects in this range — <span className="italic text-[#F2C94C]">adjust filters.</span>
+                    </div>
+                  </div>
+                ) : journeyData.map((d, idx) => (
                   <GanttRow
                     key={d.client}
                     d={d}
