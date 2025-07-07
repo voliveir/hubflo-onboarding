@@ -254,17 +254,17 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
   }
 
   const handleManagerChange = (managerId: string) => {
-    setFormData((prev) => {
-      const selected = managers.find(m => m.manager_id === managerId)
-      return selected ? {
+    const selected = managers.find(m => m.manager_id === managerId)
+    if (selected) {
+      setFormData((prev) => ({
         ...prev,
         implementation_manager: selected.manager_id,
         calendar_contact_success: selected.calendar_contact_success,
         calendar_schedule_call: selected.calendar_schedule_call,
         calendar_integrations_call: selected.calendar_integrations_call,
         calendar_upgrade_consultation: selected.calendar_upgrade_consultation,
-      } : prev
-    })
+      }))
+    }
   }
 
   return (

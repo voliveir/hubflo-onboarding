@@ -673,9 +673,6 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
                           <Eye className="h-4 w-4 text-[#F2C94C]" />
                         </Link>
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleEditClient(client)} className="w-8 h-8 bg-[#181a2f] rounded-md flex items-center justify-center hidden group-hover:flex">
-                        <Edit className="h-4 w-4 text-[#F2C94C]" />
-                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -692,20 +689,6 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
           )}
         </CardContent>
       </Card>
-
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Edit Client</DialogTitle>
-            <DialogDescription>Update client information and settings</DialogDescription>
-          </DialogHeader>
-          <div className="flex-1 overflow-y-auto pr-2">
-            {editingClient && (
-              <EditClientForm client={editingClient} onSuccess={handleEditSuccess} onCancel={handleEditCancel} />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

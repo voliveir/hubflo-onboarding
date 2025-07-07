@@ -258,7 +258,10 @@ export default async function ClientPage({ params }: ClientPageProps) {
       </PortalSection>
 
       {/* Onboarding Access Guide - NEW SECTION */}
-      <OnboardingAccessGuideWrapper clientName={clientName} />
+      <OnboardingAccessGuideWrapper 
+        clientName={clientName}
+        calendarContactSuccess={calendar_contact_success}
+      />
 
       {/* Visual Workflows Section - move here before Next Steps */}
       <section id="workflows" className="scroll-mt-32">
@@ -318,7 +321,14 @@ export default async function ClientPage({ params }: ClientPageProps) {
             Get started with your onboarding journey using the steps below.
           </p>
         </div>
-        <ActionCards successPackage={successPackage} />
+        <ActionCards 
+          successPackage={successPackage}
+          implementationManager={managerId === 'vanessa' || managerId === 'vishal' ? managerId : undefined}
+          calendarScheduleCall={calendar_schedule_call}
+          calendarContactSuccess={calendar_contact_success}
+          calendarIntegrationsCall={calendar_integrations_call}
+          calendarUpgradeConsultation={calendar_upgrade_consultation}
+        />
       </PortalSection>
 
       {/* Helpful Resources & Tutorials Section */}
@@ -470,6 +480,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
               })) as any)}
             showDefault={true}
             successPackage={successPackage}
+            calendarIntegrationsCall={calendar_integrations_call}
           />
         )}
       </PortalSection>

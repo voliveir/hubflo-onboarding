@@ -8,12 +8,14 @@ interface ActionCardsProps {
   successPackage: string
   implementationManager?: 'vanessa' | 'vishal'
   calendarScheduleCall?: string
+  calendarContactSuccess?: string
+  calendarIntegrationsCall?: string
   calendarUpgradeConsultation?: string
   hideUpsells?: boolean
   onlyUpsells?: boolean
 }
 
-export function ActionCards({ successPackage, implementationManager = 'vanessa', calendarScheduleCall, calendarUpgradeConsultation, hideUpsells = false, onlyUpsells = false }: ActionCardsProps) {
+export function ActionCards({ successPackage, implementationManager = 'vanessa', calendarScheduleCall, calendarContactSuccess, calendarIntegrationsCall, calendarUpgradeConsultation, hideUpsells = false, onlyUpsells = false }: ActionCardsProps) {
   const { ref, isVisible } = useReveal()
 
   const actions = [
@@ -35,9 +37,9 @@ export function ActionCards({ successPackage, implementationManager = 'vanessa',
       title: "Schedule Your Next Onboarding Call",
       icon: Calendar,
       description: "Book your next onboarding call once you've completed your tasks and are ready to proceed to automations and integrations (as well as any questions lingering from your initial play around in Hubflo!)",
-      href: calendarScheduleCall || "https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone",
+      href: calendarIntegrationsCall || "https://calendly.com/vanessa-hubflo/integration-call",
       buttonText: "Schedule Call"
-    }] : [])
+    }] : []),
   ]
 
   return (

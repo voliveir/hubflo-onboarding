@@ -8,9 +8,10 @@ import Image from "next/image"
 
 interface OnboardingAccessGuideProps {
   clientName: string
+  calendarContactSuccess?: string
 }
 
-export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps) {
+export function OnboardingAccessGuide({ clientName, calendarContactSuccess }: OnboardingAccessGuideProps) {
   const { ref, isVisible } = useReveal()
   
   const steps = [
@@ -30,7 +31,7 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
       ],
       ctaText: "Need help?",
       ctaActionLabel: "Contact Success",
-      ctaActionUrl: "https://calendly.com/vanessa-hubflo/30min",
+      ctaActionUrl: calendarContactSuccess || "https://calendly.com/vanessa-hubflo/30min",
     },
     {
       id: 2,
@@ -66,7 +67,7 @@ export function OnboardingAccessGuide({ clientName }: OnboardingAccessGuideProps
       ],
       ctaText: "Need help?",
       ctaActionLabel: "Contact Success",
-      ctaActionUrl: "https://calendly.com/vanessa-hubflo/30min",
+      ctaActionUrl: calendarContactSuccess || "https://calendly.com/vanessa-hubflo/30min",
     },
   ]
 

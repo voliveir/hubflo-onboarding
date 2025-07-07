@@ -8,8 +8,9 @@ interface ClientIntegrationsSectionWrapperProps {
   integrations?: any[]
   showDefault?: boolean
   successPackage?: string
+  calendarIntegrationsCall?: string
 }
 
 export function ClientIntegrationsSectionWrapper(props: ClientIntegrationsSectionWrapperProps) {
-  return <ClientIntegrationsSection {...props} />
+  return <ClientIntegrationsSection {...props} calendarIntegrationsCall={props.calendarIntegrationsCall} />
 } 

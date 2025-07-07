@@ -25,6 +25,7 @@ interface ClientIntegrationsSectionProps {
   integrations?: Integration[]
   showDefault?: boolean
   successPackage?: string
+  calendarIntegrationsCall?: string
 }
 
 export function ClientIntegrationsSection({
@@ -33,6 +34,7 @@ export function ClientIntegrationsSection({
   integrations: providedIntegrations,
   showDefault = false,
   successPackage = "premium",
+  calendarIntegrationsCall,
 }: ClientIntegrationsSectionProps) {
   const { ref, isVisible } = useReveal()
   const [integrations, setIntegrations] = useState<Integration[]>([])
@@ -330,7 +332,7 @@ export function ClientIntegrationsSection({
               </p>
               <Button className="bg-brand-gold hover:bg-brand-gold/90 text-brand-DEFAULT transition-all duration-200 hover:scale-105" asChild>
                 <a
-                  href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
+                  href={calendarIntegrationsCall || "https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

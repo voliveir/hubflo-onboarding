@@ -108,15 +108,9 @@ export default function HomePage() {
                         <span className="w-10 h-10 bg-brand-gold text-brand-DEFAULT rounded-full flex items-center justify-center font-bold text-sm shadow-lg">
                           2
                         </span>
-                        <Link
-                          href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-brand-DEFAULT font-medium hover:text-brand-gold underline cursor-pointer flex items-center group"
-                        >
-                          Schedule your first call
-                          <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Link>
+                        <span className="text-brand-DEFAULT font-medium">
+                          Schedule your first call - check your welcome email for the calendar link!
+                        </span>
                       </div>
                       <div className="flex items-center space-x-4 p-3 bg-white/80 rounded-xl">
                         <span className="w-10 h-10 bg-brand-gold text-brand-DEFAULT rounded-full flex items-center justify-center font-bold text-sm shadow-lg">

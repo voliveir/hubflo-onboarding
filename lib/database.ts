@@ -191,6 +191,11 @@ const transformClientForDb = (clientData: any): any => {
     transformed.feedback_board_enabled = !!transformed.feedback_board_enabled;
   }
 
+  // Always include implementation_manager if present
+  if (typeof clientData.implementation_manager !== "undefined") {
+    transformed.implementation_manager = clientData.implementation_manager;
+  }
+
   return transformed
 }
 
