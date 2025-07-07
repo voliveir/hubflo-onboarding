@@ -228,19 +228,21 @@ export function FeedbackBoardAdmin() {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingCard ? 'Edit Feedback' : 'Add Feedback'}</DialogTitle>
+            <DialogTitle className="text-black">{editingCard ? 'Edit Feedback' : 'Add Feedback'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
               placeholder="Title"
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              className="text-black placeholder:text-black/50"
             />
             <Textarea
               placeholder="Description (markdown supported)"
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
               rows={4}
+              className="text-black placeholder:text-black/50"
             />
             <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v }))}>
               <SelectTrigger>
@@ -262,6 +264,7 @@ export function FeedbackBoardAdmin() {
                   setForm(f => ({ ...f, client_id: '' }));
                 }}
                 onFocus={() => setClientSearch('')}
+                className="text-black placeholder:text-black/50"
               />
               {clientSearch && (
                 <div className="absolute z-10 bg-white border w-full max-h-48 overflow-auto shadow-lg rounded">
