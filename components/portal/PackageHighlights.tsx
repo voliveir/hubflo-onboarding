@@ -14,9 +14,9 @@ export function PackageHighlights({ successPackage }: PackageHighlightsProps) {
   const getPackageFeature = (type: 'calls' | 'integrations' | 'forms' | 'support') => {
     switch (type) {
       case 'calls':
-        return successPackage === "elite" ? "Unlimited" : 
-               successPackage === "gold" ? "Up to 3" : 
-               successPackage === "premium" ? "2" : "1"
+        return successPackage === "elite" ? "Unlimited Calls" : 
+               successPackage === "gold" ? "Up to 3 Calls" : 
+               successPackage === "premium" ? "2 Calls" : "1 Call"
       case 'integrations':
         return successPackage === "elite" ? "Custom Integrations" : 
                successPackage === "gold" ? "Advanced Zapier" : 
