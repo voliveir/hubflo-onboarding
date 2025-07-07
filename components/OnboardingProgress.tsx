@@ -58,8 +58,8 @@ export default function OnboardingProgress({ clientId, projectsEnabled }: Onboar
 
   return (
     <div className="mb-10 max-w-6xl mx-auto rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 relative overflow-hidden">
-      <div className="p-8">
-        <div className="flex items-center justify-center gap-2 mb-6">
+      <div className="px-8 py-[48px] md:px-8 md:py-[48px]">
+        <div className="flex items-center justify-center gap-2 mb-4">
           <h3 className="text-2xl font-bold text-white text-center">Onboarding Progress</h3>
           <span className="relative group cursor-pointer">
             <Info className="h-5 w-5 text-brand-gold" />
@@ -68,11 +68,11 @@ export default function OnboardingProgress({ clientId, projectsEnabled }: Onboar
             </span>
           </span>
         </div>
-        
+        <div style={{ height: 16 }} />
         <div className="flex flex-col lg:flex-row lg:items-start gap-8">
           {/* Task list - 1 column on mobile */}
           <div className="flex-1">
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               {tasksWithStatus.map((task, i) => (
                 <li key={task.key} className="flex items-center gap-4 group rounded-xl px-4 py-3 transition-all duration-200 bg-white/5 border border-white/10 hover:bg-white/10"> 
                   <span className={`flex items-center justify-center rounded-full border-2 ${task.completed ? 'bg-brand-gold border-brand-gold' : 'bg-white/20 border-white/30'} w-8 h-8 transition-all duration-300`}>
@@ -87,32 +87,30 @@ export default function OnboardingProgress({ clientId, projectsEnabled }: Onboar
           </div>
           
           {/* Progress bar and percentage */}
-          <div className="flex-1 flex flex-col justify-center items-center gap-6">
-            <div className="w-full flex flex-col items-center">
-              <div className="w-full mb-3 flex justify-between text-sm text-white/80">
-                <span>{completed} of {total} tasks complete</span>
-                <span>{percent}%</span>
-              </div>
-              <div className="w-full relative">
-                <div className="w-full h-8 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${percent}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                    style={{ 
-                      width: `${percent}%`,
-                      height: '100%',
-                      background: 'linear-gradient(to right, #ECB22D, rgba(236, 178, 45, 0.8))',
-                      borderRadius: '9999px'
-                    }}
-                  />
-                </div>
-                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-bold text-white">{percent}% Complete</span>
-              </div>
+          <div className="flex-1 flex flex-col justify-center items-center gap-0">
+            <div className="w-full mb-0 flex justify-between text-sm text-white/80">
+              <span>{completed} of {total} tasks complete</span>
+              <span>{percent}%</span>
             </div>
-            
-            {/* Milestones */}
-            <div className="flex gap-4 mt-4">
+            <div style={{ height: 16 }} />
+            <div className="w-full relative">
+              <div className="w-full h-8 bg-white/10 rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${percent}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  style={{ 
+                    width: `${percent}%`,
+                    height: '100%',
+                    background: 'linear-gradient(to right, #ECB22D, rgba(236, 178, 45, 0.8))',
+                    borderRadius: '9999px'
+                  }}
+                />
+              </div>
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-bold text-white">{percent}% Complete</span>
+            </div>
+            <div style={{ height: 16 }} />
+            <div className="flex gap-4 mt-0">
               {MILESTONES.map((m, i) => (
                 <div
                   key={i}

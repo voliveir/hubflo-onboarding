@@ -331,6 +331,9 @@ export default async function ClientPage({ params }: ClientPageProps) {
         />
       </PortalSection>
 
+      {/* Onboarding Progress Bar Section (restored) */}
+      <OnboardingProgressClient clientId={client.id} projectsEnabled={projectsEnabled} />
+
       {/* Helpful Resources & Tutorials Section */}
       <PortalSection gradient={false} className="bg-white/10 backdrop-blur-sm mt-16">
         <div className="max-w-3xl mx-auto">

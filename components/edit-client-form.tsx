@@ -254,7 +254,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
   }
 
   const handleManagerChange = (managerId: string) => {
-    const selected = managers.find(m => m.manager_id === managerId)
+      const selected = managers.find(m => m.manager_id === managerId)
     if (selected) {
       setFormData((prev) => ({
         ...prev,
