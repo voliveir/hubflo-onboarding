@@ -41,6 +41,8 @@ const navigation = [
       { name: "All Clients", href: "/admin/clients" },
       { name: "Active Clients", href: "/admin/clients?status=active" },
       { name: "Completed Clients", href: "/admin/clients?status=completed" },
+      { name: "Vanessa Clients", href: "/admin/clients?implementation_manager=vanessa" },
+      { name: "Vishal Clients", href: "/admin/clients?implementation_manager=vishal" },
       { name: "Add New Client", href: "/admin/clients/new" },
     ] as NavChild[],
   },

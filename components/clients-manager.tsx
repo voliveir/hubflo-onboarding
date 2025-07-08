@@ -32,7 +32,7 @@ interface FilterState {
   implementationManager: string
 }
 
-export function ClientsManager({ initialStatus }: { initialStatus?: string } = {}) {
+export function ClientsManager({ initialStatus, initialImplementationManager }: { initialStatus?: string, initialImplementationManager?: string } = {}) {
   const [clients, setClients] = useState<Client[]>([])
   const [filteredClients, setFilteredClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,15 +53,18 @@ export function ClientsManager({ initialStatus }: { initialStatus?: string } = {
     usersMax: "",
     revenueMin: "",
     revenueMax: "",
-    implementationManager: ""
+    implementationManager: initialImplementationManager || ""
   })
 
   useEffect(() => {
     if (initialStatus) {
       setFilters((prev) => ({ ...prev, status: initialStatus }))
     }
+    if (initialImplementationManager) {
+      setFilters((prev) => ({ ...prev, implementationManager: initialImplementationManager }))
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialStatus])
+  }, [initialStatus, initialImplementationManager])
 
   useEffect(() => {
     loadClients()
