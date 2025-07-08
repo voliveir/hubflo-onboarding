@@ -218,7 +218,7 @@ export async function createClient(formData: any): Promise<Client> {
       status: formData.status || "active",
       // Required fields with defaults
       plan_type: formData.plan_type || "pro", // Use form data or default to pro
-      revenue_amount: 0, // Default revenue
+      revenue_amount: typeof formData.revenue_amount !== "undefined" ? Number(formData.revenue_amount) : 0,
       custom_app: convertCustomAppToDb(formData.custom_app || "Not Applicable"),
       notes: null, // Optional notes
       // Initialize project tracking fields
