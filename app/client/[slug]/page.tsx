@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 // Removed 'use client' to make this a Server Component
 
 import { ClientImplementationProgressWrapper } from "@/components/ClientImplementationProgressWrapper"

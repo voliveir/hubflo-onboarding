@@ -142,14 +142,39 @@ export function ClientFeaturesManager({ clientFeatures, availableFeatures, clien
                       />
                       <span className="text-xs text-slate-300">Enabled</span>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteClientFeature(clientFeature.id)}
-                      className="rounded-full border border-red-500 text-red-400 hover:bg-red-900/20 flex items-center gap-2 px-4 py-1 h-8"
-                    >
-                      <Trash2 className="h-4 w-4" /> Delete
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteClientFeature(clientFeature.id)}
+                        className="rounded-full border border-red-500 text-red-400 hover:bg-red-900/20 flex items-center gap-2 px-4 py-1 h-8"
+                      >
+                        <Trash2 className="h-4 w-4" /> Delete
+                      </Button>
+                      <Dialog open={editingFeature?.id === clientFeature.id} onOpenChange={(open) => setEditingFeature(open ? clientFeature : null)}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-full border border-blue-500 text-blue-400 hover:bg-blue-900/20 flex items-center gap-2 px-4 py-1 h-8"
+                          >
+                            <Edit className="h-4 w-4" /> Edit
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl bg-[#10122b] border border-[#F2C94C]/30">
+                          <DialogHeader>
+                            <DialogTitle className="text-white">Edit Feature for {client?.name}</DialogTitle>
+                          </DialogHeader>
+                          <FeatureUpdateForm
+                            clientFeature={clientFeature}
+                            onSubmit={async (updates) => {
+                              await handleUpdateFeature(clientFeature.id, updates)
+                              setEditingFeature(null)
+                            }}
+                          />
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </div>
                 </div>
               )
