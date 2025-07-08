@@ -13,9 +13,11 @@ function generateSlug(name: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  // Security: check API key
   const apiKey = req.headers.get('x-api-key');
-  if (!API_KEY || apiKey !== API_KEY) {
+  const serverKey = process.env.CLIENT_CREATION_API_KEY;
+  console.log('Received x-api-key:', apiKey);
+  console.log('Server API_KEY:', serverKey);
+  if (!serverKey || apiKey !== serverKey) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
