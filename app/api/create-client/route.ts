@@ -32,7 +32,8 @@ export async function POST(req: NextRequest) {
     if (!client) {
       return NextResponse.json({ error: 'Failed to create client' }, { status: 400 });
     }
-    const portalUrl = `/client/${client.slug}`;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const portalUrl = `${baseUrl}/client/${client.slug}`;
     return NextResponse.json({ portalUrl, client }, { status: 201 });
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Unknown error' }, { status: 400 });
