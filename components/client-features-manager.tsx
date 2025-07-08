@@ -167,15 +167,47 @@ export function ClientFeaturesManager({ clientFeatures, availableFeatures, clien
                     <DialogTitle className="text-white">Propose Feature to Client</DialogTitle>
                     <DialogDescription className="text-white/80">Select a feature to propose to {client?.name}</DialogDescription>
                   </DialogHeader>
+                  {unassignedFeatures.length > 0 ? (
+                    <FeatureProposalForm
+                      availableFeatures={unassignedFeatures}
+                      clientPackage={client?.success_package || ""}
+                      onSubmit={handleProposeFeature}
+                      client={client}
+                    />
+                  ) : (
+                    <div className="text-slate-400 py-8 text-center">No features available to propose. Please add features in the Features section.</div>
+                  )}
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        )}
+        {/* Always show Propose Feature button if no features at all */}
+        {clientFeatures.length === 0 && (
+          <div className="flex justify-end mt-8">
+            <Dialog open={isProposalDialogOpen} onOpenChange={setIsProposalDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-[#F2C94C] via-[#F2994A] to-[#F2C94C] text-white font-semibold rounded-full px-6 py-2 shadow-md hover:shadow-gold-400/40 transition-all duration-150">
+                  <Plus className="h-4 w-4 mr-2" /> Propose Feature
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl bg-[#10122b] border border-[#F2C94C]/30">
+                <DialogHeader>
+                  <DialogTitle className="text-white">Propose Feature to Client</DialogTitle>
+                  <DialogDescription className="text-white/80">Select a feature to propose to {client?.name}</DialogDescription>
+                </DialogHeader>
+                {unassignedFeatures.length > 0 ? (
                   <FeatureProposalForm
                     availableFeatures={unassignedFeatures}
                     clientPackage={client?.success_package || ""}
                     onSubmit={handleProposeFeature}
                     client={client}
                   />
-                </DialogContent>
-              </Dialog>
-            </div>
+                ) : (
+                  <div className="text-slate-400 py-8 text-center">No features available to propose. Please add features in the Features section.</div>
+                )}
+              </DialogContent>
+            </Dialog>
           </div>
         )}
       </div>
@@ -194,6 +226,7 @@ function FeatureProposalForm({ availableFeatures, clientPackage, onSubmit, clien
   const [selectedFeatureId, setSelectedFeatureId] = useState("")
   const [salesPerson, setSalesPerson] = useState("")
   const [customNotes, setCustomNotes] = useState("")
+  const [status, setStatus] = useState("proposed")
   const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -209,6 +242,7 @@ function FeatureProposalForm({ availableFeatures, clientPackage, onSubmit, clien
             featureId: selectedFeatureId,
             salesPerson,
             customNotes,
+            status,
           }),
         })
         const data = await res.json()
@@ -216,6 +250,7 @@ function FeatureProposalForm({ availableFeatures, clientPackage, onSubmit, clien
           setSelectedFeatureId("")
           setSalesPerson("")
           setCustomNotes("")
+          setStatus("proposed")
           if (onSubmit) onSubmit(selectedFeatureId, salesPerson, customNotes)
           window.location.reload(); // Reload the page to show the new feature
         } else {
@@ -256,6 +291,23 @@ function FeatureProposalForm({ availableFeatures, clientPackage, onSubmit, clien
         {relevantFeatures.length === 0 && (
           <p className="text-sm text-slate-400 mt-1">No features available for the {clientPackage} package.</p>
         )}
+      </div>
+
+      <div>
+        <Label htmlFor="status" className="text-white">Status</Label>
+        <Select value={status} onValueChange={setStatus} required>
+          <SelectTrigger className="text-white bg-[#181a2f] border border-slate-700 rounded-lg focus:ring-2 focus:ring-[#F2C94C]">
+            <SelectValue placeholder="Select status" className="text-white placeholder-white/60" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#181a2f] text-white">
+            <SelectItem value="proposed" className="text-white">Proposed</SelectItem>
+            <SelectItem value="interested" className="text-white">Interested</SelectItem>
+            <SelectItem value="approved" className="text-white">Approved</SelectItem>
+            <SelectItem value="implementing" className="text-white">Implementing</SelectItem>
+            <SelectItem value="completed" className="text-white">Completed</SelectItem>
+            <SelectItem value="declined" className="text-white">Declined</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div>

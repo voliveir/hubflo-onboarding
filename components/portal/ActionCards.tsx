@@ -1,6 +1,6 @@
 'use client'
 
-import { Mail, Layout, Calendar, ExternalLink } from 'lucide-react'
+import { Mail, Layout, Calendar, ExternalLink, Rocket } from 'lucide-react'
 import { useReveal } from '@/hooks/useReveal'
 import { cn } from '@/lib/utils'
 
@@ -33,6 +33,11 @@ export function ActionCards({ successPackage, implementationManager = 'vanessa',
       href: "https://hubflo-onboarding.hubflo.com/",
       buttonText: "Start Setup"
     },
+    ...(successPackage.toLowerCase() === "light" ? [{
+      title: "Go-Live!",
+      icon: Rocket,
+      description: "Beta test on 2-3 clients for a few weeks and iterate as you get client feedback!"
+    }] : []),
     ...(successPackage.toLowerCase() !== "light" ? [{
       title: "Schedule Your Next Onboarding Call",
       icon: Calendar,
@@ -70,15 +75,17 @@ export function ActionCards({ successPackage, implementationManager = 'vanessa',
             {action.description}
           </p>
           
-          <a
-            href={action.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full mt-auto bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT font-semibold rounded-2xl px-6 py-3 text-center block transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-          >
-            {action.buttonText}
-            <ExternalLink className="h-4 w-4" />
-          </a>
+          {action.href && action.buttonText && (
+            <a
+              href={action.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full mt-auto bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT font-semibold rounded-2xl px-6 py-3 text-center block transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+            >
+              {action.buttonText}
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          )}
         </div>
       ))}
     </div>
