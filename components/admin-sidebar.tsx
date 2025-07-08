@@ -30,6 +30,11 @@ const navigation = [
     icon: LayoutDashboard,
   },
   {
+    name: "Analytics",
+    href: "/admin/analytics",
+    icon: TrendingUp,
+  },
+  {
     name: "Client Follow-ups",
     href: "/admin/client-follow-ups",
     icon: BarChart3,

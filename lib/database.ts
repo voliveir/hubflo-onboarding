@@ -2262,65 +2262,71 @@ export async function createClientSatisfactionScore(
   return data
 }
 
-export async function getAnalyticsOverview(
-  startDate?: string,
-  endDate?: string
-): Promise<AnalyticsOverview> {
+export async function getAnalyticsOverview(startDate?: string, endDate?: string) {
   try {
-    // Get basic client stats
-    const clients = await getAllClients()
-    const totalClients = clients.length
-    const activeClients = clients.filter(c => c.status === "active").length
+    // Get all clients
+    const clients = await getAllClients();
+    const totalClients = clients.length;
+    const activeClients = clients.filter(c => c.status === "active").length;
 
-    // Get conversion rates
-    const conversionData = await getConversionAnalytics(undefined, startDate, endDate)
-    const avgConversionRate = conversionData.length > 0 
-      ? conversionData.reduce((sum, item) => sum + (item.conversion_rate || 0), 0) / conversionData.length
-      : 0
+    // MRR calculation
+    let mrr = 0;
+    let arr = 0;
+    let payingClients = 0;
+    let nonPayingClients = 0;
+    const clientsByPackage: Record<string, number> = {};
+    const now = new Date();
+    let growthCount = 0;
 
-    // Get satisfaction scores
-    const satisfactionData = await getClientSatisfactionScores(undefined, undefined, startDate, endDate)
-    const avgClientSatisfaction = satisfactionData.length > 0
-      ? satisfactionData.reduce((sum, item) => sum + item.overall_satisfaction, 0) / satisfactionData.length
-      : 0
-
-    // Calculate revenue
-    const revenueData = await getRevenueAnalytics(undefined, startDate, endDate)
-    const totalRevenue = revenueData.reduce((sum, item) => sum + (item.total_revenue || 0), 0)
-    const revenueGrowth = revenueData.length > 1 
-      ? ((revenueData[0]?.total_revenue || 0) - (revenueData[1]?.total_revenue || 0)) / (revenueData[1]?.total_revenue || 1) * 100
-      : 0
+    for (const client of clients) {
+      // Count by package
+      if (client.success_package) {
+        clientsByPackage[client.success_package] = (clientsByPackage[client.success_package] || 0) + 1;
+      }
+      // MRR logic
+      if (typeof client.revenue_amount === 'number' && client.revenue_amount > 0) {
+        payingClients++;
+        if (client.billing_type === 'monthly') {
+          mrr += client.revenue_amount;
+        } else if (client.billing_type === 'quarterly') {
+          mrr += client.revenue_amount / 3;
+        } else if (client.billing_type === 'yearly' || client.billing_type === 'annually') {
+          mrr += client.revenue_amount / 12;
+        }
+      } else {
+        nonPayingClients++;
+      }
+      // Growth: clients created in last 30 days
+      if (client.created_at) {
+        const created = new Date(client.created_at);
+        const diffDays = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
+        if (diffDays <= 30) growthCount++;
+      }
+    }
+    arr = mrr * 12;
+    // Total revenue (sum of all revenue_amount)
+    const totalRevenue = clients.reduce((sum, c) => sum + (typeof c.revenue_amount === 'number' ? c.revenue_amount : 0), 0);
+    // Growth rate: percent of new clients in last 30 days
+    const growthRate = totalClients > 0 ? (growthCount / totalClients) * 100 : 0;
 
     // Find top performing package
-    const packageStats = clients.reduce((acc, client) => {
-      acc[client.success_package] = (acc[client.success_package] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-    const topPerformingPackage = Object.entries(packageStats)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] || "premium"
-
-    // Calculate average onboarding time
-    const journeyData = await Promise.all(
-      clients.slice(0, 10).map(client => getClientJourneyAnalytics(client.id))
-    )
-    const allJourneys = journeyData.flat()
-    const avgOnboardingTime = allJourneys.length > 0
-      ? allJourneys.reduce((sum, journey) => sum + (journey.duration_days || 0), 0) / allJourneys.length
-      : 0
+    const topPerformingPackage = Object.entries(clientsByPackage).sort(([,a],[,b]) => b - a)[0]?.[0] || "premium";
 
     return {
       totalClients,
       activeClients,
-      avgConversionRate: Math.round(avgConversionRate * 100) / 100,
-      avgClientSatisfaction: Math.round(avgClientSatisfaction * 100) / 100,
+      mrr: Math.round(mrr * 100) / 100,
+      arr: Math.round(arr * 100) / 100,
       totalRevenue: Math.round(totalRevenue * 100) / 100,
-      revenueGrowth: Math.round(revenueGrowth * 100) / 100,
+      clientsByPackage,
+      payingClients,
+      nonPayingClients,
+      growthRate: Math.round(growthRate * 100) / 100,
       topPerformingPackage,
-      avgOnboardingTime: Math.round(avgOnboardingTime * 100) / 100,
-    }
+    };
   } catch (error) {
-    console.error("Error getting analytics overview:", error)
-    throw error
+    console.error("Error getting analytics overview:", error);
+    throw error;
   }
 }
 
