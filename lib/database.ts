@@ -119,6 +119,7 @@ function transformClientFromDb(data: any): Client {
     white_label_ios_url: data.white_label_ios_url,
     feedback_board_enabled: data.feedback_board_enabled || false,
     implementation_manager: data.implementation_manager || undefined,
+    churned: data.churned || false,
   }
 }
 
@@ -194,6 +195,10 @@ const transformClientForDb = (clientData: any): any => {
   // Always include implementation_manager if present
   if (typeof clientData.implementation_manager !== "undefined") {
     transformed.implementation_manager = clientData.implementation_manager;
+  }
+
+  if (typeof clientData.churned !== "undefined") {
+    transformed.churned = !!clientData.churned
   }
 
   return transformed

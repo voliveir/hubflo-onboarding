@@ -215,29 +215,130 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
         <h2 className="text-2xl font-bold text-white mb-4">💼 Business Overview</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Total Clients</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Total Clients</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Number of all clients in the system.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">{data.totalClients}</div>
           </Card>
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Paying Clients</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Paying Clients</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Clients with an active paid subscription.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">{data.payingClients}</div>
           </Card>
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">MRR</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>MRR</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Monthly Recurring Revenue from all active subscriptions.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">${data.mrr?.toLocaleString()}</div>
           </Card>
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">ARR</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>ARR</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Annual Recurring Revenue, calculated as MRR x 12.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">${data.arr?.toLocaleString()}</div>
           </Card>
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Growth Rate (30d)</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Growth Rate (30d)</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Percentage increase in total clients over the last 30 days.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">{data.growthRate}%</div>
           </Card>
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Total Revenue</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Total Revenue</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Total revenue generated from all clients.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">${data.revenue?.total?.toLocaleString() ?? '-'}</div>
           </Card>
+          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+            <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
+              <span>Churned Clients</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Number of clients marked as churned (no longer active customers).</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="text-3xl font-extrabold text-white">{data.churnedClients ?? '-'}</div>
+          </Card>
+          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+            <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
+              <span>Churn Rate</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Percentage of all clients who have churned (no longer active customers).</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="text-3xl font-extrabold text-white">{data.totalClients ? `${((data.churnedClients / data.totalClients) * 100).toFixed(1)}%` : '-'}</div>
+          </Card>
+          {/* TODO: If data.churnedClients is not available, update the backend analytics API to include it. */}
         </div>
         <div className="text-xs text-white mb-10">Last updated: {lastUpdated}</div>
       </div>
@@ -247,27 +348,99 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
         <h2 className="text-2xl font-bold text-white mb-4">🚀 Onboarding Progress & Health</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
           <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Time to First Value</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Time to First Value</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Average days from signup to first successful onboarding milestone.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">{data.implementationHealth?.timeToFirstValue !== null ? `${data.implementationHealth?.timeToFirstValue} days` : '-'}</div>
           </Card>
           <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Avg. Onboarding Duration</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Avg. Onboarding Duration</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Average time to complete onboarding for all clients.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">{data.implementationHealth?.avgOnboardingDuration !== null ? `${data.implementationHealth?.avgOnboardingDuration} days` : '-'}</div>
           </Card>
           <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Active Implementations</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Active Implementations</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Clients currently in the onboarding process.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">{data.implementationHealth?.activeImplementations ?? '-'}</div>
           </Card>
           <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] border-yellow-400 bg-yellow-900/30">
-            <div className="text-base text-white mb-1 font-medium">At-Risk Clients</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>At-Risk Clients</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Clients flagged as at risk of churn or onboarding failure.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-yellow-300">{data.implementationHealth?.atRiskClients ?? '-'}</div>
           </Card>
           <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Expiring Contracts (90d)</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Expiring Contracts (90d)</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Clients with contracts ending in the next 90 days.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">{data.contractRenewal?.expiring90?.length ?? '-'}</div>
           </Card>
           <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Revenue at Risk (90d)</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Revenue at Risk (90d)</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Total revenue from contracts expiring in the next 90 days.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className={`text-3xl font-extrabold ${data.contractRenewal?.revenueAtRisk ? 'text-red-400' : 'text-white'}`}>${data.contractRenewal?.revenueAtRisk?.toLocaleString() ?? '-'}</div>
           </Card>
         </div>
@@ -381,11 +554,35 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
         <h2 className="text-2xl font-bold text-white mb-4">📈 Client Engagement</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Avg. Engagement Score</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Avg. Engagement Score</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Average engagement score across all clients.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">{data.engagement?.avgScore ?? '-'}</div>
           </Card>
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Low Engagement Clients</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Low Engagement Clients</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Number of clients with low engagement scores.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">{data.engagement?.lowEngagementClients?.length ?? '-'}</div>
           </Card>
         </div>
@@ -496,11 +693,35 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Top Revenue Plan</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Top Revenue Plan</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Plan type generating the most revenue.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">{data.revenue?.topRevenuePlan ?? '-'}</div>
           </Card>
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">Highest Revenue Package</div>
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Highest Revenue Package</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Success package with the highest total revenue.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             <div className="text-3xl font-extrabold text-white">{data.revenue?.topRevenuePackage ?? '-'}</div>
           </Card>
         </div>
@@ -510,19 +731,67 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
       {/* Contract Renewal Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
         <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-          <div className="text-base text-white mb-1 font-medium">Contracts Expiring in 30 Days</div>
+          <div className="text-base text-white mb-1 font-medium">
+            <div className="flex items-center gap-1">
+              <span>Contracts Expiring in 30 Days</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Clients with contracts expiring in the next 30 days.</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
           <div className="text-3xl font-extrabold text-yellow-300">{data.contractRenewal?.expiring30?.length ?? '-'}</div>
         </Card>
         <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-          <div className="text-base text-white mb-1 font-medium">Contracts Expiring in 60 Days</div>
+          <div className="text-base text-white mb-1 font-medium">
+            <div className="flex items-center gap-1">
+              <span>Contracts Expiring in 60 Days</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Clients with contracts expiring in the next 60 days.</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
           <div className="text-3xl font-extrabold text-yellow-300">{data.contractRenewal?.expiring60?.length ?? '-'}</div>
         </Card>
         <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-          <div className="text-base text-white mb-1 font-medium">Contracts Expiring in 90 Days</div>
+          <div className="text-base text-white mb-1 font-medium">
+            <div className="flex items-center gap-1">
+              <span>Contracts Expiring in 90 Days</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Clients with contracts expiring in the next 90 days.</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
           <div className="text-3xl font-extrabold text-yellow-300">{data.contractRenewal?.expiring90?.length ?? '-'}</div>
         </Card>
         <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-          <div className="text-base text-white mb-1 font-medium">Revenue at Risk (90d)</div>
+          <div className="text-base text-white mb-1 font-medium">
+            <div className="flex items-center gap-1">
+              <span>Revenue at Risk (90d)</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Total revenue from contracts expiring in the next 90 days.</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
           <div className="text-3xl font-extrabold text-red-400">${data.contractRenewal?.revenueAtRisk?.toLocaleString() ?? '-'}</div>
         </Card>
       </div>
@@ -559,7 +828,17 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
             key={metric.label}
             className={`bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center rounded-xl border border-[#23244a] transition-transform duration-200 hover:scale-105 hover:shadow-2xl group ${metric.highlight ? 'border-yellow-400 bg-yellow-900/30' : ''}`}
           >
-            <div className={`text-base mb-1 font-medium tracking-wide group-hover:text-gold-400 transition-colors ${metric.highlight ? 'text-yellow-300' : 'text-white'}`}>{metric.label}</div>
+            <div className={`text-base mb-1 font-medium tracking-wide group-hover:text-gold-400 transition-colors ${metric.highlight ? 'text-yellow-300' : 'text-white'}`}>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Average days from signup to first successful onboarding milestone.</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              Time to First Value
+            </div>
             <div className={`text-3xl font-extrabold group-hover:text-gold-400 transition-colors drop-shadow ${metric.highlight ? 'text-yellow-300' : 'text-white'}`}>{metric.value}</div>
           </Card>
         ))}

@@ -123,8 +123,12 @@ export async function GET(req: Request) {
     // Analytics overview (existing)
     const analytics = await getAnalyticsOverview();
 
+    // Churned clients metric
+    const churnedClients = clients.filter(c => c.churned === true).length;
+
     return NextResponse.json({
       ...analytics,
+      churnedClients,
       filters: { planType, successPackage, implementationManager, status },
       revenue: {
         total: totalRevenue,

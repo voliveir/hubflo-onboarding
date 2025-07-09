@@ -128,6 +128,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     elite_configurations_started_date: client.elite_configurations_started_date,
     elite_integrations_started_date: client.elite_integrations_started_date,
     elite_verification_completed_date: client.elite_verification_completed_date,
+    churned: client.churned,
   })
 
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
@@ -411,6 +412,19 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                       <option value="unlimited" className="bg-[#0a0b1a] text-white">Unlimited</option>
                     </select>
                   </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="churned" className="text-white">Client Churned</Label>
+                    <p className="text-sm text-slate-400">Mark this client as churned (no longer active customer)</p>
+                  </div>
+                  <Switch
+                    id="churned"
+                    checked={formData.churned || false}
+                    onCheckedChange={(checked) => setFormData((prev: Partial<Client>) => ({ ...prev, churned: checked }))}
+                    className="data-[state=checked]:bg-[#F2C94C] data-[state=checked]:border-[#F2C94C]"
+                  />
                 </div>
               </div>
             </div>
