@@ -146,6 +146,9 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
       gold_second_call_date: client.gold_second_call_date ?? null,
       gold_third_call_date: client.gold_third_call_date ?? null,
       graduation_date: client.graduation_date ?? null,
+      elite_verification_completed_date: client.elite_verification_completed_date ?? null,
+      elite_configurations_started_date: client.elite_configurations_started_date ?? null,
+      elite_integrations_started_date: client.elite_integrations_started_date ?? null,
     };
   });
 
@@ -163,7 +166,17 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
   const midOnboardingClients: any[] = [];
   const completedClients: any[] = [];
   ganttClients.forEach((client: any) => {
-    if (client.graduation_date) {
+    if (client.package === "elite") {
+      if (client.graduation_date) {
+        completedClients.push(client);
+      } else if (client.elite_verification_completed_date) {
+        midOnboardingClients.push(client);
+      } else if (client.elite_configurations_started_date || client.elite_integrations_started_date) {
+        kickoffCompleteClients.push(client);
+      } else {
+        notStartedClients.push(client);
+      }
+    } else if (client.graduation_date) {
       completedClients.push(client);
     } else if (client.package === "gold" && client.gold_second_call_date) {
       midOnboardingClients.push(client);
