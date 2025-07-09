@@ -32,6 +32,9 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
     implementation_manager: "",
     status: "",
   });
+  // Move modal state hooks here
+  const [selectedStage, setSelectedStage] = useState<number|null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -154,23 +157,77 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
     { stage: "Mid-Onboarding", count: 0 },
     { stage: "Completed", count: 0 },
   ];
+  // 1. Track clients for each funnel stage
+  const notStartedClients: any[] = [];
+  const kickoffCompleteClients: any[] = [];
+  const midOnboardingClients: any[] = [];
+  const completedClients: any[] = [];
   ganttClients.forEach((client: any) => {
     if (client.graduation_date) {
-      funnelStages[3].count++;
+      completedClients.push(client);
     } else if (client.package === "gold" && client.gold_second_call_date) {
-      funnelStages[2].count++;
+      midOnboardingClients.push(client);
     } else if (client.package === "premium" && client.premium_second_call_date) {
-      funnelStages[2].count++;
+      midOnboardingClients.push(client);
     } else if (client.package === "gold" && client.gold_first_call_date) {
-      funnelStages[1].count++;
+      kickoffCompleteClients.push(client);
     } else if (client.package === "premium" && client.premium_first_call_date) {
-      funnelStages[1].count++;
+      kickoffCompleteClients.push(client);
     } else if (client.package === "light" && client.light_onboarding_call_date) {
-      funnelStages[1].count++;
+      kickoffCompleteClients.push(client);
     } else {
-      funnelStages[0].count++;
+      notStartedClients.push(client);
     }
   });
+  // After populating the arrays, update the funnelStages counts
+  funnelStages[0].count = notStartedClients.length;
+  funnelStages[1].count = kickoffCompleteClients.length;
+  funnelStages[2].count = midOnboardingClients.length;
+  funnelStages[3].count = completedClients.length;
+  const funnelStageClients = [notStartedClients, kickoffCompleteClients, midOnboardingClients, completedClients];
+
+  // 2. Add state for modal
+  // const [selectedStage, setSelectedStage] = useState<number|null>(null);
+  // const [showModal, setShowModal] = useState(false);
+
+  // 3. Modal component (simple custom modal)
+  function FunnelClientsModal({ open, onClose, clients, stage }: { open: boolean, onClose: () => void, clients: any[], stage: string }) {
+    if (!open) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+        <div className="bg-[#181a2f] rounded-2xl shadow-2xl p-8 w-full max-w-2xl relative">
+          <button onClick={onClose} className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-gold-400">×</button>
+          <h3 className="text-xl font-bold text-white mb-4">Clients: {stage}</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-white">
+              <thead>
+                <tr className="border-b border-[#23244a]">
+                  <th className="py-2 px-3 text-left">Name</th>
+                  <th className="py-2 px-3 text-left">Package</th>
+                  <th className="py-2 px-3 text-left">Created Date</th>
+                  <th className="py-2 px-3 text-left">Implementation Manager</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.length === 0 ? (
+                  <tr><td colSpan={4} className="py-4 text-center text-slate-400">No clients in this stage.</td></tr>
+                ) : (
+                  clients.map((client, idx) => (
+                    <tr key={idx} className="border-b border-[#23244a] hover:bg-[#23244a]/40">
+                      <td className="py-2 px-3">{client.name}</td>
+                      <td className="py-2 px-3 capitalize">{client.package}</td>
+                      <td className="py-2 px-3">{client.date_created ? new Date(client.date_created).toLocaleDateString() : '-'}</td>
+                      <td className="py-2 px-3">{client.implementation_manager ?? '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full font-sans">
@@ -538,14 +595,28 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
           <div className="flex flex-col items-center">
             <div className="flex flex-col items-center w-40">
               {funnelStages.map((stage, idx) => (
-                <div key={stage.stage} className="flex flex-col items-center w-full">
-                  <div className={`w-full py-2 rounded-full text-center font-bold text-lg mb-2 ${idx === 0 ? 'bg-gray-700 text-gray-200' : idx === funnelStages.length - 1 ? 'bg-green-500 text-white' : 'bg-gold-400 text-[#10122b]'}`}>{stage.count}</div>
-                  <div className="text-xs text-white mb-4">{stage.stage}</div>
+                <div key={stage.stage} className="flex flex-col items-center w-full mb-4">
+                  <button
+                    className={`w-full py-2 rounded-full text-center text-2xl font-bold mb-2 shadow-md focus:outline-none focus:ring-2 focus:ring-gold-400 transition ${idx === funnelStages.length - 1 ? 'bg-green-500 text-white' : 'bg-[#23244a] text-white'} hover:scale-105`}
+                    onClick={() => { setSelectedStage(idx); setShowModal(true); }}
+                    title={`View clients in ${stage.stage}`}
+                    type="button"
+                  >
+                    {stage.count}
+                  </button>
+                  <span className="px-3 py-1 rounded-full bg-[#23244a] text-white text-sm font-semibold shadow">{stage.stage}</span>
                 </div>
               ))}
             </div>
           </div>
           <div className="text-xs text-white mt-4">Last updated: {lastUpdated}</div>
+          {/* Modal for clients in selected stage */}
+          <FunnelClientsModal
+            open={showModal && selectedStage !== null}
+            onClose={() => setShowModal(false)}
+            clients={selectedStage !== null ? funnelStageClients[selectedStage] : []}
+            stage={selectedStage !== null ? funnelStages[selectedStage].stage : ''}
+          />
         </div>
       </div>
 
