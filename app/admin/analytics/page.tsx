@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
 import { Separator } from "@/components/ui/separator";
@@ -8,6 +8,7 @@ import { Loader2, Download, RefreshCw } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { PasswordProtection } from "@/components/password-protection";
+import { PieChart, Pie, Legend as RechartsLegend } from "recharts";
 
 const BAR_COLORS = ["#F2C94C", "#F2994A", "#0a0b1a", "#10122b", "#1a1c3a"];
 
@@ -15,13 +16,33 @@ function formatDate(date: Date) {
   return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
+const PLAN_TYPES = ["pro", "business", "unlimited"];
+const SUCCESS_PACKAGES = ["light", "premium", "gold", "elite", "starter", "professional", "enterprise", "pilot"];
+const STATUSES = ["active", "draft", "archived", "completed"];
+const IMPLEMENTATION_MANAGERS = ["vanessa", "vishal"];
+
 const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [filters, setFilters] = useState({
+    plan_type: "",
+    success_package: "",
+    implementation_manager: "",
+    status: "",
+  });
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
 
   useEffect(() => {
-    fetch("/api/analytics-summary")
+    setLoading(true);
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v) params.append(k, v);
+    });
+    fetch(`/api/analytics-summary${params.toString() ? `?${params.toString()}` : ""}`)
       .then((res) => res.json())
       .then((json) => {
         setData(json);
@@ -31,7 +52,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
         setError("Failed to load analytics.");
         setLoading(false);
       });
-  }, []);
+  }, [filters]);
 
   const handleExport = () => {
     if (!data) return;
@@ -57,6 +78,30 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // Filter UI
+  const filterOptions = useMemo(() => ([
+    {
+      label: "Plan Type",
+      key: "plan_type",
+      options: ["", ...PLAN_TYPES],
+    },
+    {
+      label: "Success Package",
+      key: "success_package",
+      options: ["", ...SUCCESS_PACKAGES],
+    },
+    {
+      label: "Implementation Manager",
+      key: "implementation_manager",
+      options: ["", ...IMPLEMENTATION_MANAGERS],
+    },
+    {
+      label: "Status",
+      key: "status",
+      options: ["", ...STATUSES],
+    },
+  ]), []);
 
   if (loading) {
     return (
@@ -129,6 +174,22 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
   return (
     <div className="w-full font-sans">
       {/* Header */}
+      <div className="flex flex-wrap gap-4 mb-8 items-end">
+        {filterOptions.map((filter) => (
+          <div key={filter.key} className="flex flex-col">
+            <label className="text-xs text-white mb-1 font-medium">{filter.label}</label>
+            <select
+              className="bg-[#181a2f] text-white rounded-lg px-3 py-2 border border-[#23244a] focus:outline-none focus:ring-2 focus:ring-gold-400"
+              value={filters[filter.key as keyof typeof filters]}
+              onChange={e => handleFilterChange(filter.key, e.target.value)}
+            >
+              {filter.options.map(opt => (
+                <option key={opt} value={opt}>{opt ? opt.charAt(0).toUpperCase() + opt.slice(1) : "All"}</option>
+              ))}
+            </select>
+          </div>
+        ))}
+      </div>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-4">
         <div>
           <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tight drop-shadow-lg">Analytics Dashboard</h1>
@@ -141,7 +202,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
           >
             <Download className="w-5 h-5" /> Export
           </button>
-          <div className="flex items-center gap-2 text-sm text-gray-300 bg-[#10122b] px-3 py-1.5 rounded-lg shadow">
+          <div className="flex items-center gap-2 text-sm text-white bg-[#10122b] px-3 py-1.5 rounded-lg shadow">
             <RefreshCw className="w-4 h-4 text-gold-400" />
             Last updated: <span className="ml-1 font-medium text-white">{lastUpdated}</span>
           </div>
@@ -162,7 +223,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
             key={metric.label}
             className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center transition-transform duration-200 hover:scale-105 hover:shadow-2xl group border border-[#23244a]"
           >
-            <div className="text-base text-gray-400 mb-1 font-medium tracking-wide group-hover:text-gold-400 transition-colors">
+            <div className="text-base text-white mb-1 font-medium tracking-wide group-hover:text-gold-400 transition-colors">
               {metric.label}
             </div>
             <div className="text-3xl font-extrabold text-white group-hover:text-gold-400 transition-colors drop-shadow">
@@ -172,6 +233,187 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
         ))}
       </div>
 
+      {/* Revenue Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <div className="text-base text-white mb-1 font-medium">Total Revenue</div>
+          <div className="text-3xl font-extrabold text-white">${data.revenue?.total?.toLocaleString() ?? '-'}</div>
+        </Card>
+        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <div className="text-base text-white mb-1 font-medium">Top Revenue Plan</div>
+          <div className="text-3xl font-extrabold text-white">{data.revenue?.topRevenuePlan ?? '-'}</div>
+        </Card>
+        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <div className="text-base text-white mb-1 font-medium">% Annual Revenue</div>
+          <div className="text-3xl font-extrabold text-white">{data.revenue?.percentAnnualRevenue ?? 0}%</div>
+        </Card>
+        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <div className="text-base text-white mb-1 font-medium">Highest Revenue Package</div>
+          <div className="text-3xl font-extrabold text-white">{data.revenue?.topRevenuePackage ?? '-'}</div>
+        </Card>
+      </div>
+
+      {/* Revenue by Plan Type Bar Chart */}
+      <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-8">
+        <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Revenue by Plan Type</h2>
+        <div className="w-full max-w-2xl mx-auto">
+          <ChartContainer config={{}}>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={Object.entries(data.revenue?.byPlan || {}).map(([k, v]) => ({ name: k, value: v }))}>
+                <XAxis dataKey="name" stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} />
+                <YAxis stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} />
+                <Tooltip contentStyle={{ background: '#10122b', border: '1px solid #F2C94C', color: '#fff', borderRadius: 8 }} />
+                <Bar dataKey="value" fill="#F2C94C" radius={[8, 8, 8, 8]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </div>
+      </div>
+
+      {/* Revenue by Billing Type Pie Chart */}
+      <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-8">
+        <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Revenue by Billing Type</h2>
+        <div className="w-full max-w-xl mx-auto">
+          <ChartContainer config={{}}>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={Object.entries(data.revenue?.byBilling || {}).map(([k, v]) => ({ name: k, value: v }))}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label
+                >
+                  {Object.keys(data.revenue?.byBilling || {}).map((_, idx) => (
+                    <Cell key={`cell-${idx}`} fill={["#F2C94C", "#F2994A", "#0a0b1a", "#10122b", "#1a1c3a"][idx % 5]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <RechartsLegend />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </div>
+      </div>
+
+      {/* Revenue by Success Package Bar Chart */}
+      <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-8">
+        <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Revenue by Success Package</h2>
+        <div className="w-full max-w-2xl mx-auto">
+          <ChartContainer config={{}}>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={Object.entries(data.revenue?.byPackage || {}).map(([k, v]) => ({ name: k, value: v }))}>
+                <XAxis dataKey="name" stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} />
+                <YAxis stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} />
+                <Tooltip contentStyle={{ background: '#10122b', border: '1px solid #F2C94C', color: '#fff', borderRadius: 8 }} />
+                <Bar dataKey="value" fill="#F2994A" radius={[8, 8, 8, 8]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </div>
+      </div>
+
+      {/* Engagement Score Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <div className="text-base text-white mb-1 font-medium">Avg. Engagement Score</div>
+          <div className="text-3xl font-extrabold text-white">{data.engagement?.avgScore ?? '-'}</div>
+        </Card>
+        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <div className="text-base text-white mb-1 font-medium">Low Engagement Clients</div>
+          <div className="text-3xl font-extrabold text-yellow-300">{data.engagement?.lowEngagementClients?.length ?? '-'}</div>
+        </Card>
+      </div>
+
+      {/* Engagement Distribution Bar Chart */}
+      <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-8">
+        <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Engagement Distribution</h2>
+        <div className="w-full max-w-2xl mx-auto">
+          <ChartContainer config={{}}>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={data.engagement?.distribution || []}>
+                <XAxis dataKey="range" stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} />
+                <YAxis stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} />
+                <Tooltip contentStyle={{ background: '#10122b', border: '1px solid #F2C94C', color: '#fff', borderRadius: 8 }} />
+                <Bar dataKey="count" fill="#F2C94C" radius={[8, 8, 8, 8]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </div>
+      </div>
+
+      {/* Low Engagement Clients Table */}
+      <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-8">
+        <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Lowest Engagement Clients</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm text-left text-white">
+            <thead>
+              <tr>
+                <th className="px-4 py-2">Client</th>
+                <th className="px-4 py-2">Score</th>
+                <th className="px-4 py-2">Manager</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(data.engagement?.lowEngagementClients || []).map((c: any) => (
+                <tr key={c.id} className="border-b border-[#23244a]">
+                  <td className="px-4 py-2">{c.name}</td>
+                  <td className="px-4 py-2">{c.score}</td>
+                  <td className="px-4 py-2">{c.implementation_manager}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Contract Renewal Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <div className="text-base text-white mb-1 font-medium">Contracts Expiring in 30 Days</div>
+          <div className="text-3xl font-extrabold text-yellow-300">{data.contractRenewal?.expiring30?.length ?? '-'}</div>
+        </Card>
+        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <div className="text-base text-white mb-1 font-medium">Contracts Expiring in 60 Days</div>
+          <div className="text-3xl font-extrabold text-yellow-300">{data.contractRenewal?.expiring60?.length ?? '-'}</div>
+        </Card>
+        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <div className="text-base text-white mb-1 font-medium">Contracts Expiring in 90 Days</div>
+          <div className="text-3xl font-extrabold text-yellow-300">{data.contractRenewal?.expiring90?.length ?? '-'}</div>
+        </Card>
+        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <div className="text-base text-white mb-1 font-medium">Revenue at Risk (90d)</div>
+          <div className="text-3xl font-extrabold text-red-400">${data.contractRenewal?.revenueAtRisk?.toLocaleString() ?? '-'}</div>
+        </Card>
+      </div>
+
+      {/* Expiring Contracts Table */}
+      <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-8">
+        <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Expiring Contracts (Next 90 Days)</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm text-left text-white">
+            <thead>
+              <tr>
+                <th className="px-4 py-2">Client</th>
+                <th className="px-4 py-2">End Date</th>
+                <th className="px-4 py-2">Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...(data.contractRenewal?.expiring30 || []), ...(data.contractRenewal?.expiring60 || []), ...(data.contractRenewal?.expiring90 || [])].map((c: any) => (
+                <tr key={c.id} className="border-b border-[#23244a]">
+                  <td className="px-4 py-2">{c.name}</td>
+                  <td className="px-4 py-2">{c.end}</td>
+                  <td className="px-4 py-2">${c.revenue?.toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Implementation Health Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-12">
         {implementationMetrics.map((metric, i) => (
@@ -179,12 +421,12 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
             key={metric.label}
             className={`bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center rounded-xl border border-[#23244a] transition-transform duration-200 hover:scale-105 hover:shadow-2xl group ${metric.highlight ? 'border-yellow-400 bg-yellow-900/30' : ''}`}
           >
-            <div className={`text-base mb-1 font-medium tracking-wide group-hover:text-gold-400 transition-colors ${metric.highlight ? 'text-yellow-300' : 'text-gray-400'}`}>{metric.label}</div>
+            <div className={`text-base mb-1 font-medium tracking-wide group-hover:text-gold-400 transition-colors ${metric.highlight ? 'text-yellow-300' : 'text-white'}`}>{metric.label}</div>
             <div className={`text-3xl font-extrabold group-hover:text-gold-400 transition-colors drop-shadow ${metric.highlight ? 'text-yellow-300' : 'text-white'}`}>{metric.value}</div>
           </Card>
         ))}
       </div>
-      <div className="text-xs text-gray-400 mb-10">Last updated: {lastUpdated}</div>
+      <div className="text-xs text-white mb-10">Last updated: {lastUpdated}</div>
 
       {/* Gantt Chart Section */}
       <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-12">
@@ -219,7 +461,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
               let prevDate = start;
               return (
                 <div key={client.name} className="flex items-center mb-4">
-                  <div className="w-40 text-sm text-gray-200 font-semibold truncate pr-2">{client.name}</div>
+                  <div className="w-40 text-sm text-white font-semibold truncate pr-2">{client.name}</div>
                   <div className="flex-1 flex items-center relative h-8">
                     {stages.map((stage, sIdx) => {
                       const stageDate = stage.date ? new Date(stage.date) : null;
@@ -265,13 +507,13 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                     {/* Timeline axis */}
                     <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-gray-800 rounded-full z-0" />
                   </div>
-                  <div className="w-28 text-xs text-gray-400 pl-2 text-right">{client.date_created} → {client.graduation_date || 'Present'}</div>
+                  <div className="w-28 text-xs text-white pl-2 text-right">{client.date_created} → {client.graduation_date || 'Present'}</div>
                 </div>
               );
             })}
           </div>
         </div>
-        <div className="text-xs text-gray-400 mt-4">Last updated: {lastUpdated}</div>
+        <div className="text-xs text-white mt-4">Last updated: {lastUpdated}</div>
       </div>
 
       {/* Funnel Chart Section */}
@@ -282,12 +524,12 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
             {funnelStages.map((stage, idx) => (
               <div key={stage.stage} className="flex flex-col items-center w-full">
                 <div className={`w-full py-2 rounded-full text-center font-bold text-lg mb-2 ${idx === 0 ? 'bg-gray-700 text-gray-200' : idx === funnelStages.length - 1 ? 'bg-green-500 text-white' : 'bg-gold-400 text-[#10122b]'}`}>{stage.count}</div>
-                <div className="text-xs text-gray-300 mb-4">{stage.stage}</div>
+                <div className="text-xs text-white mb-4">{stage.stage}</div>
               </div>
             ))}
           </div>
         </div>
-        <div className="text-xs text-gray-400 mt-4">Last updated: {lastUpdated}</div>
+        <div className="text-xs text-white mt-4">Last updated: {lastUpdated}</div>
       </div>
 
       {/* Bar Chart Section */}
