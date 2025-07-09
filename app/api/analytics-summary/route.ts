@@ -137,6 +137,11 @@ export async function GET(req: Request) {
     const churnedClients = allNonDemoClients.filter(c => c.churned === true).length;
     const churnRate = allNonDemoClients.length > 0 ? (churnedClients / allNonDemoClients.length) * 100 : 0;
 
+    // Churn risk clients metric
+    const churnRiskClientsArr = filteredClients.filter(c => c.churn_risk === true);
+    const churnRiskClients = churnRiskClientsArr.length;
+    const churnRiskClientList = churnRiskClientsArr.map(c => ({ id: c.id, name: c.name, implementation_manager: c.implementation_manager }));
+
     // Average number of users per client
     const userCounts = filteredClients.map(c => Number(c.number_of_users)).filter(n => !isNaN(n) && n > 0);
     const avgUsersPerClient = userCounts.length ? (userCounts.reduce((a, b) => a + b, 0) / userCounts.length) : 0;
@@ -148,6 +153,8 @@ export async function GET(req: Request) {
       avgUsersPerClient,
       churnedClients,
       churnRate,
+      churnRiskClients,
+      churnRiskClientList,
       filters: { planType, successPackage, implementationManager, status },
       revenue: {
         total: totalRevenue,

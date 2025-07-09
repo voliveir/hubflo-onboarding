@@ -130,6 +130,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     elite_verification_completed_date: client.elite_verification_completed_date,
     churned: client.churned,
     is_demo: client.is_demo,
+    churn_risk: client.churn_risk,
   })
 
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
@@ -424,6 +425,19 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                     id="churned"
                     checked={formData.churned || false}
                     onCheckedChange={(checked) => setFormData((prev: Partial<Client>) => ({ ...prev, churned: checked }))}
+                    className="data-[state=checked]:bg-[#F2C94C] data-[state=checked]:border-[#F2C94C]"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="churn_risk" className="text-white">Churn Risk</Label>
+                    <p className="text-sm text-slate-400">Mark this client as at risk of churn (shows in analytics)</p>
+                  </div>
+                  <Switch
+                    id="churn_risk"
+                    checked={formData.churn_risk || false}
+                    onCheckedChange={(checked) => setFormData({ ...formData, churn_risk: checked })}
                     className="data-[state=checked]:bg-[#F2C94C] data-[state=checked]:border-[#F2C94C]"
                   />
                 </div>

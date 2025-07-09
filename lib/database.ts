@@ -121,6 +121,7 @@ function transformClientFromDb(data: any): Client {
     implementation_manager: data.implementation_manager || undefined,
     churned: data.churned || false,
     is_demo: data.is_demo || false,
+    churn_risk: data.churn_risk || false,
   }
 }
 
@@ -204,6 +205,10 @@ const transformClientForDb = (clientData: any): any => {
 
   if (typeof clientData.is_demo !== "undefined") {
     transformed.is_demo = !!clientData.is_demo
+  }
+
+  if (typeof clientData.churn_risk !== "undefined") {
+    transformed.churn_risk = !!clientData.churn_risk
   }
 
   return transformed

@@ -37,6 +37,8 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
   const [showModal, setShowModal] = useState(false);
   // 1. Add state for metric explanation modal
   const [openMetricModal, setOpenMetricModal] = useState<string | null>(null);
+  // 2. Add state for churn risk clients modal
+  const [showChurnRiskModal, setShowChurnRiskModal] = useState(false);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -226,6 +228,11 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
       description: 'The average number of users per client account.',
       logic: 'Calculated by averaging the number_of_users field across all clients.'
     },
+    churnRiskClients: {
+      name: 'Churn Risk Clients',
+      description: 'Number of clients currently marked as at risk of churn by an implementation manager.',
+      logic: 'Implementation managers can manually toggle churn risk for any client. This metric counts all non-churned, non-demo clients with churn risk enabled.'
+    },
   };
 
   // 3. Metric explanation modal component
@@ -240,6 +247,39 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
           <h3 className="text-xl font-bold text-white mb-2">{metric.name}</h3>
           <p className="text-white mb-2">{metric.description}</p>
           <div className="text-white font-mono text-sm whitespace-pre-line">{metric.logic}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // 4. Churn Risk Clients Modal component
+  function ChurnRiskClientsModal({ open, onClose, clients }: { open: boolean, onClose: () => void, clients: any[] }) {
+    if (!open) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+        <div className="bg-[#181a2f] rounded-2xl shadow-2xl p-8 w-full max-w-lg relative">
+          <button onClick={onClose} className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-gold-400">×</button>
+          <h3 className="text-xl font-bold text-white mb-4">Churn Risk Clients</h3>
+          <table className="min-w-full text-white">
+            <thead>
+              <tr className="border-b border-[#23244a]">
+                <th className="py-2 px-3 text-left">Name</th>
+                <th className="py-2 px-3 text-left">Implementation Manager</th>
+              </tr>
+            </thead>
+            <tbody>
+              {clients.length === 0 ? (
+                <tr><td colSpan={2} className="py-4 text-center text-slate-400">No clients at risk of churn.</td></tr>
+              ) : (
+                clients.map((client, idx) => (
+                  <tr key={client.id} className="border-b border-[#23244a] hover:bg-[#23244a]/40">
+                    <td className="py-2 px-3">{client.name}</td>
+                    <td className="py-2 px-3">{client.implementation_manager ?? '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     );
@@ -568,6 +608,20 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
               </TooltipProvider>
             </div>
             <div className="text-3xl font-extrabold text-white">{data.avgUsersPerClient ? data.avgUsersPerClient.toFixed(1) : '-'}</div>
+          </Card>
+          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] cursor-pointer" onClick={() => setShowChurnRiskModal(true)}>
+            <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
+              <span>Churn Risk Clients</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" onClick={e => { e.stopPropagation(); setOpenMetricModal('churnRiskClients'); }} />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Number of clients currently marked as at risk of churn.</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="text-3xl font-extrabold text-white">{data.churnRiskClients ?? '-'}</div>
           </Card>
         </div>
         <div className="text-xs text-white mb-10">Last updated: {lastUpdated}</div>
@@ -1169,6 +1223,13 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
         onClose={() => setOpenMetricModal(null)}
         metricKey={openMetricModal}
       />
+      {showChurnRiskModal && (
+        <ChurnRiskClientsModal
+          open={showChurnRiskModal}
+          onClose={() => setShowChurnRiskModal(false)}
+          clients={data.churnRiskClientList || []}
+        />
+      )}
     </div>
   );
 };
