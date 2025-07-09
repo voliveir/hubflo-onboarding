@@ -118,6 +118,16 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     show_figma_workflow: client.show_figma_workflow || false,
     figma_workflow_url: client.figma_workflow_url || "",
     feedback_board_enabled: client.feedback_board_enabled || true,
+    graduation_date: client.graduation_date,
+    light_onboarding_call_date: client.light_onboarding_call_date,
+    premium_first_call_date: client.premium_first_call_date,
+    premium_second_call_date: client.premium_second_call_date,
+    gold_first_call_date: client.gold_first_call_date,
+    gold_second_call_date: client.gold_second_call_date,
+    gold_third_call_date: client.gold_third_call_date,
+    elite_configurations_started_date: client.elite_configurations_started_date,
+    elite_integrations_started_date: client.elite_integrations_started_date,
+    elite_verification_completed_date: client.elite_verification_completed_date,
   })
 
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
