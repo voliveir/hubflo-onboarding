@@ -59,6 +59,7 @@ export interface Client {
   calendar_integrations_call?: string | null
   calendar_upgrade_consultation?: string | null
   churned?: boolean
+  is_demo?: boolean
 }
 
 export interface Integration {

@@ -23,6 +23,8 @@ export async function GET(req: Request) {
     const status = url.searchParams.get('status');
 
     let clients = await getAllClients();
+    // Exclude demo clients from analytics
+    clients = clients.filter(c => !c.is_demo);
     // Apply filters
     if (planType) clients = clients.filter(c => c.plan_type === planType);
     if (successPackage) clients = clients.filter(c => c.success_package === successPackage);

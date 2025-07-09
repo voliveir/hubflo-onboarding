@@ -120,6 +120,7 @@ function transformClientFromDb(data: any): Client {
     feedback_board_enabled: data.feedback_board_enabled || false,
     implementation_manager: data.implementation_manager || undefined,
     churned: data.churned || false,
+    is_demo: data.is_demo || false,
   }
 }
 
@@ -199,6 +200,10 @@ const transformClientForDb = (clientData: any): any => {
 
   if (typeof clientData.churned !== "undefined") {
     transformed.churned = !!clientData.churned
+  }
+
+  if (typeof clientData.is_demo !== "undefined") {
+    transformed.is_demo = !!clientData.is_demo
   }
 
   return transformed
@@ -2270,7 +2275,7 @@ export async function createClientSatisfactionScore(
 export async function getAnalyticsOverview(startDate?: string, endDate?: string) {
   try {
     // Get all clients
-    const clients = await getAllClients();
+    const clients = (await getAllClients()).filter(c => !c.is_demo);
     const totalClients = clients.length;
     const activeClients = clients.filter(c => c.status === "active").length;
 

@@ -129,6 +129,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     elite_integrations_started_date: client.elite_integrations_started_date,
     elite_verification_completed_date: client.elite_verification_completed_date,
     churned: client.churned,
+    is_demo: client.is_demo,
   })
 
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
@@ -423,6 +424,19 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                     id="churned"
                     checked={formData.churned || false}
                     onCheckedChange={(checked) => setFormData((prev: Partial<Client>) => ({ ...prev, churned: checked }))}
+                    className="data-[state=checked]:bg-[#F2C94C] data-[state=checked]:border-[#F2C94C]"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="is_demo" className="text-white">Demo Account</Label>
+                    <p className="text-sm text-slate-400">Mark this client as a demo/test account (excluded from analytics)</p>
+                  </div>
+                  <Switch
+                    id="is_demo"
+                    checked={formData.is_demo || false}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_demo: checked })}
                     className="data-[state=checked]:bg-[#F2C94C] data-[state=checked]:border-[#F2C94C]"
                   />
                 </div>
