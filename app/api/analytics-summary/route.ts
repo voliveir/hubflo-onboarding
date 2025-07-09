@@ -24,19 +24,23 @@ export async function GET(req: Request) {
 
     let clients = await getAllClients();
     // Exclude demo clients from analytics
-    clients = clients.filter(c => !c.is_demo);
-    // Apply filters
-    if (planType) clients = clients.filter(c => c.plan_type === planType);
-    if (successPackage) clients = clients.filter(c => c.success_package === successPackage);
-    if (implementationManager) clients = clients.filter(c => c.implementation_manager === implementationManager);
-    if (status) clients = clients.filter(c => c.status === status);
+    const allNonDemoClients = clients.filter(c => !c.is_demo);
+    // Exclude churned clients for most metrics
+    const activeAnalyticsClients = allNonDemoClients.filter(c => !c.churned);
+    // Apply filters to activeAnalyticsClients
+    let filteredClients = activeAnalyticsClients;
+    if (planType) filteredClients = filteredClients.filter(c => c.plan_type === planType);
+    if (successPackage) filteredClients = filteredClients.filter(c => c.success_package === successPackage);
+    if (implementationManager) filteredClients = filteredClients.filter(c => c.implementation_manager === implementationManager);
+    if (status) filteredClients = filteredClients.filter(c => c.status === status);
+    // Use filteredClients for all metrics except churnedClients and churnRate
 
     // Revenue breakdowns
     const revenueByPlan: Record<string, number> = {};
     const revenueByBilling: Record<string, number> = {};
     const revenueByPackage: Record<string, number> = {};
     let totalRevenue = 0;
-    clients.forEach(c => {
+    filteredClients.forEach(c => {
       const rev = Number(c.revenue_amount) || 0;
       totalRevenue += rev;
       revenueByPlan[c.plan_type] = (revenueByPlan[c.plan_type] || 0) + rev;
@@ -57,7 +61,7 @@ export async function GET(req: Request) {
       const progress = Math.min(1, (client.project_completion_percentage || 0) / 100);
       return Math.round(((calls + forms + zaps + progress) / 4) * 100);
     }
-    const engagementScores = clients.map(c => ({ id: c.id, name: c.name, score: engagementScore(c), implementation_manager: c.implementation_manager }));
+    const engagementScores = filteredClients.map(c => ({ id: c.id, name: c.name, score: engagementScore(c), implementation_manager: c.implementation_manager }));
     const avgEngagementScore = engagementScores.length ? Math.round(engagementScores.reduce((a, b) => a + b.score, 0) / engagementScores.length) : 0;
     const lowEngagementClients = engagementScores.filter(c => c.score < 40);
 
@@ -75,7 +79,7 @@ export async function GET(req: Request) {
     const now = new Date();
     const expiring30: any[] = [], expiring60: any[] = [], expiring90: any[] = [];
     let revenueAtRisk = 0;
-    clients.forEach(c => {
+    filteredClients.forEach(c => {
       if ((c.billing_type as string) === 'annually' || (c.billing_type as string) === 'yearly') {
         const start = parseDate((c as any).contract_start_date) || parseDate(c.created_at);
         const end = parseDate((c as any).contract_end_date) || (start ? new Date(start.getFullYear() + 1, start.getMonth(), start.getDate()) : null);
@@ -93,7 +97,7 @@ export async function GET(req: Request) {
     let onboardingDurationSum = 0, onboardingDurationCount = 0;
     let activeImplementations = 0;
     let atRiskClients = 0;
-    clients.forEach(client => {
+    filteredClients.forEach(client => {
       let firstCall: string | undefined = undefined;
       if (client.success_package === 'light') firstCall = client.light_onboarding_call_date ?? undefined;
       else if (client.success_package === 'premium') firstCall = client.premium_first_call_date ?? undefined;
@@ -130,10 +134,11 @@ export async function GET(req: Request) {
     const analytics = await getAnalyticsOverview();
 
     // Churned clients metric
-    const churnedClients = clients.filter(c => c.churned === true).length;
+    const churnedClients = allNonDemoClients.filter(c => c.churned === true).length;
+    const churnRate = allNonDemoClients.length > 0 ? (churnedClients / allNonDemoClients.length) * 100 : 0;
 
     // Average number of users per client
-    const userCounts = clients.map(c => Number(c.number_of_users)).filter(n => !isNaN(n) && n > 0);
+    const userCounts = filteredClients.map(c => Number(c.number_of_users)).filter(n => !isNaN(n) && n > 0);
     const avgUsersPerClient = userCounts.length ? (userCounts.reduce((a, b) => a + b, 0) / userCounts.length) : 0;
 
     return NextResponse.json({
@@ -142,6 +147,7 @@ export async function GET(req: Request) {
       mrr,
       avgUsersPerClient,
       churnedClients,
+      churnRate,
       filters: { planType, successPackage, implementationManager, status },
       revenue: {
         total: totalRevenue,
