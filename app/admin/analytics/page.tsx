@@ -35,6 +35,8 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
   // Move modal state hooks here
   const [selectedStage, setSelectedStage] = useState<number|null>(null);
   const [showModal, setShowModal] = useState(false);
+  // 1. Add state for metric explanation modal
+  const [openMetricModal, setOpenMetricModal] = useState<string | null>(null);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -106,6 +108,137 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
       options: ["", ...STATUSES],
     },
   ]), []);
+
+  // 2. Metric explanations mapping
+  const metricExplanations: Record<string, { name: string; description: string; logic: string }> = {
+    totalClients: {
+      name: 'Total Clients',
+      description: 'The total number of clients in the system.',
+      logic: 'Counts all client records, regardless of status or plan.'
+    },
+    payingClients: {
+      name: 'Paying Clients',
+      description: 'Clients with an active paid subscription.',
+      logic: 'Counts clients whose billing type or plan indicates they are paying.'
+    },
+    mrr: {
+      name: 'MRR (Monthly Recurring Revenue)',
+      description: 'The amount of recurring revenue you expect to receive each month.',
+      logic: 'MRR = Total Annual Revenue (ARR) divided by 12.'
+    },
+    arr: {
+      name: 'ARR (Annual Recurring Revenue)',
+      description: 'The total recurring revenue you expect to receive in a year.',
+      logic: 'ARR = Sum of all client revenue amounts (provided by sales as total annual revenue).'
+    },
+    growthRate: {
+      name: 'Growth Rate (30d)',
+      description: 'The percentage increase in total clients over the last 30 days.',
+      logic: 'Growth Rate = (Clients now - Clients 30 days ago) / Clients 30 days ago x 100.'
+    },
+    totalRevenue: {
+      name: 'Total Revenue',
+      description: 'The sum of all revenue amounts from all clients.',
+      logic: 'Adds up the revenue_amount field for every client.'
+    },
+    churnedClients: {
+      name: 'Churned Clients',
+      description: 'The number of clients marked as churned (no longer active customers).',
+      logic: 'Counts clients where the churned field is true.'
+    },
+    churnRate: {
+      name: 'Churn Rate',
+      description: 'The percentage of all clients who have churned.',
+      logic: 'Churn Rate = (Churned Clients / Total Clients) x 100.'
+    },
+    timeToFirstValue: {
+      name: 'Time to First Value',
+      description: 'The average number of days from client signup to their first onboarding milestone (e.g., first call).',
+      logic: 'For each client, calculates days between created_at and their first onboarding call date, then averages across all clients.'
+    },
+    avgOnboardingDuration: {
+      name: 'Avg. Onboarding Duration',
+      description: 'The average time it takes for clients to complete onboarding.',
+      logic: 'For each client, calculates days between created_at and graduation_date, then averages across all clients who have graduated.'
+    },
+    activeImplementations: {
+      name: 'Active Implementations',
+      description: 'The number of clients currently in the onboarding process.',
+      logic: 'Counts clients who do not have a graduation_date (i.e., onboarding not completed).'
+    },
+    atRiskClients: {
+      name: 'At-Risk Clients',
+      description: 'Clients who are at risk of churn or onboarding failure.',
+      logic: 'Clients who have not had their first onboarding call within 10 days of signup, or clients who have not completed onboarding after 45 days.'
+    },
+    expiringContracts: {
+      name: 'Expiring Contracts (90d)',
+      description: 'Clients with contracts ending in the next 90 days.',
+      logic: 'Counts clients whose contract end date is within 90 days from today.'
+    },
+    revenueAtRisk: {
+      name: 'Revenue at Risk (90d)',
+      description: 'The total revenue from contracts expiring in the next 90 days.',
+      logic: 'Sums the revenue amounts for clients with contracts expiring in the next 90 days.'
+    },
+    avgEngagementScore: {
+      name: 'Avg. Engagement Score',
+      description: 'The average engagement score across all clients.',
+      logic: 'For each client, calculates a score based on calls completed, forms setup, Zapier integrations, and project completion percentage (each normalized 0–1, then averaged and scaled to 0–100). Averages these scores across all clients.'
+    },
+    lowEngagementClients: {
+      name: 'Low Engagement Clients',
+      description: 'The number of clients with low engagement.',
+      logic: 'Counts clients whose engagement score is below 40.'
+    },
+    engagementDistribution: {
+      name: 'Engagement Distribution',
+      description: 'Shows how many clients fall into each engagement score range (e.g., 0–20, 20–40, etc.).',
+      logic: 'Buckets clients by their engagement score.'
+    },
+    topRevenuePlan: {
+      name: 'Top Revenue Plan',
+      description: 'The plan type generating the most revenue.',
+      logic: 'Finds the plan with the highest total revenue across all clients.'
+    },
+    topRevenuePackage: {
+      name: 'Highest Revenue Package',
+      description: 'The success package with the highest total revenue.',
+      logic: 'Finds the package with the highest total revenue across all clients.'
+    },
+    revenueByPlan: {
+      name: 'Revenue by Plan Type',
+      description: 'Visual breakdown of revenue by plan type.',
+      logic: 'Sums revenue for each plan.'
+    },
+    revenueByBilling: {
+      name: 'Revenue by Billing Type',
+      description: 'Visual breakdown of revenue by billing type.',
+      logic: 'Sums revenue for each billing type.'
+    },
+    revenueByPackage: {
+      name: 'Revenue by Success Package',
+      description: 'Visual breakdown of revenue by success package.',
+      logic: 'Sums revenue for each package.'
+    },
+  };
+
+  // 3. Metric explanation modal component
+  function MetricExplanationModal({ open, onClose, metricKey }: { open: boolean, onClose: () => void, metricKey: string | null }) {
+    if (!open || !metricKey) return null;
+    const metric = metricExplanations[metricKey];
+    if (!metric) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+        <div className="bg-[#181a2f] rounded-2xl shadow-2xl p-8 w-full max-w-lg relative">
+          <button onClick={onClose} className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-gold-400">×</button>
+          <h3 className="text-xl font-bold text-white mb-2">{metric.name}</h3>
+          <p className="text-white mb-2">{metric.description}</p>
+          <div className="text-white font-mono text-sm whitespace-pre-line">{metric.logic}</div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -291,7 +424,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('totalClients')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Number of all clients in the system.</TooltipContent>
                   </Tooltip>
@@ -307,7 +443,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('payingClients')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Clients with an active paid subscription.</TooltipContent>
                   </Tooltip>
@@ -323,7 +462,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('mrr')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Monthly Recurring Revenue from all active subscriptions.</TooltipContent>
                   </Tooltip>
@@ -339,7 +481,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('arr')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Annual Recurring Revenue, calculated as MRR x 12.</TooltipContent>
                   </Tooltip>
@@ -355,7 +500,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('growthRate')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Percentage increase in total clients over the last 30 days.</TooltipContent>
                   </Tooltip>
@@ -371,7 +519,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('totalRevenue')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Total revenue generated from all clients.</TooltipContent>
                   </Tooltip>
@@ -386,7 +537,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    <HelpCircle
+                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      onClick={() => setOpenMetricModal('churnedClients')}
+                    />
                   </TooltipTrigger>
                   <TooltipContent side="top">Number of clients marked as churned (no longer active customers).</TooltipContent>
                 </Tooltip>
@@ -400,7 +554,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    <HelpCircle
+                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      onClick={() => setOpenMetricModal('churnRate')}
+                    />
                   </TooltipTrigger>
                   <TooltipContent side="top">Percentage of all clients who have churned (no longer active customers).</TooltipContent>
                 </Tooltip>
@@ -424,7 +581,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('timeToFirstValue')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Average days from signup to first successful onboarding milestone.</TooltipContent>
                   </Tooltip>
@@ -440,7 +600,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('avgOnboardingDuration')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Average time to complete onboarding for all clients.</TooltipContent>
                   </Tooltip>
@@ -456,7 +619,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('activeImplementations')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Clients currently in the onboarding process.</TooltipContent>
                   </Tooltip>
@@ -472,7 +638,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('atRiskClients')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Clients flagged as at risk of churn or onboarding failure.</TooltipContent>
                   </Tooltip>
@@ -488,7 +657,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('expiringContracts')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Clients with contracts ending in the next 90 days.</TooltipContent>
                   </Tooltip>
@@ -504,7 +676,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('revenueAtRisk')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Total revenue from contracts expiring in the next 90 days.</TooltipContent>
                   </Tooltip>
@@ -644,7 +819,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('avgEngagementScore')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Average engagement score across all clients.</TooltipContent>
                   </Tooltip>
@@ -660,7 +838,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('lowEngagementClients')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Number of clients with low engagement scores.</TooltipContent>
                   </Tooltip>
@@ -783,7 +964,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('topRevenuePlan')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Plan type generating the most revenue.</TooltipContent>
                   </Tooltip>
@@ -799,7 +983,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('topRevenuePackage')}
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top">Success package with the highest total revenue.</TooltipContent>
                   </Tooltip>
@@ -821,7 +1008,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    <HelpCircle
+                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      onClick={() => setOpenMetricModal('expiringContracts')}
+                    />
                   </TooltipTrigger>
                   <TooltipContent side="top">Clients with contracts expiring in the next 30 days.</TooltipContent>
                 </Tooltip>
@@ -837,7 +1027,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    <HelpCircle
+                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      onClick={() => setOpenMetricModal('expiringContracts')}
+                    />
                   </TooltipTrigger>
                   <TooltipContent side="top">Clients with contracts expiring in the next 60 days.</TooltipContent>
                 </Tooltip>
@@ -853,7 +1046,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    <HelpCircle
+                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      onClick={() => setOpenMetricModal('expiringContracts')}
+                    />
                   </TooltipTrigger>
                   <TooltipContent side="top">Clients with contracts expiring in the next 90 days.</TooltipContent>
                 </Tooltip>
@@ -869,7 +1065,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    <HelpCircle
+                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      onClick={() => setOpenMetricModal('revenueAtRisk')}
+                    />
                   </TooltipTrigger>
                   <TooltipContent side="top">Total revenue from contracts expiring in the next 90 days.</TooltipContent>
                 </Tooltip>
@@ -916,7 +1115,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" />
+                    <HelpCircle
+                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      onClick={() => setOpenMetricModal('timeToFirstValue')}
+                    />
                   </TooltipTrigger>
                   <TooltipContent side="top">Average days from signup to first successful onboarding milestone.</TooltipContent>
                 </Tooltip>
@@ -958,6 +1160,12 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
           </ChartContainer>
         </div>
       </div>
+      {/* Modal for metric explanations */}
+      <MetricExplanationModal
+        open={!!openMetricModal}
+        onClose={() => setOpenMetricModal(null)}
+        metricKey={openMetricModal}
+      />
     </div>
   );
 };
@@ -979,4 +1187,4 @@ export default function AnalyticsPage() {
       </div>
     </PasswordProtection>
   );
-} 
+}

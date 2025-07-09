@@ -120,6 +120,10 @@ export async function GET(req: Request) {
     const timeToFirstValue = timeToFirstValueCount ? (timeToFirstValueSum / timeToFirstValueCount) : null;
     const avgOnboardingDuration = onboardingDurationCount ? (onboardingDurationSum / onboardingDurationCount) : null;
 
+    // ARR and MRR logic
+    const arr = totalRevenue;
+    const mrr = arr / 12;
+
     // Analytics overview (existing)
     const analytics = await getAnalyticsOverview();
 
@@ -128,6 +132,8 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       ...analytics,
+      arr,
+      mrr,
       churnedClients,
       filters: { planType, successPackage, implementationManager, status },
       revenue: {
