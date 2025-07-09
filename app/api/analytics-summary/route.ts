@@ -130,10 +130,15 @@ export async function GET(req: Request) {
     // Churned clients metric
     const churnedClients = clients.filter(c => c.churned === true).length;
 
+    // Average number of users per client
+    const userCounts = clients.map(c => Number(c.number_of_users)).filter(n => !isNaN(n) && n > 0);
+    const avgUsersPerClient = userCounts.length ? (userCounts.reduce((a, b) => a + b, 0) / userCounts.length) : 0;
+
     return NextResponse.json({
       ...analytics,
       arr,
       mrr,
+      avgUsersPerClient,
       churnedClients,
       filters: { planType, successPackage, implementationManager, status },
       revenue: {

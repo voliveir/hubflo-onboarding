@@ -221,6 +221,11 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
       description: 'Visual breakdown of revenue by success package.',
       logic: 'Sums revenue for each package.'
     },
+    avgUsersPerClient: {
+      name: 'Avg. Users per Client',
+      description: 'The average number of users per client account.',
+      logic: 'Calculated by averaging the number_of_users field across all clients.'
+    },
   };
 
   // 3. Metric explanation modal component
@@ -439,25 +444,6 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
             <div className="text-base text-white mb-1 font-medium">
               <div className="flex items-center gap-1">
-                <span>Paying Clients</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={() => setOpenMetricModal('payingClients')}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Clients with an active paid subscription.</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-white">{data.payingClients}</div>
-          </Card>
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
-              <div className="flex items-center gap-1">
                 <span>MRR</span>
                 <TooltipProvider>
                   <Tooltip>
@@ -566,6 +552,23 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
             <div className="text-3xl font-extrabold text-white">{data.totalClients ? `${((data.churnedClients / data.totalClients) * 100).toFixed(1)}%` : '-'}</div>
           </Card>
           {/* TODO: If data.churnedClients is not available, update the backend analytics API to include it. */}
+          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+            <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
+              <span>Avg. Users per Client</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle
+                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      onClick={() => setOpenMetricModal('avgUsersPerClient')}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">The average number of users per client account.</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="text-3xl font-extrabold text-white">{data.avgUsersPerClient ? data.avgUsersPerClient.toFixed(1) : '-'}</div>
+          </Card>
         </div>
         <div className="text-xs text-white mb-10">Last updated: {lastUpdated}</div>
       </div>
