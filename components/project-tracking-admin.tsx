@@ -22,6 +22,8 @@ import {
 import {
   updateProjectTracking,
   calculateProjectCompletion,
+  countCompletedCalls,
+  getScheduledCallsForPackage,
 } from "@/lib/database"
 import type { Client } from "@/lib/types"
 
@@ -31,9 +33,16 @@ interface ProjectTrackingAdminProps {
 
 export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
   const [loading, setLoading] = useState(false)
+  
+  // Calculate completed calls based on call dates
+  const calculatedCompletedCalls = countCompletedCalls(client)
+  
+  // Calculate scheduled calls based on package type
+  const calculatedScheduledCalls = getScheduledCallsForPackage(client.success_package)
+  
   const [tracking, setTracking] = useState({
-    calls_scheduled: client.calls_scheduled || 0,
-    calls_completed: client.calls_completed || 0,
+    calls_scheduled: calculatedScheduledCalls, // Use calculated value
+    calls_completed: calculatedCompletedCalls, // Use calculated value
     forms_setup: client.forms_setup || 0,
     smartdocs_setup: client.smartdocs_setup || 0,
     zapier_integrations_setup: client.zapier_integrations_setup || 0,
@@ -54,6 +63,17 @@ export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
       ...tracking,
     })
   }, [client, tracking])
+
+  // Update tracking when client data changes (e.g., call dates are updated)
+  useEffect(() => {
+    const newCompletedCalls = countCompletedCalls(client)
+    const newScheduledCalls = getScheduledCallsForPackage(client.success_package)
+    setTracking(prev => ({
+      ...prev,
+      calls_completed: newCompletedCalls,
+      calls_scheduled: newScheduledCalls,
+    }))
+  }, [client])
 
   const handleSaveTracking = async () => {
     if (!client?.id) return
@@ -294,6 +314,7 @@ export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
                 <Phone className="h-5 w-5 text-[#F2C94C]" />
                 <h4 className="font-semibold text-white">Zoom Calls</h4>
               </div>
+              <p className="text-xs text-slate-400 mb-4">Scheduled calls are auto-set based on package type. Completed calls are calculated from call dates in the client edit form</p>
               <div className="space-y-4">
                 <div className="grid grid-cols-12 gap-y-2">
                   <Label htmlFor="calls_scheduled" className="col-span-4 text-right text-slate-400">Scheduled</Label>
@@ -303,11 +324,10 @@ export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
                       type="number"
                       min="0"
                       value={tracking.calls_scheduled}
-                      onChange={(e) =>
-                        setTracking({ ...tracking, calls_scheduled: Number.parseInt(e.target.value) || 0 })
-                      }
-                      className="bg-[#181a2f] border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
+                      disabled
+                      className="bg-[#181a2f] border border-slate-600 text-white rounded-lg opacity-60 cursor-not-allowed"
                     />
+                    <p className="text-xs text-slate-400 mt-1">Auto-set based on package type</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-12 gap-y-2">
@@ -319,11 +339,10 @@ export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
                       min="0"
                       max={tracking.calls_scheduled}
                       value={tracking.calls_completed}
-                      onChange={(e) =>
-                        setTracking({ ...tracking, calls_completed: Number.parseInt(e.target.value) || 0 })
-                      }
-                      className="bg-[#181a2f] border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-[#F2C94C]"
+                      disabled
+                      className="bg-[#181a2f] border border-slate-600 text-white rounded-lg opacity-60 cursor-not-allowed"
                     />
+                    <p className="text-xs text-slate-400 mt-1">Auto-calculated from call dates</p>
                   </div>
                 </div>
                 <Progress

@@ -781,13 +781,86 @@ export async function getWebhookData(clientId?: string): Promise<TaskCompletion[
   }
 }
 
+// Helper function to count completed calls based on call dates
+export function countCompletedCalls(client: Client): number {
+  let completedCalls = 0
+  
+  // Count based on package type and call dates
+  if (client.success_package === 'light') {
+    if (client.light_onboarding_call_date) completedCalls++
+  } else if (client.success_package === 'premium') {
+    if (client.premium_first_call_date) completedCalls++
+    if (client.premium_second_call_date) completedCalls++
+  } else if (client.success_package === 'gold') {
+    if (client.gold_first_call_date) completedCalls++
+    if (client.gold_second_call_date) completedCalls++
+    if (client.gold_third_call_date) completedCalls++
+  } else if (client.success_package === 'elite') {
+    // For elite, count all call dates that exist
+    if (client.light_onboarding_call_date) completedCalls++
+    if (client.premium_first_call_date) completedCalls++
+    if (client.premium_second_call_date) completedCalls++
+    if (client.gold_first_call_date) completedCalls++
+    if (client.gold_second_call_date) completedCalls++
+    if (client.gold_third_call_date) completedCalls++
+  } else if (client.success_package === 'starter') {
+    if (client.light_onboarding_call_date) completedCalls++
+  } else if (client.success_package === 'professional') {
+    if (client.premium_first_call_date) completedCalls++
+    if (client.premium_second_call_date) completedCalls++
+    if (client.gold_first_call_date) completedCalls++
+  } else if (client.success_package === 'enterprise') {
+    // For enterprise, count all call dates that exist
+    if (client.light_onboarding_call_date) completedCalls++
+    if (client.premium_first_call_date) completedCalls++
+    if (client.premium_second_call_date) completedCalls++
+    if (client.gold_first_call_date) completedCalls++
+    if (client.gold_second_call_date) completedCalls++
+    if (client.gold_third_call_date) completedCalls++
+  }
+  
+  // Also count any extra call dates
+  if (client.extra_call_dates && Array.isArray(client.extra_call_dates)) {
+    completedCalls += client.extra_call_dates.length
+  }
+  
+  return completedCalls
+}
+
+// Helper function to get scheduled calls based on package type
+export function getScheduledCallsForPackage(packageType: string): number {
+  const packageLimits: Record<string, number> = {
+    light: 1,
+    premium: 2,
+    gold: 3,
+    elite: 10, // Set to 10 for backend data as requested
+    starter: 1,
+    professional: 3,
+    enterprise: 10, // Set to 10 for backend data as requested
+  }
+  
+  return packageLimits[packageType] || 2 // Default to premium (2 calls)
+}
+
 export async function updateProjectTracking(clientId: string, tracking: any): Promise<Client> {
   try {
+    // Get the current client data to calculate completed calls
+    const client = await getClientById(clientId)
+    if (!client) {
+      throw new Error("Client not found")
+    }
+    
+    // Calculate completed calls based on call dates
+    const completedCalls = countCompletedCalls(client)
+    
+    // Calculate scheduled calls based on package type
+    const scheduledCalls = getScheduledCallsForPackage(client.success_package)
+    
     const { data, error } = await supabase
       .from("clients")
       .update({
-        calls_scheduled: tracking.calls_scheduled,
-        calls_completed: tracking.calls_completed,
+        calls_scheduled: scheduledCalls, // Use calculated value instead of manual input
+        calls_completed: completedCalls, // Use calculated value instead of manual input
         forms_setup: tracking.forms_setup,
         smartdocs_setup: tracking.smartdocs_setup,
         zapier_integrations_setup: tracking.zapier_integrations_setup,

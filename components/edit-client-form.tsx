@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "@/hooks/use-toast"
-import { updateClient, isSlugAvailable, getTaskCompletions, updateTaskCompletion } from "@/lib/database"
+import { updateClient, isSlugAvailable, getTaskCompletions, updateTaskCompletion, updateProjectTracking, countCompletedCalls, getScheduledCallsForPackage } from "@/lib/database"
 import { type Client } from "@/lib/types"
 import { Save, ArrowLeft, CheckCircle, XCircle, Loader2, AlertCircle, Package, Settings, Calendar, Users, Palette, DollarSign, X } from "lucide-react"
 import Link from "next/link"
@@ -228,7 +228,38 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
 
     setSaving(true)
     try {
+      // Update client data
       await updateClient(client.id, formData)
+      
+      // Check if any call dates or package type were changed and update project tracking
+      const callDatesChanged = 
+        formData.light_onboarding_call_date !== client.light_onboarding_call_date ||
+        formData.premium_first_call_date !== client.premium_first_call_date ||
+        formData.premium_second_call_date !== client.premium_second_call_date ||
+        formData.gold_first_call_date !== client.gold_first_call_date ||
+        formData.gold_second_call_date !== client.gold_second_call_date ||
+        formData.gold_third_call_date !== client.gold_third_call_date ||
+        JSON.stringify(formData.extra_call_dates) !== JSON.stringify(client.extra_call_dates)
+      
+      const packageChanged = formData.success_package !== client.success_package
+      
+      if (callDatesChanged || packageChanged) {
+        // Update project tracking with current tracking data but recalculated calls
+        const updatedClient = { ...client, ...formData }
+        const completedCalls = countCompletedCalls(updatedClient)
+        const scheduledCalls = getScheduledCallsForPackage(updatedClient.success_package)
+        
+        await updateProjectTracking(client.id, {
+          calls_scheduled: scheduledCalls,
+          calls_completed: completedCalls,
+          forms_setup: client.forms_setup || 0,
+          smartdocs_setup: client.smartdocs_setup || 0,
+          zapier_integrations_setup: client.zapier_integrations_setup || 0,
+          migration_completed: client.migration_completed || false,
+          slack_access_granted: client.slack_access_granted || false,
+        })
+      }
+      
       toast({
         title: "Success",
         description: "Client updated successfully",
@@ -822,6 +853,12 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
               <h3 className="text-lg font-semibold text-white">Timestamps</h3>
             </div>
             <p className="text-sm text-slate-300">Track important milestone dates for this client</p>
+            <Alert className="bg-[#F2C94C]/10 border-[#F2C94C]/20">
+              <AlertCircle className="h-4 w-4 text-[#F2C94C]" />
+              <AlertDescription className="text-slate-300">
+                Package type sets scheduled calls automatically. Call dates update completed calls count in tracking page
+              </AlertDescription>
+            </Alert>
             
             <div className="space-y-4">
               {client.success_package === "light" && (
