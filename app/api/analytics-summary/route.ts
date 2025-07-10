@@ -133,8 +133,14 @@ export async function GET(req: Request) {
     // Analytics overview (existing)
     const analytics = await getAnalyticsOverview();
 
-    // Churned clients metric
-    const churnedClients = allNonDemoClients.filter(c => c.churned === true).length;
+    // Churned clients metric - apply filters to churned clients calculation
+    let filteredChurnedClients = allNonDemoClients.filter(c => c.churned === true);
+    if (planType) filteredChurnedClients = filteredChurnedClients.filter(c => c.plan_type === planType);
+    if (successPackage) filteredChurnedClients = filteredChurnedClients.filter(c => c.success_package === successPackage);
+    if (implementationManager) filteredChurnedClients = filteredChurnedClients.filter(c => c.implementation_manager === implementationManager);
+    if (status) filteredChurnedClients = filteredChurnedClients.filter(c => c.status === status);
+    
+    const churnedClients = filteredChurnedClients.length;
     const churnRate = allNonDemoClients.length > 0 ? (churnedClients / allNonDemoClients.length) * 100 : 0;
 
     // Churn risk clients metric
