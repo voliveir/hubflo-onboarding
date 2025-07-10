@@ -161,6 +161,12 @@ const transformClientForDb = (clientData: any): any => {
     transformed.white_label_ios_url = clientData.white_label_ios_url
   }
 
+  // Handle graduation date
+  if (typeof clientData.graduation_date !== "undefined") {
+    // Convert empty string to null for DB compatibility
+    transformed.graduation_date = clientData.graduation_date === "" ? null : clientData.graduation_date;
+  }
+
   // Handle milestone date fields
   if (typeof clientData.light_onboarding_call_date !== "undefined") {
     transformed.light_onboarding_call_date = clientData.light_onboarding_call_date
@@ -197,6 +203,20 @@ const transformClientForDb = (clientData: any): any => {
   // Always include implementation_manager if present
   if (typeof clientData.implementation_manager !== "undefined") {
     transformed.implementation_manager = clientData.implementation_manager;
+  }
+
+  // Handle calendar fields
+  if (typeof clientData.calendar_contact_success !== "undefined") {
+    transformed.calendar_contact_success = clientData.calendar_contact_success;
+  }
+  if (typeof clientData.calendar_schedule_call !== "undefined") {
+    transformed.calendar_schedule_call = clientData.calendar_schedule_call;
+  }
+  if (typeof clientData.calendar_integrations_call !== "undefined") {
+    transformed.calendar_integrations_call = clientData.calendar_integrations_call;
+  }
+  if (typeof clientData.calendar_upgrade_consultation !== "undefined") {
+    transformed.calendar_upgrade_consultation = clientData.calendar_upgrade_consultation;
   }
 
   if (typeof clientData.churned !== "undefined") {

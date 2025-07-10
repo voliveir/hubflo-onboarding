@@ -662,6 +662,77 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                           <span>{new Date(client.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>
+                      
+                      {/* Implementation Manager */}
+                      <div className="mt-3">
+                        <div className="flex items-center gap-2 text-sm text-white/60">
+                          <Users className="h-4 w-4 text-[#F2C94C]" />
+                          <span className="font-medium text-white">Manager:</span>
+                          <span className="bg-[#23244a] text-white/80 px-2 py-0.5 rounded-full text-xs font-medium">
+                            {managers.find(m => m.manager_id === client.implementation_manager)?.name || client.implementation_manager}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Call Dates and Graduation Date */}
+                      <div className="mt-3 space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-white/60">
+                          <Calendar className="h-4 w-4 text-[#F2C94C]" />
+                          <span className="font-medium text-white">Key Dates:</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2 ml-6">
+                          {client.graduation_date && (
+                            <span className="bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                              Graduation: {new Date(client.graduation_date).toLocaleDateString()}
+                            </span>
+                          )}
+                          {client.light_onboarding_call_date && (
+                            <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                              Light Call: {new Date(client.light_onboarding_call_date).toLocaleDateString()}
+                            </span>
+                          )}
+                          {client.premium_first_call_date && (
+                            <span className="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                              Premium 1st: {new Date(client.premium_first_call_date).toLocaleDateString()}
+                            </span>
+                          )}
+                          {client.premium_second_call_date && (
+                            <span className="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                              Premium 2nd: {new Date(client.premium_second_call_date).toLocaleDateString()}
+                            </span>
+                          )}
+                          {client.gold_first_call_date && (
+                            <span className="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                              Gold 1st: {new Date(client.gold_first_call_date).toLocaleDateString()}
+                            </span>
+                          )}
+                          {client.gold_second_call_date && (
+                            <span className="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                              Gold 2nd: {new Date(client.gold_second_call_date).toLocaleDateString()}
+                            </span>
+                          )}
+                          {client.gold_third_call_date && (
+                            <span className="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                              Gold 3rd: {new Date(client.gold_third_call_date).toLocaleDateString()}
+                            </span>
+                          )}
+                          {client.elite_configurations_started_date && (
+                            <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                              Elite Config: {new Date(client.elite_configurations_started_date).toLocaleDateString()}
+                            </span>
+                          )}
+                          {client.elite_integrations_started_date && (
+                            <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                              Elite Integrations: {new Date(client.elite_integrations_started_date).toLocaleDateString()}
+                            </span>
+                          )}
+                          {client.elite_verification_completed_date && (
+                            <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                              Elite Verification: {new Date(client.elite_verification_completed_date).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                       {client.custom_app && getCustomAppLabel(client.custom_app) !== "Not Applicable" && (
                         <div className="mt-2">
                           <span className="bg-[#23244a] text-white/80 px-2 py-0.5 rounded-full text-xs font-medium">

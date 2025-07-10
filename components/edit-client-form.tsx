@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "@/hooks/use-toast"
 import { updateClient, isSlugAvailable, getTaskCompletions, updateTaskCompletion } from "@/lib/database"
 import { type Client } from "@/lib/types"
-import { Save, ArrowLeft, CheckCircle, XCircle, Loader2, AlertCircle, Package, Settings, Calendar, Users, Palette, DollarSign } from "lucide-react"
+import { Save, ArrowLeft, CheckCircle, XCircle, Loader2, AlertCircle, Package, Settings, Calendar, Users, Palette, DollarSign, X } from "lucide-react"
 import Link from "next/link"
 import { Checkbox } from "@/components/ui/checkbox"
 import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
@@ -1005,9 +1005,15 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                     className="bg-[#0a0b1a] border-slate-600 text-white focus:border-[#F2C94C] focus:ring-[#F2C94C]/20"
                   />
                   {formData.graduation_date && (
-                    <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-400" onClick={() => setFormData(prev => ({ ...prev, graduation_date: "" }))}>
-                      <span aria-label="Clear date">×</span>
-                    </button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2 text-red-400 hover:text-red-300"
+                      onClick={() => setFormData(prev => ({ ...prev, graduation_date: null }))}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
               </div>
