@@ -131,6 +131,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     churned: client.churned,
     is_demo: client.is_demo,
     churn_risk: client.churn_risk,
+    extra_call_dates: client.extra_call_dates || [],
   })
 
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
@@ -1018,6 +1019,52 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Additional Calls Section */}
+          <div className="space-y-2 mt-8">
+            <Label className="text-white text-base font-semibold">Additional Calls</Label>
+            <p className="text-sm text-slate-400 mb-2">Track any extra calls beyond the standard package calls.</p>
+            {formData.extra_call_dates && formData.extra_call_dates.length > 0 ? (
+              formData.extra_call_dates.map((date, idx) => (
+                <div key={idx} className="flex items-center gap-2 mb-2">
+                  <Input
+                    type="date"
+                    value={date || ""}
+                    onChange={e => {
+                      const newDates = [...(formData.extra_call_dates || [])];
+                      newDates[idx] = e.target.value;
+                      setFormData(prev => ({ ...prev, extra_call_dates: newDates }));
+                    }}
+                    className="bg-[#0a0b1a] border-slate-600 text-white placeholder:text-slate-400 focus:border-[#F2C94C] focus:ring-[#F2C94C]/20 w-48"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-400 hover:text-red-300"
+                    onClick={() => {
+                      const newDates = [...(formData.extra_call_dates || [])];
+                      newDates.splice(idx, 1);
+                      setFormData(prev => ({ ...prev, extra_call_dates: newDates }));
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <p className="text-slate-500 text-sm mb-2">No extra calls tracked yet.</p>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-2 bg-[#181a2f] border border-slate-600 text-white hover:bg-[#23244a] rounded-lg"
+              onClick={() => setFormData(prev => ({ ...prev, extra_call_dates: [...(prev.extra_call_dates || []), ""] }))}
+            >
+              Add Another Call Date
+            </Button>
           </div>
         </div>
 

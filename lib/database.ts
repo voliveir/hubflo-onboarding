@@ -122,6 +122,7 @@ function transformClientFromDb(data: any): Client {
     churned: data.churned || false,
     is_demo: data.is_demo || false,
     churn_risk: data.churn_risk || false,
+    extra_call_dates: data.extra_call_dates || [],
   }
 }
 
@@ -229,6 +230,13 @@ const transformClientForDb = (clientData: any): any => {
 
   if (typeof clientData.churn_risk !== "undefined") {
     transformed.churn_risk = !!clientData.churn_risk
+  }
+
+  // Handle extra_call_dates (array of strings)
+  if (typeof clientData.extra_call_dates !== "undefined") {
+    transformed.extra_call_dates = Array.isArray(clientData.extra_call_dates)
+      ? clientData.extra_call_dates
+      : [];
   }
 
   return transformed

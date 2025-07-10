@@ -15,3 +15,6 @@ CREATE TABLE IF NOT EXISTS feedback_board_cards (
 CREATE INDEX IF NOT EXISTS idx_feedback_board_cards_client_id ON feedback_board_cards(client_id);
 CREATE INDEX IF NOT EXISTS idx_feedback_board_cards_status ON feedback_board_cards(status);
 CREATE INDEX IF NOT EXISTS idx_feedback_board_cards_type ON feedback_board_cards(type); 
+
+-- Add extra_call_dates column to clients table for tracking additional call dates
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS extra_call_dates text[]; 

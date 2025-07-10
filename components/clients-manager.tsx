@@ -621,144 +621,156 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
             </div>
           ) : (
             <div className="grid gap-4">
-              {filteredClients.map((client) => (
-                <div key={client.id} className="group bg-[#10122b]/90 ring-1 ring-[#F2C94C]/20 rounded-xl p-5 transition-all hover:ring-2 hover:ring-[#F2C94C]/40">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-[17px] text-white">{client.name}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getStatusColor(client.status)}`}>
-                          {client.status}
-                        </span>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getPackageColor(client.success_package)}`}>
-                          {client.success_package}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-white/60">
-                        <div className="flex items-center gap-2">
-                          <Package className="h-4 w-4 text-[#F2C94C]" />
-                          <span>Slug: {client.slug}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-[#F2C94C]" />
-                          <span>{client.number_of_users || 0} users</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-[#F2C94C]" />
-                          <span>Billing: {client.billing_type}</span>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-white/60 mt-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-white">Plan:</span>
-                          <span className="bg-[#23244a] text-white/80 px-2 py-0.5 rounded-full text-xs font-medium">{client.plan_type}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="h-4 w-4 text-[#F2C94C]" />
-                          <span>${client.revenue_amount.toLocaleString()}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-[#F2C94C]" />
-                          <span>{new Date(client.created_at).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Implementation Manager */}
-                      <div className="mt-3">
-                        <div className="flex items-center gap-2 text-sm text-white/60">
-                          <Users className="h-4 w-4 text-[#F2C94C]" />
-                          <span className="font-medium text-white">Manager:</span>
-                          <span className="bg-[#23244a] text-white/80 px-2 py-0.5 rounded-full text-xs font-medium">
-                            {managers.find(m => m.manager_id === client.implementation_manager)?.name || client.implementation_manager}
+              {filteredClients.map((client) => {
+                // Debug: Log extra_call_dates for each client
+                console.log('Client extra_call_dates:', client.extra_call_dates);
+                return (
+                  <div key={client.id} className="group bg-[#10122b]/90 ring-1 ring-[#F2C94C]/20 rounded-xl p-5 transition-all hover:ring-2 hover:ring-[#F2C94C]/40">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-medium text-[17px] text-white">{client.name}</h3>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getStatusColor(client.status)}`}>
+                            {client.status}
+                          </span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getPackageColor(client.success_package)}`}>
+                            {client.success_package}
                           </span>
                         </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-white/60">
+                          <div className="flex items-center gap-2">
+                            <Package className="h-4 w-4 text-[#F2C94C]" />
+                            <span>Slug: {client.slug}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-[#F2C94C]" />
+                            <span>{client.number_of_users || 0} users</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-[#F2C94C]" />
+                            <span>Billing: {client.billing_type}</span>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-white/60 mt-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-white">Plan:</span>
+                            <span className="bg-[#23244a] text-white/80 px-2 py-0.5 rounded-full text-xs font-medium">{client.plan_type}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4 text-[#F2C94C]" />
+                            <span>${client.revenue_amount.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-[#F2C94C]" />
+                            <span>{new Date(client.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                        
+                        {/* Implementation Manager */}
+                        <div className="mt-3">
+                          <div className="flex items-center gap-2 text-sm text-white/60">
+                            <Users className="h-4 w-4 text-[#F2C94C]" />
+                            <span className="font-medium text-white">Manager:</span>
+                            <span className="bg-[#23244a] text-white/80 px-2 py-0.5 rounded-full text-xs font-medium">
+                              {managers.find(m => m.manager_id === client.implementation_manager)?.name || client.implementation_manager}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Call Dates and Graduation Date */}
+                        <div className="mt-3 space-y-2">
+                          <div className="flex items-center gap-2 text-sm text-white/60">
+                            <Calendar className="h-4 w-4 text-[#F2C94C]" />
+                            <span className="font-medium text-white">Key Dates:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-2 ml-6">
+                            {client.graduation_date && (
+                              <span className="bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                                Graduation: {new Date(client.graduation_date).toLocaleDateString()}
+                              </span>
+                            )}
+                            {client.light_onboarding_call_date && (
+                              <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                                Light Call: {new Date(client.light_onboarding_call_date).toLocaleDateString()}
+                              </span>
+                            )}
+                            {client.premium_first_call_date && (
+                              <span className="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                                Premium 1st: {new Date(client.premium_first_call_date).toLocaleDateString()}
+                              </span>
+                            )}
+                            {client.premium_second_call_date && (
+                              <span className="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                                Premium 2nd: {new Date(client.premium_second_call_date).toLocaleDateString()}
+                              </span>
+                            )}
+                            {client.gold_first_call_date && (
+                              <span className="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                                Gold 1st: {new Date(client.gold_first_call_date).toLocaleDateString()}
+                              </span>
+                            )}
+                            {client.gold_second_call_date && (
+                              <span className="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                                Gold 2nd: {new Date(client.gold_second_call_date).toLocaleDateString()}
+                              </span>
+                            )}
+                            {client.gold_third_call_date && (
+                              <span className="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                                Gold 3rd: {new Date(client.gold_third_call_date).toLocaleDateString()}
+                              </span>
+                            )}
+                            {client.elite_configurations_started_date && (
+                              <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                                Elite Config: {new Date(client.elite_configurations_started_date).toLocaleDateString()}
+                              </span>
+                            )}
+                            {client.elite_integrations_started_date && (
+                              <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                                Elite Integrations: {new Date(client.elite_integrations_started_date).toLocaleDateString()}
+                              </span>
+                            )}
+                            {client.elite_verification_completed_date && (
+                              <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                                Elite Verification: {new Date(client.elite_verification_completed_date).toLocaleDateString()}
+                              </span>
+                            )}
+                            {/* Extra Calls */}
+                            {Array.isArray(client.extra_call_dates) && client.extra_call_dates.map((date, idx) =>
+                              date ? (
+                                <span key={idx} className="bg-white text-[#10122b] px-2 py-0.5 rounded-full text-xs font-medium border border-[#F2C94C]">
+                                  Extra Call {idx + 1}: {new Date(date).toLocaleDateString()}
+                                </span>
+                              ) : null
+                            )}
+                          </div>
+                        </div>
+                        {client.custom_app && getCustomAppLabel(client.custom_app) !== "Not Applicable" && (
+                          <div className="mt-2">
+                            <span className="bg-[#23244a] text-white/80 px-2 py-0.5 rounded-full text-xs font-medium">
+                              Custom App: {getCustomAppLabel(client.custom_app)}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      
-                      {/* Call Dates and Graduation Date */}
-                      <div className="mt-3 space-y-2">
-                        <div className="flex items-center gap-2 text-sm text-white/60">
-                          <Calendar className="h-4 w-4 text-[#F2C94C]" />
-                          <span className="font-medium text-white">Key Dates:</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2 ml-6">
-                          {client.graduation_date && (
-                            <span className="bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                              Graduation: {new Date(client.graduation_date).toLocaleDateString()}
-                            </span>
-                          )}
-                          {client.light_onboarding_call_date && (
-                            <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                              Light Call: {new Date(client.light_onboarding_call_date).toLocaleDateString()}
-                            </span>
-                          )}
-                          {client.premium_first_call_date && (
-                            <span className="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                              Premium 1st: {new Date(client.premium_first_call_date).toLocaleDateString()}
-                            </span>
-                          )}
-                          {client.premium_second_call_date && (
-                            <span className="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                              Premium 2nd: {new Date(client.premium_second_call_date).toLocaleDateString()}
-                            </span>
-                          )}
-                          {client.gold_first_call_date && (
-                            <span className="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                              Gold 1st: {new Date(client.gold_first_call_date).toLocaleDateString()}
-                            </span>
-                          )}
-                          {client.gold_second_call_date && (
-                            <span className="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                              Gold 2nd: {new Date(client.gold_second_call_date).toLocaleDateString()}
-                            </span>
-                          )}
-                          {client.gold_third_call_date && (
-                            <span className="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                              Gold 3rd: {new Date(client.gold_third_call_date).toLocaleDateString()}
-                            </span>
-                          )}
-                          {client.elite_configurations_started_date && (
-                            <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                              Elite Config: {new Date(client.elite_configurations_started_date).toLocaleDateString()}
-                            </span>
-                          )}
-                          {client.elite_integrations_started_date && (
-                            <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                              Elite Integrations: {new Date(client.elite_integrations_started_date).toLocaleDateString()}
-                            </span>
-                          )}
-                          {client.elite_verification_completed_date && (
-                            <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                              Elite Verification: {new Date(client.elite_verification_completed_date).toLocaleDateString()}
-                            </span>
-                          )}
-                        </div>
+                      <div className="flex items-center gap-1 ml-4">
+                        <Button asChild variant="outline" size="sm" className="w-8 h-8 bg-[#181a2f] rounded-md flex items-center justify-center hidden group-hover:flex">
+                          <Link href={`/admin/clients/${client.id}`}>
+                            <Eye className="h-4 w-4 text-[#F2C94C]" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteClient(client.id, client.name)}
+                          className="w-8 h-8 bg-[#181a2f] rounded-md flex items-center justify-center hidden group-hover:flex text-red-400 hover:text-red-300"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                      {client.custom_app && getCustomAppLabel(client.custom_app) !== "Not Applicable" && (
-                        <div className="mt-2">
-                          <span className="bg-[#23244a] text-white/80 px-2 py-0.5 rounded-full text-xs font-medium">
-                            Custom App: {getCustomAppLabel(client.custom_app)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 ml-4">
-                      <Button asChild variant="outline" size="sm" className="w-8 h-8 bg-[#181a2f] rounded-md flex items-center justify-center hidden group-hover:flex">
-                        <Link href={`/admin/clients/${client.id}`}>
-                          <Eye className="h-4 w-4 text-[#F2C94C]" />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteClient(client.id, client.name)}
-                        className="w-8 h-8 bg-[#181a2f] rounded-md flex items-center justify-center hidden group-hover:flex text-red-400 hover:text-red-300"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>

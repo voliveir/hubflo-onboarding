@@ -37,6 +37,7 @@ export interface Client {
   elite_configurations_started_date?: string | null
   elite_integrations_started_date?: string | null
   elite_verification_completed_date?: string | null
+  extra_call_dates?: string[] // Additional call dates
   workflow_builder_enabled: boolean
   workflow?: any // JSON object for workflow builder data
   show_figma_workflow?: boolean
