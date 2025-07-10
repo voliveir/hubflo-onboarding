@@ -168,56 +168,22 @@ const transformClientForDb = (clientData: any): any => {
     transformed.graduation_date = clientData.graduation_date === "" ? null : clientData.graduation_date;
   }
 
-  // Handle milestone date fields
-  if (typeof clientData.light_onboarding_call_date !== "undefined") {
-    transformed.light_onboarding_call_date = clientData.light_onboarding_call_date
-  }
-  if (typeof clientData.premium_first_call_date !== "undefined") {
-    transformed.premium_first_call_date = clientData.premium_first_call_date
-  }
-  if (typeof clientData.premium_second_call_date !== "undefined") {
-    transformed.premium_second_call_date = clientData.premium_second_call_date
-  }
-  if (typeof clientData.gold_first_call_date !== "undefined") {
-    transformed.gold_first_call_date = clientData.gold_first_call_date
-  }
-  if (typeof clientData.gold_second_call_date !== "undefined") {
-    transformed.gold_second_call_date = clientData.gold_second_call_date
-  }
-  if (typeof clientData.gold_third_call_date !== "undefined") {
-    transformed.gold_third_call_date = clientData.gold_third_call_date
-  }
-  if (typeof clientData.elite_configurations_started_date !== "undefined") {
-    transformed.elite_configurations_started_date = clientData.elite_configurations_started_date
-  }
-  if (typeof clientData.elite_integrations_started_date !== "undefined") {
-    transformed.elite_integrations_started_date = clientData.elite_integrations_started_date
-  }
-  if (typeof clientData.elite_verification_completed_date !== "undefined") {
-    transformed.elite_verification_completed_date = clientData.elite_verification_completed_date
-  }
-
-  if (typeof transformed.feedback_board_enabled !== "undefined") {
-    transformed.feedback_board_enabled = !!transformed.feedback_board_enabled;
-  }
-
-  // Always include implementation_manager if present
-  if (typeof clientData.implementation_manager !== "undefined") {
-    transformed.implementation_manager = clientData.implementation_manager;
-  }
-
-  // Handle calendar fields
-  if (typeof clientData.calendar_contact_success !== "undefined") {
-    transformed.calendar_contact_success = clientData.calendar_contact_success;
-  }
-  if (typeof clientData.calendar_schedule_call !== "undefined") {
-    transformed.calendar_schedule_call = clientData.calendar_schedule_call;
-  }
-  if (typeof clientData.calendar_integrations_call !== "undefined") {
-    transformed.calendar_integrations_call = clientData.calendar_integrations_call;
-  }
-  if (typeof clientData.calendar_upgrade_consultation !== "undefined") {
-    transformed.calendar_upgrade_consultation = clientData.calendar_upgrade_consultation;
+  // Handle milestone date fields (convert empty string to null)
+  const milestoneDateFields = [
+    'light_onboarding_call_date',
+    'premium_first_call_date',
+    'premium_second_call_date',
+    'gold_first_call_date',
+    'gold_second_call_date',
+    'gold_third_call_date',
+    'elite_configurations_started_date',
+    'elite_integrations_started_date',
+    'elite_verification_completed_date',
+  ];
+  for (const field of milestoneDateFields) {
+    if (typeof clientData[field] !== "undefined") {
+      transformed[field] = clientData[field] === "" ? null : clientData[field];
+    }
   }
 
   if (typeof clientData.churned !== "undefined") {
