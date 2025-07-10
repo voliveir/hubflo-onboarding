@@ -59,8 +59,8 @@ export default async function ClientPage({ params }: ClientPageProps) {
     notFound()
   }
 
-  // Only show active clients to the public
-  if (client.status !== "active") {
+  // Only show active or pending clients to the public
+  if (!["active", "pending"].includes(client.status)) {
     notFound()
   }
 
