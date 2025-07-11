@@ -143,6 +143,9 @@ export async function GET(req: Request) {
     const churnedClients = filteredChurnedClients.length;
     const churnRate = allNonDemoClients.length > 0 ? (churnedClients / allNonDemoClients.length) * 100 : 0;
 
+    // Revenue lost to churned clients
+    const revenueLostToChurnedClients = filteredChurnedClients.reduce((sum, c) => sum + (Number(c.revenue_amount) || 0), 0);
+
     // Churn risk clients metric
     const churnRiskClientsArr = filteredClients.filter(c => c.churn_risk === true);
     const churnRiskClients = churnRiskClientsArr.length;
@@ -151,6 +154,9 @@ export async function GET(req: Request) {
     // Average number of users per client
     const userCounts = filteredClients.map(c => Number(c.number_of_users)).filter(n => !isNaN(n) && n > 0);
     const avgUsersPerClient = userCounts.length ? (userCounts.reduce((a, b) => a + b, 0) / userCounts.length) : 0;
+
+    // Revenue at Risk (Churn Risk)
+    const revenueAtRiskChurn = filteredClients.filter(c => c.churn_risk === true).reduce((sum, c) => sum + (Number(c.revenue_amount) || 0), 0);
 
     return NextResponse.json({
       ...analytics,
@@ -190,6 +196,8 @@ export async function GET(req: Request) {
         atRiskClients,
       },
       clients,
+      revenueLostToChurnedClients,
+      revenueAtRiskChurn,
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch analytics summary.' }, { status: 500 });

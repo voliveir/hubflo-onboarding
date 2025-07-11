@@ -233,6 +233,16 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
       description: 'Number of clients currently marked as at risk of churn by an implementation manager.',
       logic: 'Implementation managers can manually toggle churn risk for any client. This metric counts all non-churned, non-demo clients with churn risk enabled.'
     },
+    revenueAtRiskChurn: {
+      name: 'Revenue at Risk (Churn Risk)',
+      description: 'Total revenue from clients currently marked as churn risk (excluding churned and demo clients).',
+      logic: 'Sums the revenue_amount field for all clients where churn_risk is true, churned is false, and is_demo is false.'
+    },
+    revenueLostToChurnedClients: {
+      name: 'Revenue Lost to Churned Clients',
+      description: 'Total revenue lost from all churned (non-demo) clients.',
+      logic: 'Sums the revenue_amount field for all clients where churned is true and is_demo is false.'
+    },
   };
 
   // 3. Metric explanation modal component
@@ -557,6 +567,51 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
             </div>
             <div className="text-3xl font-extrabold text-white">${data.revenue?.total?.toLocaleString() ?? '-'}</div>
           </Card>
+        </div>
+        <div className="text-xs text-white mb-10">Last updated: {lastUpdated}</div>
+      </div>
+
+      {/* SECTION B: Churn */}
+      <div className="py-10">
+        <h2 className="text-2xl font-bold text-white mb-4">❗ Churn</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
+          {/* Revenue at Risk (Churn Risk) */}
+          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border-2 border-red-500">
+            <div className="flex items-center gap-1 text-base text-white mb-1 font-bold">
+              <span>Revenue at Risk (Churn Risk)</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle
+                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      onClick={() => setOpenMetricModal('revenueAtRiskChurn')}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Total revenue from clients currently marked as churn risk (excluding churned and demo clients).</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="text-3xl font-extrabold text-white">${data.revenueAtRiskChurn?.toLocaleString() ?? '-'}</div>
+          </Card>
+          {/* Revenue Lost to Churned Clients */}
+          <Card className="bg-[#2d0a0a] glass shadow-xl p-6 flex flex-col items-center justify-center border-2 border-red-700">
+            <div className="flex items-center gap-1 text-base text-white mb-1 font-bold">
+              <span>Revenue Lost to Churned Clients</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle
+                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      onClick={() => setOpenMetricModal('revenueLostToChurnedClients')}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="top"><span className='text-white'>Total revenue lost from all churned (non-demo) clients. Sums the revenue_amount for all churned clients.</span></TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="text-3xl font-extrabold text-red-300">${data.revenueLostToChurnedClients?.toLocaleString() ?? '-'}</div>
+          </Card>
+          {/* Churned Clients */}
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
             <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
               <span>Churned Clients</span>
@@ -574,6 +629,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
             </div>
             <div className="text-3xl font-extrabold text-white">{data.churnedClients ?? '-'}</div>
           </Card>
+          {/* Churn Rate */}
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
             <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
               <span>Churn Rate</span>
@@ -591,40 +647,25 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
             </div>
             <div className="text-3xl font-extrabold text-white">{data.totalClients ? `${((data.churnedClients / data.totalClients) * 100).toFixed(1)}%` : '-'}</div>
           </Card>
-          {/* TODO: If data.churnedClients is not available, update the backend analytics API to include it. */}
+          {/* Churn Risk Clients */}
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
-              <span>Avg. Users per Client</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle
-                      className="w-4 h-4 text-gold-400 cursor-pointer"
-                      onClick={() => setOpenMetricModal('avgUsersPerClient')}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">The average number of users per client account.</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <div className="text-3xl font-extrabold text-white">{data.avgUsersPerClient ? data.avgUsersPerClient.toFixed(1) : '-'}</div>
-          </Card>
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] cursor-pointer" onClick={() => setShowChurnRiskModal(true)}>
             <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
               <span>Churn Risk Clients</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <HelpCircle className="w-4 h-4 text-gold-400 cursor-pointer" onClick={e => { e.stopPropagation(); setOpenMetricModal('churnRiskClients'); }} />
+                    <HelpCircle
+                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      onClick={() => setOpenMetricModal('churnRiskClients')}
+                    />
                   </TooltipTrigger>
-                  <TooltipContent side="top">Number of clients currently marked as at risk of churn.</TooltipContent>
+                  <TooltipContent side="top">Number of clients currently marked as at risk of churn by an implementation manager.</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
             <div className="text-3xl font-extrabold text-white">{data.churnRiskClients ?? '-'}</div>
           </Card>
         </div>
-        <div className="text-xs text-white mb-10">Last updated: {lastUpdated}</div>
       </div>
 
       {/* SECTION B: Onboarding Progress & Health */}
