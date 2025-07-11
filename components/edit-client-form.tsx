@@ -132,6 +132,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     is_demo: client.is_demo,
     churn_risk: client.churn_risk,
     extra_call_dates: client.extra_call_dates || [],
+    created_at: client.created_at,
   })
 
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
@@ -403,6 +404,17 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                     value={formData.email || ""}
                     onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, email: e.target.value }))}
                     placeholder="client@email.com"
+                    className="bg-[#0a0b1a] border-slate-600 text-white placeholder:text-slate-400 focus:border-[#F2C94C] focus:ring-[#F2C94C]/20"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="created_at" className="text-white">Created Date</Label>
+                  <Input
+                    id="created_at"
+                    type="date"
+                    value={formData.created_at ? new Date(formData.created_at).toISOString().slice(0, 10) : ""}
+                    onChange={e => setFormData((prev: Partial<Client>) => ({ ...prev, created_at: e.target.value }))}
                     className="bg-[#0a0b1a] border-slate-600 text-white placeholder:text-slate-400 focus:border-[#F2C94C] focus:ring-[#F2C94C]/20"
                   />
                 </div>
