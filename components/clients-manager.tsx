@@ -16,6 +16,7 @@ import { Plus, Search, Edit, Trash2, Eye, Users, Package, Calendar, Filter, X, C
 import Link from "next/link"
 import { EditClientForm } from "./edit-client-form"
 import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
+import { useRouter, useSearchParams } from "next/navigation"
 
 interface FilterState {
   searchTerm: string
@@ -30,9 +31,12 @@ interface FilterState {
   revenueMin: string
   revenueMax: string
   implementationManager: string
+  no_onboarding_call?: boolean
 }
 
 export function ClientsManager({ initialStatus, initialImplementationManager }: { initialStatus?: string, initialImplementationManager?: string } = {}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [clients, setClients] = useState<Client[]>([])
   const [filteredClients, setFilteredClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,7 +57,8 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
     usersMax: "",
     revenueMin: "",
     revenueMax: "",
-    implementationManager: initialImplementationManager || ""
+    implementationManager: initialImplementationManager || "",
+    no_onboarding_call: false,
   })
 
   useEffect(() => {
@@ -74,6 +79,18 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
   useEffect(() => {
     applyFilters()
   }, [clients, filters])
+
+  // Add effect to update filters from query params
+  useEffect(() => {
+    const churned = searchParams.get('churned');
+    const noOnboardingCall = searchParams.get('no_onboarding_call');
+    if (churned === 'true') {
+      setFilters((prev) => ({ ...prev, status: '', successPackage: '', billingType: '', planType: '', implementationManager: '', searchTerm: '', no_onboarding_call: false }));
+    }
+    if (noOnboardingCall === 'true') {
+      setFilters((prev) => ({ ...prev, status: '', successPackage: '', billingType: '', planType: '', implementationManager: '', searchTerm: '', no_onboarding_call: true }));
+    }
+  }, [searchParams])
 
   const loadManagers = async () => {
     try {
@@ -145,6 +162,24 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
     // Implementation Manager filter
     if (filters.implementationManager && filters.implementationManager !== "all") {
       filtered = filtered.filter(client => client.implementation_manager === filters.implementationManager)
+    }
+
+    // Churned filter from query param
+    if (searchParams.get('churned') === 'true') {
+      filtered = filtered.filter(client => client.churned === true)
+    }
+
+    // Filter for no_onboarding_call
+    if (filters.no_onboarding_call) {
+      filtered = filtered.filter(client => {
+        let missingFirstCall = false;
+        if (client.success_package === 'light' && !client.light_onboarding_call_date) missingFirstCall = true;
+        if (client.success_package === 'premium' && !client.premium_first_call_date) missingFirstCall = true;
+        if (client.success_package === 'gold' && !client.gold_first_call_date) missingFirstCall = true;
+        if (client.success_package === 'elite' && !client.elite_configurations_started_date) missingFirstCall = true;
+        // Exclude completed clients
+        return missingFirstCall && client.status !== 'completed';
+      });
     }
 
     setFilteredClients(filtered)

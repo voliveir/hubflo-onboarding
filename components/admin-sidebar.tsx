@@ -46,6 +46,8 @@ const navigation = [
       { name: "All Clients", href: "/admin/clients" },
       { name: "Active Clients", href: "/admin/clients?status=active" },
       { name: "Pending Clients", href: "/admin/clients?status=pending" },
+      { name: "Churned Clients", href: "/admin/clients?churned=true" },
+      { name: "No Onboarding Call", href: "/admin/clients?no_onboarding_call=true" },
       { name: "Completed Clients", href: "/admin/clients?status=completed" },
       { name: "Vanessa Clients", href: "/admin/clients?implementation_manager=vanessa" },
       { name: "Vishal Clients", href: "/admin/clients?implementation_manager=vishal" },
