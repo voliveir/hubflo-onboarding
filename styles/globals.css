@@ -92,3 +92,9 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.red-glow {
+  /* Strong red glow and debug outline for churn risk + overdue */
+  box-shadow: 0 0 32px 12px rgba(239, 68, 68, 0.95) !important;
+  outline: 3px solid #ef4444 !important; /* Remove this line after confirming effect */
+}

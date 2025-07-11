@@ -645,8 +645,20 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                   }
                 }
 
+                let cardClass = "group bg-[#10122b]/90 ring-1 ring-[#F2C94C]/20 rounded-xl p-5 transition-all hover:ring-2 hover:ring-[#F2C94C]/40"
+                let showChurnPill = false;
+                if (client.churn_risk && needsGraduationAttention) {
+                  cardClass += " border-4 border-yellow-400"
+                  showChurnPill = true;
+                } else if (client.churn_risk) {
+                  cardClass += " border-2 border-red-500"
+                  showChurnPill = true;
+                } else if (needsGraduationAttention) {
+                  cardClass += " border-4 border-yellow-400"
+                }
+
                 return (
-                  <div key={client.id} className={`group bg-[#10122b]/90 ring-1 ring-[#F2C94C]/20 rounded-xl p-5 transition-all hover:ring-2 hover:ring-[#F2C94C]/40 ${client.churn_risk ? 'border-2 border-red-500' : ''} ${needsGraduationAttention ? 'border-4 border-yellow-400' : ''}`}> 
+                  <div key={client.id} className={cardClass}> 
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -660,6 +672,12 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                           {client.churned && (
                             <span className="bg-red-500/20 text-red-300 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                               Churned
+                            </span>
+                          )}
+                          {showChurnPill && (
+                            <span className="bg-red-600/90 text-white px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase flex items-center gap-1">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              Churn Risk
                             </span>
                           )}
                           {needsGraduationAttention && (
