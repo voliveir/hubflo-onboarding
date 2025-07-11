@@ -12,7 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { toast } from "@/hooks/use-toast"
 import { getAllClients, deleteClient } from "@/lib/database"
 import { type Client } from "@/lib/types"
-import { Plus, Search, Edit, Trash2, Eye, Users, Package, Calendar, Filter, X, ChevronDown, ChevronUp, DollarSign, Clock } from "lucide-react"
+import { Plus, Search, Edit, Trash2, Eye, Users, Package, Calendar, Filter, X, ChevronDown, ChevronUp, DollarSign, Clock, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { EditClientForm } from "./edit-client-form"
 import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
@@ -624,8 +624,29 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
               {filteredClients.map((client) => {
                 // Debug: Log extra_call_dates for each client
                 console.log('Client extra_call_dates:', client.extra_call_dates);
+
+                // Find the most recent call date
+                const callDates = [
+                  client.light_onboarding_call_date,
+                  client.premium_first_call_date,
+                  client.premium_second_call_date,
+                  client.gold_first_call_date,
+                  client.gold_second_call_date,
+                  client.gold_third_call_date,
+                  ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
+                ].filter((d): d is string => !!d).map(date => new Date(date))
+                const lastCallDate = callDates.length > 0 ? new Date(Math.max(...callDates.map(d => d.getTime()))) : null
+                const now = new Date()
+                let needsGraduationAttention = false
+                if (!client.graduation_date && lastCallDate) {
+                  const daysSinceLastCall = Math.floor((now.getTime() - lastCallDate.getTime()) / (1000 * 60 * 60 * 24))
+                  if (daysSinceLastCall >= 30) {
+                    needsGraduationAttention = true
+                  }
+                }
+
                 return (
-                  <div key={client.id} className="group bg-[#10122b]/90 ring-1 ring-[#F2C94C]/20 rounded-xl p-5 transition-all hover:ring-2 hover:ring-[#F2C94C]/40">
+                  <div key={client.id} className={`group bg-[#10122b]/90 ring-1 ring-[#F2C94C]/20 rounded-xl p-5 transition-all hover:ring-2 hover:ring-[#F2C94C]/40 ${client.churn_risk ? 'border-2 border-red-500' : ''} ${needsGraduationAttention ? 'border-4 border-yellow-400' : ''}`}> 
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -636,6 +657,16 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getPackageColor(client.success_package)}`}>
                             {client.success_package}
                           </span>
+                          {client.churned && (
+                            <span className="bg-red-500/20 text-red-300 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
+                              Churned
+                            </span>
+                          )}
+                          {needsGraduationAttention && (
+                            <span title="No graduation date 30+ days after last call">
+                              <AlertTriangle className="text-red-500 h-5 w-5 ml-2" />
+                            </span>
+                          )}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-white/60">
                           <div className="flex items-center gap-2">
