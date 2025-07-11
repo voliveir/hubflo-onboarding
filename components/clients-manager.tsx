@@ -711,7 +711,7 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                           </div>
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-[#F2C94C]" />
-                            <span>{new Date(client.created_at).toLocaleDateString()}</span>
+                            <span>{client.created_at ? new Date(client.created_at).toISOString().slice(0, 10) : ''}</span>
                           </div>
                         </div>
                         
