@@ -57,11 +57,11 @@ const navigation = [
     href: "/admin/mobile-app-white-label",
     icon: Wrench,
   },
-  {
-    name: "Project Management",
-    href: "/admin/kanban",
-    icon: Kanban,
-  },
+  // {
+  //   name: "Project Management",
+  //   href: "/admin/kanban",
+  //   icon: Kanban,
+  // },
   {
     name: "Feedback Board",
     href: "/admin/feedback-board",
