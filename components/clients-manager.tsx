@@ -645,6 +645,13 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                   }
                 }
 
+                // Determine if the client is missing their first onboarding call
+                let missingFirstCall = false;
+                if (client.success_package === 'light' && !client.light_onboarding_call_date) missingFirstCall = true;
+                if (client.success_package === 'premium' && !client.premium_first_call_date) missingFirstCall = true;
+                if (client.success_package === 'gold' && !client.gold_first_call_date) missingFirstCall = true;
+                if (client.success_package === 'elite' && !client.elite_configurations_started_date) missingFirstCall = true;
+
                 let cardClass = "group bg-[#10122b]/90 ring-1 ring-[#F2C94C]/20 rounded-xl p-5 transition-all hover:ring-2 hover:ring-[#F2C94C]/40"
                 let showChurnPill = false;
                 if (client.churn_risk && needsGraduationAttention) {
@@ -663,12 +670,13 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="font-medium text-[17px] text-white">{client.name}</h3>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getStatusColor(client.status)}`}>
-                            {client.status}
-                          </span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getPackageColor(client.success_package)}`}>
-                            {client.success_package}
-                          </span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getStatusColor(client.status)}`}>{client.status}</span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getPackageColor(client.success_package)}`}>{client.success_package}</span>
+                          {missingFirstCall && (
+                            <span className="bg-yellow-400/20 text-yellow-300 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">
+                              No Onboarding Call
+                            </span>
+                          )}
                           {client.churned && (
                             <span className="bg-red-500/20 text-red-300 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                               Churned
