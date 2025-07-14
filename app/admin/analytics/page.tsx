@@ -600,6 +600,29 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
         <div className="text-xs text-white mb-10">Last updated: {lastUpdated}</div>
       </div>
 
+      {/* SECTION: Client Join Date Heatmap */}
+      <div className="py-10">
+        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+          <span>📅 Client Join Heatmap</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="w-5 h-5 text-gold-400 cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent side="top">Shows which months and years had the most client signups. Darker squares = more clients joined that month.</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </h2>
+        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] w-full">
+          {/* Heatmap grid */}
+          {data.clients && data.clients.length > 0 ? (
+            <ClientJoinHeatmap clients={data.clients} />
+          ) : (
+            <div className="text-white/60">No client join data available.</div>
+          )}
+        </Card>
+      </div>
+
       {/* SECTION B: Churn */}
       <div className="py-10">
         <h2 className="text-2xl font-bold text-white mb-4">❗ Churn</h2>
@@ -1320,5 +1343,76 @@ export default function AnalyticsPage() {
         </main>
       </div>
     </PasswordProtection>
+  );
+}
+
+function ClientJoinHeatmap({ clients }: { clients: any[] }) {
+  // Group clients by year and month
+  const joinCounts: Record<string, Record<string, number>> = {};
+  let minYear = new Date().getFullYear();
+  let maxYear = new Date().getFullYear();
+  clients.forEach(client => {
+    if (!client.created_at) return;
+    const date = new Date(client.created_at);
+    const year = date.getFullYear();
+    const month = date.getMonth(); // 0-indexed
+    if (!joinCounts[year]) joinCounts[year] = {};
+    joinCounts[year][month] = (joinCounts[year][month] || 0) + 1;
+    if (year < minYear) minYear = year;
+    if (year > maxYear) maxYear = year;
+  });
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  // Find max count for color scaling
+  let maxCount = 0;
+  Object.values(joinCounts).forEach(yearObj => {
+    Object.values(yearObj).forEach(count => {
+      if (count > maxCount) maxCount = count;
+    });
+  });
+  // Color scale: 0 = #23244a, max = #F2C94C
+  function getColor(count: number) {
+    if (!count) return "#23244a";
+    // Linear interpolate between #23244a and #F2C94C
+    const t = Math.min(1, count / maxCount);
+    // Simple blend: dark blue to gold
+    const r = Math.round(35 + t * (242 - 35));
+    const g = Math.round(36 + t * (201 - 36));
+    const b = Math.round(74 + t * (76 - 74));
+    return `rgb(${r},${g},${b})`;
+  }
+  // Render grid
+  return (
+    <div className="overflow-x-auto w-full">
+      <table className="border-collapse w-full min-w-0">
+        <thead>
+          <tr>
+            <th className="text-white/80 text-xs font-normal p-1 min-w-0"></th>
+            {months.map(m => (
+              <th key={m} className="text-white/80 text-xs font-normal p-1 text-center min-w-0">{m}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i).map(year => (
+            <tr key={year}>
+              <td className="text-white/80 text-xs font-normal p-1 text-right pr-2 min-w-0">{year}</td>
+              {months.map((_, mIdx) => {
+                const count = joinCounts[year]?.[mIdx] || 0;
+                return (
+                  <td
+                    key={mIdx}
+                    title={`${months[mIdx]} ${year}: ${count} client${count === 1 ? '' : 's'}`}
+                    className="rounded transition-all border border-[#23244a] text-center align-middle min-w-0"
+                    style={{ background: getColor(count), color: count > maxCount * 0.6 ? '#10122b' : '#fff', fontWeight: count > 0 ? 'bold' : 'normal', width: `${100 / 12}%` }}
+                  >
+                    {count > 0 ? count : ''}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
