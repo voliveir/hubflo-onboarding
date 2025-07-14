@@ -93,6 +93,7 @@ export default function CreateClientForm() {
     calendar_schedule_call: "",
     calendar_integrations_call: "",
     calendar_upgrade_consultation: "",
+    onboarding_email_sent: false,
   })
 
   useEffect(() => {
@@ -209,6 +210,14 @@ export default function CreateClientForm() {
   }
 
   const getPackageFeatures = (pkg: string) => {
+    if (pkg === 'no_success') {
+      return [
+        'One onboarding call (CSM will reach out to schedule)',
+        'No forms, SmartDocs, or integrations included',
+        'Video tutorials',
+        'Chat support',
+      ];
+    }
     const features = {
       light: ["One Zoom call with a product specialist", "Video tutorials", "Chat support"],
       premium: [
@@ -477,8 +486,8 @@ export default function CreateClientForm() {
           </div>
           <p className="text-sm text-slate-300">Choose the appropriate success package for this client</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {["light", "premium", "gold", "elite"].map((pkg) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {["light", "premium", "gold", "elite", "no_success"].map((pkg) => (
               <div
                 key={pkg}
                 className={`border rounded-lg p-4 cursor-pointer transition-all ${
@@ -489,7 +498,7 @@ export default function CreateClientForm() {
                 onClick={() => handleInputChange("success_package", pkg)}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold capitalize text-white">{pkg}</h3>
+                  <h3 className="font-semibold capitalize text-white">{pkg === 'no_success' ? 'No Success Package' : pkg}</h3>
                   <input
                     type="radio"
                     name="success_package"
@@ -510,6 +519,19 @@ export default function CreateClientForm() {
               </div>
             ))}
           </div>
+
+          {/* Onboarding Email Sent toggle for No Success Package */}
+          {formData.success_package === 'no_success' && (
+            <div className="flex items-center space-x-2 mt-4">
+              <Switch
+                id="onboarding_email_sent"
+                checked={formData.onboarding_email_sent}
+                onCheckedChange={(checked) => handleInputChange("onboarding_email_sent", checked)}
+                className="text-[#F2C94C] border-slate-600"
+              />
+              <Label htmlFor="onboarding_email_sent" className="text-white">Onboarding Email Sent by CSM</Label>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="space-y-2">

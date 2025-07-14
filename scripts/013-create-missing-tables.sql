@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS clients (
     number_of_users INTEGER NOT NULL DEFAULT 0,
     plan_type VARCHAR(50) NOT NULL DEFAULT 'pro' CHECK (plan_type IN ('pro', 'business', 'unlimited')),
     billing_type VARCHAR(50) NOT NULL DEFAULT 'monthly' CHECK (billing_type IN ('monthly', 'quarterly', 'annually')),
-    success_package VARCHAR(50) NOT NULL DEFAULT 'light' CHECK (success_package IN ('light', 'premium', 'gold', 'elite')),
+    success_package VARCHAR(50) NOT NULL DEFAULT 'light' CHECK (success_package IN ('light', 'premium', 'gold', 'elite', 'no_success')),
     revenue_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
     custom_app VARCHAR(50) NOT NULL DEFAULT 'not_applicable' CHECK (custom_app IN ('gray_label', 'white_label', 'not_applicable')),
     projects_enabled BOOLEAN NOT NULL DEFAULT false,
@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS clients (
     migration_completed BOOLEAN DEFAULT false,
     slack_access_granted BOOLEAN DEFAULT false,
     project_completion_percentage INTEGER DEFAULT 0,
+    onboarding_email_sent BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

@@ -672,13 +672,6 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                 ].filter((d): d is string => !!d).map(date => new Date(date))
                 const lastCallDate = callDates.length > 0 ? new Date(Math.max(...callDates.map(d => d.getTime()))) : null
                 const now = new Date()
-                let needsGraduationAttention = false
-                if (!client.graduation_date && lastCallDate) {
-                  const daysSinceLastCall = Math.floor((now.getTime() - lastCallDate.getTime()) / (1000 * 60 * 60 * 24))
-                  if (daysSinceLastCall >= 30) {
-                    needsGraduationAttention = true
-                  }
-                }
 
                 // Determine if the client is missing their first onboarding call
                 let missingFirstCall = false;
@@ -689,14 +682,9 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
 
                 let cardClass = "group bg-[#10122b]/90 ring-1 ring-[#F2C94C]/20 rounded-xl p-5 transition-all hover:ring-2 hover:ring-[#F2C94C]/40"
                 let showChurnPill = false;
-                if (client.churn_risk && needsGraduationAttention) {
-                  cardClass += " border-4 border-yellow-400"
-                  showChurnPill = true;
-                } else if (client.churn_risk) {
+                if (client.churn_risk) {
                   cardClass += " border-2 border-red-500"
                   showChurnPill = true;
-                } else if (needsGraduationAttention) {
-                  cardClass += " border-4 border-yellow-400"
                 }
 
                 return (
@@ -707,6 +695,14 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                           <h3 className="font-medium text-[17px] text-white">{client.name}</h3>
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getStatusColor(client.status)}`}>{client.status}</span>
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${getPackageColor(client.success_package)}`}>{client.success_package}</span>
+                          {/* CSM Email Status Pill for No Success Package */}
+                          {client.success_package === 'no_success' && (
+                            client.onboarding_email_sent ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/20 text-green-300 ml-2">CSM Sent Onboarding Email</span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-400/20 text-yellow-300 ml-2">CSM Needs to Send Onboarding Email</span>
+                            )
+                          )}
                           {missingFirstCall && (
                             <span className="bg-yellow-400/20 text-yellow-300 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">
                               No Onboarding Call
@@ -721,11 +717,6 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                             <span className="bg-red-600/90 text-white px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase flex items-center gap-1">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                               Churn Risk
-                            </span>
-                          )}
-                          {needsGraduationAttention && (
-                            <span title="No graduation date 30+ days after last call">
-                              <AlertTriangle className="text-red-500 h-5 w-5 ml-2" />
                             </span>
                           )}
                         </div>
@@ -776,11 +767,6 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                             <span className="font-medium text-white">Key Dates:</span>
                           </div>
                           <div className="flex flex-wrap gap-2 ml-6">
-                            {client.graduation_date && (
-                              <span className="bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                                Graduation: {new Date(client.graduation_date).toLocaleDateString()}
-                              </span>
-                            )}
                             {client.light_onboarding_call_date && (
                               <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full text-xs font-medium">
                                 Light Call: {new Date(client.light_onboarding_call_date).toLocaleDateString()}

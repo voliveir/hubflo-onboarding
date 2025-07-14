@@ -214,10 +214,14 @@ function ClientCard({ client, workflow, onMoveClient, onViewClient }: ClientCard
               <Badge className={`text-xs ${getPackageColor(client.success_package)}`}>
                 {client.success_package}
               </Badge>
-              <div className="flex items-center space-x-1 text-xs text-white/60">
-                <Users className="h-3 w-3" />
-                <span>{client.number_of_users}</span>
-              </div>
+              {/* CSM Email Status Pill for No Success Package */}
+              {client.success_package === 'no_success' && (
+                client.onboarding_email_sent ? (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/20 text-green-300 ml-2">CSM Sent Onboarding Email</span>
+                ) : (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-400/20 text-yellow-300 ml-2">CSM Needs to Send Onboarding Email</span>
+                )
+              )}
             </div>
 
             <div className="flex items-center justify-between">

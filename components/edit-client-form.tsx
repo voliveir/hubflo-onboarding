@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "@/hooks/use-toast"
 import { updateClient, isSlugAvailable, getTaskCompletions, updateTaskCompletion, updateProjectTracking, countCompletedCalls, getScheduledCallsForPackage } from "@/lib/database"
 import { type Client } from "@/lib/types"
-import { Save, ArrowLeft, CheckCircle, XCircle, Loader2, AlertCircle, Package, Settings, Calendar, Users, Palette, DollarSign, X } from "lucide-react"
+import { Save, ArrowLeft, CheckCircle, XCircle, Loader2, AlertCircle, Package, Settings, Calendar, Users, Palette, DollarSign, X, Check } from "lucide-react"
 import Link from "next/link"
 import { Checkbox } from "@/components/ui/checkbox"
 import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
@@ -118,7 +118,6 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     show_figma_workflow: client.show_figma_workflow || false,
     figma_workflow_url: client.figma_workflow_url || "",
     feedback_board_enabled: client.feedback_board_enabled || true,
-    graduation_date: client.graduation_date,
     light_onboarding_call_date: client.light_onboarding_call_date,
     premium_first_call_date: client.premium_first_call_date,
     premium_second_call_date: client.premium_second_call_date,
@@ -133,6 +132,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     churn_risk: client.churn_risk,
     extra_call_dates: client.extra_call_dates || [],
     created_at: client.created_at,
+    onboarding_email_sent: client.onboarding_email_sent ?? false,
   })
 
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
@@ -283,20 +283,43 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
   }
 
   const getPackageFeatures = (pkg: string) => {
+    if (pkg === 'no_success') {
+      return [
+        'One onboarding call (CSM will reach out to schedule)',
+        'No forms, SmartDocs, or integrations included',
+        'Video tutorials',
+        'Chat support',
+      ];
+    }
     const features = {
-      light: ["1 Call", "Basic Support"],
-      premium: ["2 Calls", "2 Forms", "1 Zapier Integration", "Priority Support"],
-      gold: ["3 Calls", "4 Forms", "2 Zapier Integrations", "Premium Support"],
+      light: ["One Zoom call with a product specialist", "Video tutorials", "Chat support"],
+      premium: [
+        "2 Zoom calls with a product specialist",
+        "Workflow mapping & workspace structuring",
+        "Setup of a basic Zapier integration",
+        "Help setting up workspace templates",
+        "Up to 2 forms and/or SmartDocs setup",
+        "Priority support during onboarding",
+      ],
+      gold: [
+        "Includes everything in Premium, plus:",
+        "Up to 3 Zoom calls with a product specialist",
+        "Advanced Zapier integrations & workflows",
+        "Up to 4 forms and/or SmartDocs setup",
+        "Direct access to your account manager via Slack",
+      ],
       elite: [
-        "Unlimited Calls",
+        "Includes everything in Gold, plus:",
+        "Unlimited Onboarding Calls",
         "Unlimited Forms",
-        "Unlimited Integrations",
-        "Migration Support",
-        "Slack Access",
-        "Dedicated Support",
+        "Unlimited SmartDocs",
+        "Unlimited integrations",
+        "Migration assistance (contacts, workspaces, clients)",
+        "Custom integration setup (via API or partner tools)",
+        "Full onboarding project managed by our team",
       ],
     }
-    return features[pkg as keyof typeof features] || []
+    return features[pkg as keyof typeof features] || features.premium
   }
 
   const handleManagerChange = (managerId: string) => {
@@ -512,25 +535,53 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="success_package" className="text-white">Success Package</Label>
-                  <select
-                    id="success_package"
-                    value={formData.success_package || "premium"}
-                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, success_package: e.target.value as any }))}
-                    className="w-full px-3 py-2 bg-[#0a0b1a] border border-slate-600 rounded-md text-white focus:border-[#F2C94C] focus:ring-[#F2C94C]/20"
-                  >
-                    <option value="light" className="bg-[#0a0b1a] text-white">Light</option>
-                    <option value="premium" className="bg-[#0a0b1a] text-white">Premium</option>
-                    <option value="gold" className="bg-[#0a0b1a] text-white">Gold</option>
-                    <option value="elite" className="bg-[#0a0b1a] text-white">Elite</option>
-                  </select>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {getPackageFeatures(formData.success_package || "premium").map((feature, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs bg-slate-700 text-slate-300">
-                        {feature}
-                      </Badge>
+                  <div className="flex flex-wrap gap-4">
+                    {["light", "premium", "gold", "elite", "no_success"].map((pkg) => (
+                      <div
+                        key={pkg}
+                        className={`flex-1 min-w-[260px] max-w-[400px] border rounded-lg p-4 cursor-pointer transition-all ${
+                          formData.success_package === pkg
+                            ? "border-[#F2C94C] bg-[#F2C94C]/10 ring-2 ring-[#F2C94C]/20"
+                            : "border-slate-600 hover:border-slate-500 bg-[#0a0b1a]"
+                        }`}
+                        onClick={() => setFormData((prev: Partial<Client>) => ({ ...prev, success_package: pkg as Client["success_package"] }))}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-semibold capitalize text-white">{pkg === 'no_success' ? 'No Success Package' : pkg}</h3>
+                          <input
+                            type="radio"
+                            name="success_package"
+                            value={pkg}
+                            checked={formData.success_package === pkg}
+                            onChange={() => setFormData((prev: Partial<Client>) => ({ ...prev, success_package: pkg as Client["success_package"] }))}
+                            className="text-[#F2C94C]"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          {getPackageFeatures(pkg).map((feature, index) => (
+                            <div key={index} className="text-sm text-slate-300 flex items-start">
+                              <Check className="h-3 w-3 text-green-400 mr-2 flex-shrink-0 mt-0.5" />
+                              <span>{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
+
+                {/* Onboarding Email Sent toggle for No Success Package */}
+                {formData.success_package === 'no_success' && (
+                  <div className="flex items-center space-x-2 mt-4">
+                    <Switch
+                      id="onboarding_email_sent"
+                      checked={formData.onboarding_email_sent}
+                      onCheckedChange={(checked) => setFormData((prev: Partial<Client>) => ({ ...prev, onboarding_email_sent: checked }))}
+                      className="text-[#F2C94C] border-slate-600"
+                    />
+                    <Label htmlFor="onboarding_email_sent" className="text-white">Onboarding Email Sent by CSM</Label>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-2">
@@ -1044,29 +1095,6 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                 </div>
               )}
               
-              <div className="space-y-2">
-                <Label htmlFor="graduation_date" className="text-white">Graduation Date</Label>
-                <div className="relative">
-                  <Input
-                    id="graduation_date"
-                    type="date"
-                    value={formData.graduation_date || ""}
-                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, graduation_date: e.target.value }))}
-                    className="bg-[#0a0b1a] border-slate-600 text-white focus:border-[#F2C94C] focus:ring-[#F2C94C]/20"
-                  />
-                  {formData.graduation_date && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="ml-2 text-red-400 hover:text-red-300"
-                      onClick={() => setFormData(prev => ({ ...prev, graduation_date: null }))}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
 

@@ -98,7 +98,6 @@ function transformClientFromDb(data: any): Client {
     project_completion_percentage: data.project_completion_percentage || 0,
     created_at: data.created_at,
     updated_at: data.updated_at,
-    graduation_date: data.graduation_date || undefined,
     // Milestone dates for each package type
     light_onboarding_call_date: data.light_onboarding_call_date || undefined,
     premium_first_call_date: data.premium_first_call_date || undefined,
@@ -123,6 +122,7 @@ function transformClientFromDb(data: any): Client {
     is_demo: data.is_demo || false,
     churn_risk: data.churn_risk || false,
     extra_call_dates: data.extra_call_dates || [],
+    onboarding_email_sent: data.onboarding_email_sent ?? false,
   }
 }
 
@@ -205,6 +205,10 @@ const transformClientForDb = (clientData: any): any => {
       : [];
   }
 
+  if (typeof clientData.onboarding_email_sent !== "undefined") {
+    transformed.onboarding_email_sent = !!clientData.onboarding_email_sent;
+  }
+
   return transformed
 }
 
@@ -245,6 +249,7 @@ export async function createClient(formData: any): Promise<Client> {
       show_figma_workflow: formData.show_figma_workflow || false,
       figma_workflow_url: formData.figma_workflow_url || "",
       implementation_manager: formData.implementation_manager || undefined,
+      onboarding_email_sent: typeof formData.onboarding_email_sent !== "undefined" ? formData.onboarding_email_sent : false,
     }
 
     const { data, error } = await supabase.from("clients").insert([clientData]).select().single()

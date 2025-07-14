@@ -3,7 +3,7 @@ export interface Client {
   name: string
   slug: string
   email?: string
-  success_package: "light" | "premium" | "gold" | "elite" | "starter" | "professional" | "enterprise"
+  success_package: "light" | "premium" | "gold" | "elite" | "starter" | "professional" | "enterprise" | "no_success"
   billing_type: "monthly" | "yearly"
   plan_type: "pro" | "business" | "unlimited"
   revenue_amount: number
@@ -26,7 +26,7 @@ export interface Client {
   project_completion_percentage: number
   created_at: string
   updated_at: string
-  graduation_date?: string | null
+  onboarding_email_sent: boolean
   // Milestone dates for each package type
   light_onboarding_call_date?: string | null
   premium_first_call_date?: string | null
@@ -304,7 +304,7 @@ export interface CreateClientData {
   number_of_users: number
   plan_type: "pro" | "business" | "unlimited"
   billing_type: "monthly" | "quarterly" | "annually"
-  success_package: "light" | "premium" | "gold" | "elite"
+  success_package: "light" | "premium" | "gold" | "elite" | "no_success"
   revenue_amount: number
   custom_app: "gray_label" | "white_label" | "not_applicable"
   projects_enabled: boolean
@@ -324,6 +324,7 @@ export interface CreateClientData {
   }
   white_label_android_url?: string | null
   white_label_ios_url?: string | null
+  onboarding_email_sent?: boolean
   implementation_manager: string
 }
 
@@ -348,6 +349,7 @@ export interface UpdateClientData extends Partial<CreateClientData> {
   }
   white_label_android_url?: string | null
   white_label_ios_url?: string | null
+  onboarding_email_sent?: boolean
   implementation_manager?: string
 }
 

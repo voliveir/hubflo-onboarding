@@ -1,3 +1,29 @@
+# Session Summary – July 14, 2024
+
+## Analytics Dashboard Enhancements
+- Added 'Revenue Lost to Churned Clients' metric and card (red theme, tooltip, modal explanation).
+- Added 'Revenue at Risk (Churn Risk)' metric and ensured correct backend/frontend calculation.
+- Added Growth Rate metrics for 60 and 90 days, with tooltips and modal explanations, after the 30-day growth rate.
+- Removed 'Total Revenue' card (duplicate of ARR).
+- Added a heatmap visualization of client join dates (by month/year) with responsive, full-width layout and tooltip.
+
+## Sidebar & Client Management
+- Moved and reordered sidebar links for 'Add New Client', 'Completed Clients', 'Vanessa Clients', and 'Vishal Clients' as requested.
+- Added sidebar filter links for 'Churned Clients' and 'No Onboarding Call'.
+- Implemented filter logic for 'No Onboarding Call' (excludes completed clients) and 'Churned Clients'.
+
+## Client Edit & List Improvements
+- Made 'Created Date' editable in the client edit form and ensured it saves/loads correctly.
+- Fixed date display consistency between client cards and edit form (UTC, yyyy-MM-dd format).
+- Highlighted client cards missing their first onboarding call with a yellow pill.
+
+## UI/UX & Bug Fixes
+- Fixed text color and card styling for analytics metrics for better readability.
+- Resolved issues with dev server cache and 404 errors.
+- Ensured all new features are mobile-responsive and visually consistent with the existing design.
+
+---
+
 # Hubflo Onboarding Platform — Complete Technical & Product Summary (July 2024)
 
 ---
