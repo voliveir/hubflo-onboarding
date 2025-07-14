@@ -153,7 +153,9 @@ export function Hero() {
           >
             Streamlined client onboarding with personalized experiences for every success package.
             <br />
-            <span className="text-brand-gold font-semibold" style={{ textShadow: '0 2px 8px #EAB30855' }}>Launch in 2-4 weeks.</span>
+            <span className="text-brand-gold font-semibold" style={{ textShadow: '0 2px 8px #EAB30855' }}>Launch in 2-4 weeks*</span>
+            <br />
+            <span className="text-xs text-black mt-1 block">*Timeline may vary depending on Implementation Manager capacity, use case complexity, and other factors.</span>
           </motion.p>
 
           {/* CTA Buttons */}
