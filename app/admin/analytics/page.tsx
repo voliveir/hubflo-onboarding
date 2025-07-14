@@ -243,6 +243,16 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
       description: 'Total revenue lost from all churned (non-demo) clients.',
       logic: 'Sums the revenue_amount field for all clients where churned is true and is_demo is false.'
     },
+    growthRate60: {
+      name: 'Growth Rate (60d)',
+      description: 'The percentage increase in total clients over the last 60 days.',
+      logic: 'Growth Rate (60d) = (Clients now - Clients 60 days ago) / Clients 60 days ago x 100.'
+    },
+    growthRate90: {
+      name: 'Growth Rate (90d)',
+      description: 'The percentage increase in total clients over the last 90 days.',
+      logic: 'Growth Rate (90d) = (Clients now - Clients 90 days ago) / Clients 90 days ago x 100.'
+    },
   };
 
   // 3. Metric explanation modal component
@@ -551,21 +561,40 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
           <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
             <div className="text-base text-white mb-1 font-medium">
               <div className="flex items-center gap-1">
-                <span>Total Revenue</span>
+                <span>Growth Rate (60d)</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <HelpCircle
                         className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={() => setOpenMetricModal('totalRevenue')}
+                        onClick={() => setOpenMetricModal('growthRate60')}
                       />
                     </TooltipTrigger>
-                    <TooltipContent side="top">Total revenue generated from all clients.</TooltipContent>
+                    <TooltipContent side="top">Percentage increase in total clients over the last 60 days.</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-white">${data.revenue?.total?.toLocaleString() ?? '-'}</div>
+            <div className="text-3xl font-extrabold text-white">{data.growthRate60}%</div>
+          </Card>
+          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+            <div className="text-base text-white mb-1 font-medium">
+              <div className="flex items-center gap-1">
+                <span>Growth Rate (90d)</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle
+                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        onClick={() => setOpenMetricModal('growthRate90')}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Percentage increase in total clients over the last 90 days.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+            <div className="text-3xl font-extrabold text-white">{data.growthRate90}%</div>
           </Card>
         </div>
         <div className="text-xs text-white mb-10">Last updated: {lastUpdated}</div>

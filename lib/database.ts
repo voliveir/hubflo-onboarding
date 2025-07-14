@@ -2359,6 +2359,8 @@ export async function getAnalyticsOverview(startDate?: string, endDate?: string)
     const clientsByPackage: Record<string, number> = {};
     const now = new Date();
     let growthCount = 0;
+    let growthCount60 = 0;
+    let growthCount90 = 0;
 
     for (const client of clients) {
       // Count by package
@@ -2378,18 +2380,22 @@ export async function getAnalyticsOverview(startDate?: string, endDate?: string)
       } else {
         nonPayingClients++;
       }
-      // Growth: clients created in last 30 days
+      // Growth: clients created in last 30, 60, 90 days
       if (client.created_at) {
         const created = new Date(client.created_at);
         const diffDays = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
         if (diffDays <= 30) growthCount++;
+        if (diffDays <= 60) growthCount60++;
+        if (diffDays <= 90) growthCount90++;
       }
     }
     arr = mrr * 12;
     // Total revenue (sum of all revenue_amount)
     const totalRevenue = clients.reduce((sum, c) => sum + (typeof c.revenue_amount === 'number' ? c.revenue_amount : 0), 0);
-    // Growth rate: percent of new clients in last 30 days
+    // Growth rate: percent of new clients in last 30, 60, 90 days
     const growthRate = totalClients > 0 ? (growthCount / totalClients) * 100 : 0;
+    const growthRate60 = totalClients > 0 ? (growthCount60 / totalClients) * 100 : 0;
+    const growthRate90 = totalClients > 0 ? (growthCount90 / totalClients) * 100 : 0;
 
     // Find top performing package
     const topPerformingPackage = Object.entries(clientsByPackage).sort(([,a],[,b]) => b - a)[0]?.[0] || "premium";
@@ -2404,6 +2410,8 @@ export async function getAnalyticsOverview(startDate?: string, endDate?: string)
       payingClients,
       nonPayingClients,
       growthRate: Math.round(growthRate * 100) / 100,
+      growthRate60: Math.round(growthRate60 * 100) / 100,
+      growthRate90: Math.round(growthRate90 * 100) / 100,
       topPerformingPackage,
     };
   } catch (error) {
