@@ -153,10 +153,10 @@ export function Hero() {
           >
             Streamlined client onboarding with personalized experiences for every success package.
             <br />
-            <span className="text-brand-gold font-semibold" style={{ textShadow: '0 2px 8px #EAB30855' }}>Launch in 2-4 weeks*<sup>t</sup></span>
+            <span className="text-brand-gold font-semibold" style={{ textShadow: '0 2px 8px #EAB30855' }}>Launch<sup>t</sup> in 2-4 weeks*</span>
             <br />
-            <span className="text-xs text-black mt-1 block">*Timeline may vary depending on Implementation Manager capacity, use case complexity, and other factors</span>
-            <span className="text-xs text-black mt-1 block"><sup>t</sup> For complex implementations, timeline may extend to 4–8 weeks or longer.</span>
+            <span className="text-xs text-black mt-1 block">*Timeline may vary based on Implementation Manager capacity and use case complexity. Complex projects may take 4–8+ weeks</span>
+            <span className="text-xs text-black mt-1 block"><sup>t</sup> "Launch” means your portal is live with all essentials for onboarding and real user access. Enhancements can be added after launch.</span>
           </motion.p>
 
           {/* CTA Buttons */}
