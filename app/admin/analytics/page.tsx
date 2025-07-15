@@ -1323,6 +1323,15 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
           clients={data.churnRiskClientList || []}
         />
       )}
+      {/* Success Package Breakdown */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+        {Object.entries(data.clientsByPackage || {}).map(([pkg, count]) => (
+          <Card key={pkg} className="bg-[#181a2f] glass shadow p-4 flex flex-col items-center justify-center border border-[#23244a]">
+            <div className="text-xs text-white/70 mb-1 font-medium uppercase tracking-wide">{pkg.replace(/_/g, ' ')}</div>
+            <div className="text-2xl font-extrabold text-gold-400">{count}</div>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };
