@@ -43,7 +43,7 @@ export const SecondaryButton = forwardRef<HTMLButtonElement, SecondaryButtonProp
         variant="outline"
         asChild={asChild}
         className={cn(
-          "border-2 border-brand-gold text-brand-gold hover:bg-brand-gold secondary-btn-fix font-semibold px-8 py-3 rounded-xl transition-all duration-200 transform hover:scale-105",
+          "border-2 border-brand-gold text-brand-gold hover:bg-brand-gold secondary-btn-fix font-semibold px-8 py-3 rounded-xl transition-all duration-200 transform hover:scale-105 bg-transparent",
           "focus:ring-2 focus:ring-brand-gold/50 focus:ring-offset-2",
           className
         )}

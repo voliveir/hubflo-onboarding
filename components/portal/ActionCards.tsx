@@ -30,7 +30,7 @@ export function ActionCards({ successPackage, implementationManager = 'vanessa',
       title: "Complete Onboarding Checklist",
       icon: Layout,
       description: "Work through the essential setup tasks to get your Hubflo workspace ready for your business needs!",
-      href: "https://hubflo-onboarding.hubflo.com/",
+      href: "#next-steps",
       buttonText: "Start Setup"
     },
     ...(successPackage.toLowerCase() === "light" ? [{
@@ -76,15 +76,31 @@ export function ActionCards({ successPackage, implementationManager = 'vanessa',
           </p>
           
           {action.href && action.buttonText && (
-            <a
-              href={action.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full mt-auto bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT font-semibold rounded-2xl px-6 py-3 text-center block transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-            >
-              {action.buttonText}
-              <ExternalLink className="h-4 w-4" />
-            </a>
+            action.href.startsWith('#') ? (
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.querySelector(action.href);
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="w-full mt-auto bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT font-semibold rounded-2xl px-6 py-3 text-center block transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              >
+                {action.buttonText}
+                <ExternalLink className="h-4 w-4" />
+              </button>
+            ) : (
+              <a
+                href={action.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full mt-auto bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT font-semibold rounded-2xl px-6 py-3 text-center block transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              >
+                {action.buttonText}
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            )
           )}
         </div>
       ))}
