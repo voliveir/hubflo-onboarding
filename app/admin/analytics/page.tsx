@@ -10,6 +10,7 @@ import { AdminSidebar } from "@/components/admin-sidebar";
 import { PasswordProtection } from "@/components/password-protection";
 import { PieChart, Pie, Legend as RechartsLegend } from "recharts";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import type { ReactElement } from "react";
 
 const BAR_COLORS = ["#F2C94C", "#F2994A", "#0a0b1a", "#10122b", "#1a1c3a"];
 
@@ -22,7 +23,7 @@ const SUCCESS_PACKAGES = ["light", "premium", "gold", "elite", "starter", "profe
 const STATUSES = ["active", "draft", "archived", "completed"];
 const IMPLEMENTATION_MANAGERS = ["vanessa", "vishal"];
 
-const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
+const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElement => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -39,6 +40,8 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
   const [openMetricModal, setOpenMetricModal] = useState<string | null>(null);
   // 2. Add state for churn risk clients modal
   const [showChurnRiskModal, setShowChurnRiskModal] = useState(false);
+  // 2. Add state for churned clients modal
+  const [showChurnedClientsModal, setShowChurnedClientsModal] = useState(false);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -275,31 +278,70 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
   // 4. Churn Risk Clients Modal component
   function ChurnRiskClientsModal({ open, onClose, clients }: { open: boolean, onClose: () => void, clients: any[] }) {
     if (!open) return null;
+    const safeClients = Array.isArray(clients) ? clients : [];
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
         <div className="bg-[#181a2f] rounded-2xl shadow-2xl p-8 w-full max-w-lg relative">
           <button onClick={onClose} className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-gold-400">×</button>
           <h3 className="text-xl font-bold text-white mb-4">Churn Risk Clients</h3>
-          <table className="min-w-full text-white">
-            <thead>
-              <tr className="border-b border-[#23244a]">
-                <th className="py-2 px-3 text-left">Name</th>
-                <th className="py-2 px-3 text-left">Implementation Manager</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clients.length === 0 ? (
-                <tr><td colSpan={2} className="py-4 text-center text-slate-400">No clients at risk of churn.</td></tr>
-              ) : (
-                clients.map((client, idx) => (
-                  <tr key={client.id} className="border-b border-[#23244a] hover:bg-[#23244a]/40">
-                    <td className="py-2 px-3">{client.name}</td>
-                    <td className="py-2 px-3">{client.implementation_manager ?? '-'}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <div className="overflow-y-auto max-h-[60vh]">
+            <table className="min-w-full text-white">
+              <thead>
+                <tr className="border-b border-[#23244a]">
+                  <th className="py-2 px-3 text-left">Name</th>
+                  <th className="py-2 px-3 text-left">Implementation Manager</th>
+                </tr>
+              </thead>
+              <tbody>
+                {safeClients.length === 0 ? (
+                  <tr><td colSpan={2} className="py-4 text-center text-slate-400">No clients at risk of churn.</td></tr>
+                ) : (
+                  safeClients.map((client, idx) => (
+                    <tr key={client.id} className="border-b border-[#23244a] hover:bg-[#23244a]/40">
+                      <td className="py-2 px-3">{client.name}</td>
+                      <td className="py-2 px-3">{client.implementation_manager ?? '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 5. Churned Clients Modal component
+  function ChurnedClientsModal({ open, onClose, clients }: { open: boolean, onClose: () => void, clients: any[] }) {
+    if (!open) return null;
+    const safeClients = Array.isArray(clients) ? clients : [];
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+        <div className="bg-[#181a2f] rounded-2xl shadow-2xl p-8 w-full max-w-lg relative">
+          <button onClick={onClose} className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-gold-400">×</button>
+          <h3 className="text-xl font-bold text-white mb-4">Churned Clients</h3>
+          <div className="overflow-y-auto max-h-[60vh]">
+            <table className="min-w-full text-white">
+              <thead>
+                <tr className="border-b border-[#23244a]">
+                  <th className="py-2 px-3 text-left">Name</th>
+                  <th className="py-2 px-3 text-left">Implementation Manager</th>
+                </tr>
+              </thead>
+              <tbody>
+                {safeClients.length === 0 ? (
+                  <tr><td colSpan={2} className="py-4 text-center text-slate-400">No churned clients.</td></tr>
+                ) : (
+                  safeClients.map((client, idx) => (
+                    <tr key={client.id} className="border-b border-[#23244a] hover:bg-[#23244a]/40">
+                      <td className="py-2 px-3">{client.name}</td>
+                      <td className="py-2 px-3">{client.implementation_manager ?? '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );
@@ -664,7 +706,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
             <div className="text-3xl font-extrabold text-red-300">${data.revenueLostToChurnedClients?.toLocaleString() ?? '-'}</div>
           </Card>
           {/* Churned Clients */}
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] cursor-pointer" onClick={() => setShowChurnedClientsModal(true)}>
             <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
               <span>Churned Clients</span>
               <TooltipProvider>
@@ -672,7 +714,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                   <TooltipTrigger asChild>
                     <HelpCircle
                       className="w-4 h-4 text-gold-400 cursor-pointer"
-                      onClick={() => setOpenMetricModal('churnedClients')}
+                      onClick={e => { e.stopPropagation(); setOpenMetricModal('churnedClients'); }}
                     />
                   </TooltipTrigger>
                   <TooltipContent side="top">Number of clients marked as churned (no longer active customers).</TooltipContent>
@@ -700,7 +742,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
             <div className="text-3xl font-extrabold text-white">{data.totalClients ? `${((data.churnedClients / data.totalClients) * 100).toFixed(1)}%` : '-'}</div>
           </Card>
           {/* Churn Risk Clients */}
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] cursor-pointer" onClick={() => setShowChurnRiskModal(true)}>
             <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
               <span>Churn Risk Clients</span>
               <TooltipProvider>
@@ -708,7 +750,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
                   <TooltipTrigger asChild>
                     <HelpCircle
                       className="w-4 h-4 text-gold-400 cursor-pointer"
-                      onClick={() => setOpenMetricModal('churnRiskClients')}
+                      onClick={e => { e.stopPropagation(); setOpenMetricModal('churnRiskClients'); }}
                     />
                   </TooltipTrigger>
                   <TooltipContent side="top">Number of clients currently marked as at risk of churn by an implementation manager.</TooltipContent>
@@ -1316,16 +1358,19 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }) => {
         onClose={() => setOpenMetricModal(null)}
         metricKey={openMetricModal}
       />
-      {showChurnRiskModal && (
-        <ChurnRiskClientsModal
-          open={showChurnRiskModal}
-          onClose={() => setShowChurnRiskModal(false)}
-          clients={data.churnRiskClientList || []}
-        />
-      )}
+      <ChurnRiskClientsModal
+        open={showChurnRiskModal}
+        onClose={() => setShowChurnRiskModal(false)}
+        clients={data.churnRiskClientList || []}
+      />
+      <ChurnedClientsModal
+        open={showChurnedClientsModal}
+        onClose={() => setShowChurnedClientsModal(false)}
+        clients={data.churnedClientList || []}
+      />
       {/* Success Package Breakdown */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-        {Object.entries(data.clientsByPackage || {}).map(([pkg, count]) => (
+        {(Object.entries(data.clientsByPackage || {}) as [string, number][]).map(([pkg, count]) => (
           <Card key={pkg} className="bg-[#181a2f] glass shadow p-4 flex flex-col items-center justify-center border border-[#23244a]">
             <div className="text-xs text-white/70 mb-1 font-medium uppercase tracking-wide">{pkg.replace(/_/g, ' ')}</div>
             <div className="text-2xl font-extrabold text-gold-400">{count}</div>

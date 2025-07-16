@@ -141,6 +141,7 @@ export async function GET(req: Request) {
     if (status) filteredChurnedClients = filteredChurnedClients.filter(c => c.status === status);
     
     const churnedClients = filteredChurnedClients.length;
+    const churnedClientList = filteredChurnedClients.map(c => ({ id: c.id, name: c.name, implementation_manager: c.implementation_manager }));
     const churnRate = allNonDemoClients.length > 0 ? (churnedClients / allNonDemoClients.length) * 100 : 0;
 
     // Revenue lost to churned clients
@@ -164,6 +165,7 @@ export async function GET(req: Request) {
       mrr,
       avgUsersPerClient,
       churnedClients,
+      churnedClientList,
       churnRate,
       churnRiskClients,
       churnRiskClientList,
