@@ -697,7 +697,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
           <img src="https://static.eu.sprinto.com/_next/static/images/framework/hipaa.png" alt="HIPAA Compliant" className="h-12 w-auto" />
           <img src="https://static.eu.sprinto.com/_next/static/images/framework/gdpr.png" alt="GDPR Compliant" className="h-12 w-auto" />
         </a>
-        <span className="mt-2 text-xs text-white/60">We are SOC2, HIPAA, and GDPR compliant. <a href="https://hubflo.eu.trust.site/" target="_blank" rel="noopener noreferrer" className="underline text-brand-gold">Learn more</a></span>
+        <span className="mt-2 text-xs text-white/60">Hubflo is SOC2, HIPAA, and GDPR compliant. <a href="https://hubflo.eu.trust.site/" target="_blank" rel="noopener noreferrer" className="underline text-brand-gold">Learn more</a></span>
       </PortalSection>
 
       {/* Footer */}
