@@ -415,37 +415,33 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
 
         {/* Overall Progress */}
         <div className="max-w-4xl mx-auto mb-12">
-          <Card className="border-2 border-[#ECB22D] bg-white/5 backdrop-blur-sm">
-            <CardHeader>
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-[#ECB22D] rounded-lg">
-                  <CheckCircle className="h-6 w-6 text-[#010124]" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl text-white">Overall Implementation Progress</CardTitle>
-                  <p className="text-sm text-white/80">Your complete onboarding progress across all services</p>
-                </div>
+          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border-2 border-[#ECB22D] p-8">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-14 h-14 bg-[#ECB22D] rounded-2xl flex items-center justify-center">
+                <CheckCircle className="h-8 w-8 text-[#010124]" />
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-white/80">Completion Status</span>
-                  <span className="text-sm font-bold text-white">{overallProgress}% Complete</span>
-                </div>
-                <div className="w-full bg-white/10 rounded-full h-3">
-                  <div
-                    className="bg-[#ECB22D] h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${overallProgress}%` }}
-                  ></div>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-white">
-                  <Star className="h-4 w-4 text-[#ECB22D]" />
-                  <span>Let's get started with your Hubflo onboarding journey.</span>
-                </div>
+              <div>
+                <div className="text-2xl font-bold text-white mb-1">Overall Implementation Progress</div>
+                <p className="text-white/80 text-base">Your complete onboarding progress across all services</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-base font-medium text-white/80">Completion Status</span>
+                <span className="text-base font-bold text-white">{overallProgress}% Complete</span>
+              </div>
+              <div className="w-full bg-white/10 rounded-full h-3">
+                <div
+                  className="bg-[#ECB22D] h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${overallProgress}%` }}
+                ></div>
+              </div>
+              <div className="flex items-center space-x-2 text-base text-white">
+                <Star className="h-5 w-5 text-[#ECB22D]" />
+                <span>Let's get started with your Hubflo onboarding journey.</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Checklist Sections */}
@@ -456,177 +452,171 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
             const sectionProgress = sectionTotal > 0 ? Math.round((sectionCompleted / sectionTotal) * 100) : 0
 
             return (
-              <Card key={sectionName} className={`border-2 border-[#ECB22D] bg-white/5 backdrop-blur-sm`}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-white rounded-lg shadow-sm border border-[#ECB22D]">
-                        {getSectionIcon(sectionName)}
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg text-white">{sectionName}</CardTitle>
-                        <p className="text-sm text-white/80">
-                          {sectionCompleted} of {sectionTotal} tasks completed
-                        </p>
-                      </div>
+              <div key={sectionName} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-8 transition-all duration-500 hover:border-brand-gold/40 hover:shadow-lg">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20">
+                      {getSectionIcon(sectionName)}
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-white">{sectionProgress}%</div>
-                      <div className="text-xs text-white/60">Complete</div>
+                    <div>
+                      <div className="text-xl font-bold text-white mb-1">{sectionName}</div>
+                      <p className="text-white/80 text-sm">
+                        {sectionCompleted} of {sectionTotal} tasks completed
+                      </p>
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <div className="w-full bg-white/10 rounded-full h-2">
-                      <div
-                        className="bg-[#ECB22D] h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${sectionProgress}%` }}
-                      ></div>
-                    </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">{sectionProgress}%</div>
+                    <div className="text-xs text-white/60">Complete</div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {sectionTasks.map((task) => (
-                      <div key={task.id} className="border border-[#ECB22D] rounded-lg p-4 bg-white/10">
-                        <div className="flex items-start space-x-3">
-                          <button
-                            onClick={() => toggleTask(task.id)}
-                            disabled={updating === task.id}
-                            className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                              task.completed
-                                ? "bg-[#ECB22D] border-[#ECB22D] text-[#010124]"
-                                : "border-gray-300 hover:border-[#ECB22D]"
-                            } ${updating === task.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                          >
-                            {updating === task.id ? (
-                              <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                              task.completed && <CheckCircle className="h-3 w-3" />
-                            )}
-                          </button>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <h4
-                                className={`font-semibold ${task.completed ? "line-through text-white/60" : "text-white"}`}
-                              >
-                                {task.title}
-                              </h4>
-                              <Badge variant="outline" className="text-xs border-[#ECB22D] text-[#ECB22D] bg-transparent">
-                                {task.accountability}
-                              </Badge>
-                            </div>
-                            <p
-                              className={`text-sm mb-3 ${task.completed ? "line-through text-white/40" : "text-white/80"}`}
+                </div>
+                <div className="mt-4 w-full bg-white/10 rounded-full h-2">
+                  <div
+                    className="bg-[#ECB22D] h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${sectionProgress}%` }}
+                  ></div>
+                </div>
+                <div className="space-y-6 mt-8">
+                  {sectionTasks.map((task) => (
+                    <div key={task.id} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl border border-white/20 p-6 flex flex-col gap-2">
+                      <div className="flex items-start space-x-3">
+                        <button
+                          onClick={() => toggleTask(task.id)}
+                          disabled={updating === task.id}
+                          className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                            task.completed
+                              ? "bg-[#ECB22D] border-[#ECB22D] text-[#010124]"
+                              : "border-gray-300 hover:border-[#ECB22D]"
+                          } ${updating === task.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                        >
+                          {updating === task.id ? (
+                            <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            task.completed && <CheckCircle className="h-3 w-3" />
+                          )}
+                        </button>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4
+                              className={`font-semibold ${task.completed ? "line-through text-white/60" : "text-white"}`}
                             >
-                              {task.description}
-                            </p>
-                            {task.subtasks && task.subtasks.length > 0 && (
-                              <div className="ml-4 mb-3">
-                                <p className="text-xs font-medium text-white mb-2">Includes:</p>
-                                <ul className="space-y-1">
-                                  {task.subtasks.map((subtask, index) => (
-                                    <li
-                                      key={index}
-                                      className={`text-xs flex items-center space-x-2 ${task.completed ? "line-through text-white/40" : "text-white/80"}`}
-                                    >
-                                      <span className="w-1 h-1 bg-[#ECB22D] rounded-full"></span>
-                                      <span>{subtask}</span>
-                                    </li>
-                                  ))}
-                                </ul>
+                              {task.title}
+                            </h4>
+                            <Badge variant="outline" className="text-xs border-[#ECB22D] text-[#ECB22D] bg-transparent">
+                              {task.accountability}
+                            </Badge>
+                          </div>
+                          <p
+                            className={`text-sm mb-3 ${task.completed ? "line-through text-white/40" : "text-white/80"}`}
+                          >
+                            {task.description}
+                          </p>
+                          {task.subtasks && task.subtasks.length > 0 && (
+                            <div className="ml-4 mb-3">
+                              <p className="text-xs font-medium text-white mb-2">Includes:</p>
+                              <ul className="space-y-1">
+                                {task.subtasks.map((subtask, index) => (
+                                  <li
+                                    key={index}
+                                    className={`text-xs flex items-center space-x-2 ${task.completed ? "line-through text-white/40" : "text-white/80"}`}
+                                  >
+                                    <span className="w-1 h-1 bg-[#ECB22D] rounded-full"></span>
+                                    <span>{subtask}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Resources Section */}
+                          {(task.videoUrls?.length || task.supportLinks?.length) && (
+                            <div className="mt-4 border-t border-white/10 pt-4">
+                              <div className="flex flex-wrap gap-2">
+                                {/* Video Tutorial Button */}
+                                {task.videoUrls && task.videoUrls.length > 0 && (
+                                  <PrimaryButton
+                                    type="button"
+                                    onClick={() => toggleVideo(task.id)}
+                                    className="flex items-center gap-2 px-6 py-2 text-base"
+                                  >
+                                    <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                      <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                                    </svg>
+                                    {expandedVideos.has(task.id) ? "Hide Videos" : "Watch Tutorials"}
+                                  </PrimaryButton>
+                                )}
+
+                                {/* Support Documentation Button */}
+                                {task.supportLinks && task.supportLinks.length > 0 && (
+                                  <SecondaryButton
+                                    type="button"
+                                    onClick={() => toggleSupport(task.id)}
+                                    className="flex items-center gap-2 px-6 py-2 text-base"
+                                  >
+                                    <FileText className="w-4 h-4 mr-2" />
+                                    {expandedSupport.has(task.id) ? "Hide Guides" : "View Support Guides"}
+                                  </SecondaryButton>
+                                )}
                               </div>
-                            )}
 
-                            {/* Resources Section */}
-                            {(task.videoUrls?.length || task.supportLinks?.length) && (
-                              <div className="mt-4 border-t border-white/10 pt-4">
-                                <div className="flex flex-wrap gap-2">
-                                  {/* Video Tutorial Button */}
-                                  {task.videoUrls && task.videoUrls.length > 0 && (
-                                    <PrimaryButton
-                                      type="button"
-                                      onClick={() => toggleVideo(task.id)}
-                                      className="flex items-center gap-2 px-6 py-2 text-base"
-                                    >
-                                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                                      </svg>
-                                      {expandedVideos.has(task.id) ? "Hide Videos" : "Watch Tutorials"}
-                                    </PrimaryButton>
-                                  )}
-
-                                  {/* Support Documentation Button */}
-                                  {task.supportLinks && task.supportLinks.length > 0 && (
-                                    <SecondaryButton
-                                      type="button"
-                                      onClick={() => toggleSupport(task.id)}
-                                      className="flex items-center gap-2 px-6 py-2 text-base"
-                                    >
-                                      <FileText className="w-4 h-4 mr-2" />
-                                      {expandedSupport.has(task.id) ? "Hide Guides" : "View Support Guides"}
-                                    </SecondaryButton>
-                                  )}
-                                </div>
-
-                                {/* Video Tutorial Section */}
-                                {expandedVideos.has(task.id) && task.videoUrls && task.videoUrls.length > 0 && (
-                                  <div className="mt-4 space-y-4">
-                                    {task.videoUrls.map((videoUrl, index) => (
-                                      <div key={index} className="bg-white/10 rounded-lg p-4 border border-[#ECB22D]">
-                                        {task.videoUrls!.length > 1 && (
-                                          <h5 className="text-sm font-medium text-white mb-2">
-                                            Tutorial {index + 1}
-                                            {task.id === "basic-setup" && index === 0 && ": Personal Profile"}
-                                            {task.id === "basic-setup" && index === 1 && ": Organization & Branding"}
-                                          </h5>
-                                        )}
-                                        <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-                                          <iframe
-                                            src={getTellaEmbedUrl(videoUrl)}
-                                            className="absolute top-0 left-0 w-full h-full rounded-lg"
-                                            frameBorder="0"
-                                            allowFullScreen
-                                            title={`Tutorial video for ${task.title}${task.videoUrls!.length > 1 ? ` - Part ${index + 1}` : ""}`}
-                                          />
-                                        </div>
+                              {/* Video Tutorial Section */}
+                              {expandedVideos.has(task.id) && task.videoUrls && task.videoUrls.length > 0 && (
+                                <div className="mt-4 space-y-4">
+                                  {task.videoUrls.map((videoUrl, index) => (
+                                    <div key={index} className="bg-white/10 rounded-lg p-4 border border-[#ECB22D]">
+                                      {task.videoUrls!.length > 1 && (
+                                        <h5 className="text-sm font-medium text-white mb-2">
+                                          Tutorial {index + 1}
+                                          {task.id === "basic-setup" && index === 0 && ": Personal Profile"}
+                                          {task.id === "basic-setup" && index === 1 && ": Organization & Branding"}
+                                        </h5>
+                                      )}
+                                      <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                                        <iframe
+                                          src={getTellaEmbedUrl(videoUrl)}
+                                          className="absolute top-0 left-0 w-full h-full rounded-lg"
+                                          frameBorder="0"
+                                          allowFullScreen
+                                          title={`Tutorial video for ${task.title}${task.videoUrls!.length > 1 ? ` - Part ${index + 1}` : ""}`}
+                                        />
                                       </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Support Documentation Section */}
+                              {expandedSupport.has(task.id) && task.supportLinks && task.supportLinks.length > 0 && (
+                                <div className="mt-4 bg-white/10 rounded-lg p-4 border border-[#ECB22D]">
+                                  <h5 className="text-sm font-medium text-white mb-3">
+                                    📖 Support Documentation
+                                  </h5>
+                                  <div className="space-y-2">
+                                    {task.supportLinks.map((link, index) => (
+                                      <a
+                                        key={index}
+                                        href={link.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-3 bg-transparent rounded-lg border border-[#ECB22D] hover:border-white hover:bg-white/5 transition-colors group"
+                                      >
+                                        <span className="text-sm font-medium text-white group-hover:text-[#ECB22D]">
+                                          {link.title}
+                                        </span>
+                                        <ExternalLink className="h-4 w-4 text-[#ECB22D] group-hover:text-white" />
+                                      </a>
                                     ))}
                                   </div>
-                                )}
-
-                                {/* Support Documentation Section */}
-                                {expandedSupport.has(task.id) && task.supportLinks && task.supportLinks.length > 0 && (
-                                  <div className="mt-4 bg-white/10 rounded-lg p-4 border border-[#ECB22D]">
-                                    <h5 className="text-sm font-medium text-white mb-3">
-                                      📖 Support Documentation
-                                    </h5>
-                                    <div className="space-y-2">
-                                      {task.supportLinks.map((link, index) => (
-                                        <a
-                                          key={index}
-                                          href={link.url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center justify-between p-3 bg-transparent rounded-lg border border-[#ECB22D] hover:border-white hover:bg-white/5 transition-colors group"
-                                        >
-                                          <span className="text-sm font-medium text-white group-hover:text-[#ECB22D]">
-                                            {link.title}
-                                          </span>
-                                          <ExternalLink className="h-4 w-4 text-[#ECB22D] group-hover:text-white" />
-                                        </a>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )
           })}
         </div>
