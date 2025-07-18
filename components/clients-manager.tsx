@@ -324,6 +324,11 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
     }
   }
 
+  // Add a helper to format date as yyyy-mm-dd (UTC)
+  function formatDateUTC(date: Date) {
+    return date ? date.toISOString().slice(0, 10) : '';
+  }
+
   if (loading) {
     return (
       <Card className="bg-[#10122b]/90 ring-1 ring-[#F2C94C]/30 rounded-2xl">
@@ -680,6 +685,28 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                 if (client.success_package === 'gold' && !client.gold_first_call_date) missingFirstCall = true;
                 if (client.success_package === 'elite' && !client.elite_configurations_started_date) missingFirstCall = true;
 
+                // Add: Check if last call was more than 2 weeks ago
+                let showNoRecentCallNote = false;
+                if (!missingFirstCall && lastCallDate) {
+                  const diffDays = (now.getTime() - lastCallDate.getTime()) / (1000 * 60 * 60 * 24);
+                  if (diffDays > 14) {
+                    showNoRecentCallNote = true;
+                  }
+                }
+                // If there are no calls at all and not missing first call, also show the note
+                if (!missingFirstCall && !lastCallDate) {
+                  showNoRecentCallNote = true;
+                }
+
+                // Add: Check if last call was more than 1 week ago (but less than 2 weeks)
+                let showEmailReminder = false;
+                if (!missingFirstCall && lastCallDate) {
+                  const diffDays = (now.getTime() - lastCallDate.getTime()) / (1000 * 60 * 60 * 24);
+                  if (diffDays > 7 && diffDays <= 14) {
+                    showEmailReminder = true;
+                  }
+                }
+
                 let cardClass = "group bg-[#10122b]/90 ring-1 ring-[#F2C94C]/20 rounded-xl p-5 transition-all hover:ring-2 hover:ring-[#F2C94C]/40"
                 let showChurnPill = false;
                 if (client.churn_risk) {
@@ -706,6 +733,18 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                           {missingFirstCall && (
                             <span className="bg-yellow-400/20 text-yellow-300 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">
                               No Onboarding Call
+                            </span>
+                          )}
+                          {/* Add: Note if no call in 2 weeks */}
+                          {showNoRecentCallNote && (
+                            <span className="bg-red-500/20 text-red-300 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">
+                              No Call in 2+ Weeks
+                            </span>
+                          )}
+                          {/* Add: Email reminder if no call in 1+ week */}
+                          {showEmailReminder && (
+                            <span className="bg-yellow-500/20 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">
+                              Email Client: 1+ Week Since Last Call
                             </span>
                           )}
                           {client.churned && (
@@ -769,54 +808,54 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                           <div className="flex flex-wrap gap-2 ml-6">
                             {client.light_onboarding_call_date && (
                               <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                                Light Call: {new Date(client.light_onboarding_call_date).toLocaleDateString()}
+                                Light Call: {formatDateUTC(new Date(client.light_onboarding_call_date))}
                               </span>
                             )}
                             {client.premium_first_call_date && (
                               <span className="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                                Premium 1st: {new Date(client.premium_first_call_date).toLocaleDateString()}
+                                Premium 1st: {formatDateUTC(new Date(client.premium_first_call_date))}
                               </span>
                             )}
                             {client.premium_second_call_date && (
                               <span className="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                                Premium 2nd: {new Date(client.premium_second_call_date).toLocaleDateString()}
+                                Premium 2nd: {formatDateUTC(new Date(client.premium_second_call_date))}
                               </span>
                             )}
                             {client.gold_first_call_date && (
                               <span className="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                                Gold 1st: {new Date(client.gold_first_call_date).toLocaleDateString()}
+                                Gold 1st: {formatDateUTC(new Date(client.gold_first_call_date))}
                               </span>
                             )}
                             {client.gold_second_call_date && (
                               <span className="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                                Gold 2nd: {new Date(client.gold_second_call_date).toLocaleDateString()}
+                                Gold 2nd: {formatDateUTC(new Date(client.gold_second_call_date))}
                               </span>
                             )}
                             {client.gold_third_call_date && (
                               <span className="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                                Gold 3rd: {new Date(client.gold_third_call_date).toLocaleDateString()}
+                                Gold 3rd: {formatDateUTC(new Date(client.gold_third_call_date))}
                               </span>
                             )}
                             {client.elite_configurations_started_date && (
                               <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                                Elite Config: {new Date(client.elite_configurations_started_date).toLocaleDateString()}
+                                Elite Config: {formatDateUTC(new Date(client.elite_configurations_started_date))}
                               </span>
                             )}
                             {client.elite_integrations_started_date && (
                               <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                                Elite Integrations: {new Date(client.elite_integrations_started_date).toLocaleDateString()}
+                                Elite Integrations: {formatDateUTC(new Date(client.elite_integrations_started_date))}
                               </span>
                             )}
                             {client.elite_verification_completed_date && (
                               <span className="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full text-xs font-medium">
-                                Elite Verification: {new Date(client.elite_verification_completed_date).toLocaleDateString()}
+                                Elite Verification: {formatDateUTC(new Date(client.elite_verification_completed_date))}
                               </span>
                             )}
                             {/* Extra Calls */}
                             {Array.isArray(client.extra_call_dates) && client.extra_call_dates.map((date, idx) =>
                               date ? (
                                 <span key={idx} className="bg-white text-[#10122b] px-2 py-0.5 rounded-full text-xs font-medium border border-[#F2C94C]">
-                                  Extra Call {idx + 1}: {new Date(date).toLocaleDateString()}
+                                  Extra Call {idx + 1}: {formatDateUTC(new Date(date))}
                                 </span>
                               ) : null
                             )}

@@ -154,8 +154,10 @@ export default async function ClientPage({ params }: ClientPageProps) {
   const calendar_integrations_call = client.calendar_integrations_call || mgr?.calendar_integrations_call || '';
   const calendar_upgrade_consultation = client.calendar_upgrade_consultation || mgr?.calendar_upgrade_consultation || '';
 
+  const hasFeatures = features.length > 0;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#070720] to-[#0d0d25]">
+    <div className={hasFeatures ? "min-h-screen bg-gradient-to-br from-[#070720] to-[#0d0d25]" : "min-h-screen bg-[#070720]"}>
       {/* Header */}
       <header className="bg-[#010124] border-b border-brand-gold sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -284,8 +286,8 @@ export default async function ClientPage({ params }: ClientPageProps) {
       <ClientChecklist clientId={client.id} clientName={clientName} client={client} />
 
       {/* Dynamic Integrations Section - Pass showDefault=true to ensure default integrations show */}
-      <PortalSection id="integrations" gradient={false} className="bg-white/10 backdrop-blur-sm scroll-mt-32">
-        {(client.show_zapier_integrations || integrations.length > 0) && (
+      {(client.show_zapier_integrations || integrations.length > 0) && (
+        <PortalSection id="integrations" gradient={false} className="bg-white/10 backdrop-blur-sm scroll-mt-32">
           <ClientIntegrationsSectionWrapper
             clientId={client.id}
             clientName={clientName}
@@ -305,24 +307,26 @@ export default async function ClientPage({ params }: ClientPageProps) {
             successPackage={successPackage}
             calendarIntegrationsCall={calendar_integrations_call}
           />
-        )}
-      </PortalSection>
+        </PortalSection>
+      )}
 
       {/* Feedback Board Section */}
-      <PortalSection id="feedback" gradient={false} className="bg-white/10 backdrop-blur-sm mt-16 scroll-mt-32">
-        {(client.feedback_board_enabled ?? true) && (
+      {(client.feedback_board_enabled ?? true) && (
+        <PortalSection id="feedback" gradient={false} className="bg-white/10 backdrop-blur-sm mt-16 scroll-mt-32">
           <div className="max-w-6xl mx-auto">
             <FeedbackBoardClientViewWrapper clientId={client.id} />
           </div>
-        )}
-      </PortalSection>
+        </PortalSection>
+      )}
 
       {/* Custom Features Section */}
-      <PortalSection gradient={false} className="bg-white/10 backdrop-blur-sm mt-16">
-        <div className="max-w-6xl mx-auto">
-          <ClientFeaturesSectionWrapper features={features} />
-        </div>
-      </PortalSection>
+      {features.length > 0 && (
+        <PortalSection gradient={false} className="bg-white/10 backdrop-blur-sm mt-16">
+          <div className="max-w-6xl mx-auto">
+            <ClientFeaturesSectionWrapper features={features} />
+          </div>
+        </PortalSection>
+      )}
 
       {/* Custom App Section - Only show for Gray Label or White Label */}
       {showCustomAppSection && (
