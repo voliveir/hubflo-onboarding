@@ -39,7 +39,7 @@ export function ClientFeaturesSection({ features }: ClientFeaturesSectionProps) 
         return (
           <Badge variant="secondary" className="bg-brand-gold/20 text-brand-gold border-brand-gold/40">
             <Clock className="w-3 h-3 mr-1" />
-            Under Review
+            Interested
           </Badge>
         )
       case "approved":
@@ -53,7 +53,7 @@ export function ClientFeaturesSection({ features }: ClientFeaturesSectionProps) 
         return (
           <Badge variant="secondary" className="bg-brand-gold/20 text-brand-gold border-brand-gold/40">
             <Clock className="w-3 h-3 mr-1" />
-            In Development
+            Implementing
           </Badge>
         )
       case "completed":
@@ -71,13 +71,13 @@ export function ClientFeaturesSection({ features }: ClientFeaturesSectionProps) 
   const getStatusDescription = (status: string) => {
     switch (status) {
       case "proposed":
-        return "This feature has been proposed for your account. We're evaluating its implementation."
+        return "This feature has been proposed for your account based on your feedback or previous sales conversations."
       case "interested":
-        return "You've expressed interest in this feature. Our team is reviewing the requirements."
+        return "You've expressed interest in this feature."
       case "approved":
         return "This feature has been approved and will be available soon."
       case "implementing":
-        return "This feature is currently being developed and will be available soon."
+        return "This feature is currently being implemented and will be available soon."
       case "completed":
         return "This feature is now available and ready to use."
       default:

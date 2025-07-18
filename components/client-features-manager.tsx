@@ -48,11 +48,16 @@ export function ClientFeaturesManager({ clientFeatures, availableFeatures, clien
       const data = await res.json()
       if (data.success) {
         setEditingFeature(null)
-        window.location.reload(); // Reload the page to refresh the feature list
+        // Force a client-side data refresh (bust cache)
+        if (typeof window !== 'undefined') {
+          window.location.reload()
+        }
       } else {
+        console.error("Error updating client feature:", data.error)
         alert("Error updating client feature: " + (data.error || "Unknown error"))
       }
     } catch (error: any) {
+      console.error("Error updating client feature:", error)
       alert("Error updating client feature: " + error.message)
     }
   }
@@ -373,7 +378,10 @@ interface FeatureUpdateFormProps {
 
 function FeatureUpdateForm({ clientFeature, onSubmit }: FeatureUpdateFormProps) {
   const [status, setStatus] = useState(clientFeature.status)
-  const [isEnabled, setIsEnabled] = useState(clientFeature.is_enabled)
+  // Default is_enabled to true unless explicitly false
+  const [isEnabled, setIsEnabled] = useState(
+    typeof clientFeature.is_enabled === 'boolean' ? clientFeature.is_enabled : true
+  )
   const [isFeatured, setIsFeatured] = useState(clientFeature.is_featured)
   const [customNotes, setCustomNotes] = useState(clientFeature.custom_notes || "")
 
