@@ -157,9 +157,9 @@ export default async function ClientPage({ params }: ClientPageProps) {
   const hasFeatures = features.length > 0;
 
   return (
-    <div className={hasFeatures ? "min-h-screen bg-gradient-to-br from-[#070720] to-[#0d0d25]" : "min-h-screen bg-[#070720]"}>
+    <div className="min-h-screen relative overflow-x-hidden" style={{ background: 'radial-gradient(ellipse at 60% 0%, #2d2e4a 0%, #070720 60%, #000 100%)' }}>
       {/* Header */}
-      <header className="bg-[#010124] border-b border-brand-gold sticky top-0 z-50">
+      <header className="bg-[#010124] border-b border-brand-gold fixed top-0 left-0 right-0 w-full z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -189,6 +189,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       </header>
 
       {/* Quick Navigation Bar */}
+      <div className="mt-24" />
       <PortalHeader>
         <PortalNavLink href="#welcome">Welcome</PortalNavLink>
         <PortalNavLink href="#progress">Progress</PortalNavLink>
@@ -200,7 +201,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       </PortalHeader>
 
       {/* Personalized Hero Section */}
-      <PortalSection id="welcome" gradient={false} className="bg-gradient-to-b from-[#010124] via-[#070720] to-[#0d0d25] text-white scroll-mt-32 mt-8">
+      <PortalSection id="welcome" gradient={false} className="text-white scroll-mt-32 mt-40 bg-transparent">
         <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg">
             Welcome, <span className="text-brand-gold">{clientName}</span>!
@@ -220,7 +221,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
       {/* Personalized Video */}
       {videoUrl && (
-        <PortalSection gradient={false} className="bg-white/10 backdrop-blur-sm">
+        <PortalSection gradient={false} className="bg-transparent">
           <div className="max-w-3xl mx-auto">
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 overflow-hidden">
               <div className="bg-[#010124] text-white p-6 text-center">
@@ -243,7 +244,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       )}
 
       {/* Package-Specific Features */}
-      <PortalSection gradient={false} className="bg-white/10 backdrop-blur-sm">
+      <PortalSection gradient={false} className="bg-transparent">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-white mb-4">
             Your <span className="text-brand-gold">{getPackageEmoji(successPackage)} {packageDisplayName}</span> Package Includes
@@ -256,14 +257,14 @@ export default async function ClientPage({ params }: ClientPageProps) {
       </PortalSection>
 
       {/* Implementation Progress Section - RESTORED */}
-      <PortalSection id="progress" gradient={false} className="bg-white/10 backdrop-blur-sm scroll-mt-32">
+      <PortalSection id="progress" gradient={false} className="bg-transparent scroll-mt-32">
         <div className="max-w-6xl mx-auto">
           <ClientImplementationProgressWrapper client={client} />
         </div>
       </PortalSection>
 
       {/* Next Steps Section */}
-      <PortalSection id="next-steps" gradient={false} className="bg-white/10 backdrop-blur-sm mt-16">
+      <PortalSection id="next-steps" gradient={false} className="bg-transparent mt-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-white mb-4">
             Next Steps
@@ -287,7 +288,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
       {/* Dynamic Integrations Section - Pass showDefault=true to ensure default integrations show */}
       {(client.show_zapier_integrations || integrations.length > 0) && (
-        <PortalSection id="integrations" gradient={false} className="bg-white/10 backdrop-blur-sm scroll-mt-32">
+        <PortalSection id="integrations" gradient={false} className="bg-transparent scroll-mt-32">
           <ClientIntegrationsSectionWrapper
             clientId={client.id}
             clientName={clientName}
@@ -312,7 +313,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
       {/* Feedback Board Section */}
       {(client.feedback_board_enabled ?? true) && (
-        <PortalSection id="feedback" gradient={false} className="bg-white/10 backdrop-blur-sm mt-16 scroll-mt-32">
+        <PortalSection id="feedback" gradient={false} className="bg-transparent mt-16 scroll-mt-32">
           <div className="max-w-6xl mx-auto">
             <FeedbackBoardClientViewWrapper clientId={client.id} />
           </div>
@@ -321,7 +322,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
       {/* Custom Features Section */}
       {features.length > 0 && (
-        <PortalSection gradient={false} className="bg-white/10 backdrop-blur-sm mt-16">
+        <PortalSection gradient={false} className="bg-transparent mt-16">
           <div className="max-w-6xl mx-auto">
             <ClientFeaturesSectionWrapper features={features} />
           </div>
@@ -330,7 +331,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
       {/* Custom App Section - Only show for Gray Label or White Label */}
       {showCustomAppSection && (
-        <PortalSection gradient={false} className="bg-white/10 backdrop-blur-sm mt-16">
+        <PortalSection gradient={false} className="bg-transparent mt-16">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-white mb-4">
@@ -401,7 +402,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       )}
 
       {/* Hubflo Internal Apps Section - Always show for all packages */}
-      <PortalSection id="apps" gradient={false} className="bg-white/10 backdrop-blur-sm mt-16 scroll-mt-32">
+      <PortalSection id="apps" gradient={false} className="bg-transparent mt-16 scroll-mt-32">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-4">
@@ -413,7 +414,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
           </div>
           <div className="grid md:grid-cols-3 gap-8 items-stretch">
             {/* Mobile App */}
-            <div className="flex flex-col h-full min-h-[400px] text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 transition-all duration-500 hover:border-brand-gold/40 hover:shadow-lg">
+            <div className="flex flex-col h-full min-h-[400px] text-center bg-[#10122b]/90 text-white rounded-3xl p-8 border border-brand-gold/30 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
               <div className="flex flex-col items-center mb-6">
                 <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-brand-gold/20">
                   <Smartphone className="h-6 w-6 text-brand-gold" />
@@ -447,7 +448,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
               </div>
             </div>
             {/* Desktop App */}
-            <div className="flex flex-col h-full min-h-[400px] text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 transition-all duration-500 hover:border-brand-gold/40 hover:shadow-lg">
+            <div className="flex flex-col h-full min-h-[400px] text-center bg-[#10122b]/90 text-white rounded-3xl p-8 border border-brand-gold/30 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
               <div className="flex flex-col items-center mb-6">
                 <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-brand-gold/20">
                   <Monitor className="h-6 w-6 text-brand-gold" />
@@ -473,7 +474,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
               </a>
             </div>
             {/* Chrome Extension */}
-            <div className="flex flex-col h-full min-h-[400px] text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 transition-all duration-500 hover:border-brand-gold/40 hover:shadow-lg">
+            <div className="flex flex-col h-full min-h-[400px] text-center bg-[#10122b]/90 text-white rounded-3xl p-8 border border-brand-gold/30 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
               <div className="flex flex-col items-center mb-6">
                 <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-brand-gold/20">
                   <Chrome className="h-6 w-6 text-brand-gold" />
@@ -513,7 +514,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       )}
 
       {/* Compliance Logos Row - always visible */}
-      <PortalSection gradient={false} className="flex flex-col items-center mt-8 mb-8 bg-white/10 backdrop-blur-sm py-8">
+      <PortalSection gradient={false} className="flex flex-col items-center mt-8 mb-8 bg-transparent py-8">
         <a href="https://hubflo.eu.trust.site/" target="_blank" rel="noopener noreferrer" className="flex gap-8 items-center justify-center">
           <img src="https://static.eu.sprinto.com/_next/static/images/framework/soc2.png" alt="SOC2 Compliant" className="h-12 w-auto" />
           <img src="https://static.eu.sprinto.com/_next/static/images/framework/hipaa.png" alt="HIPAA Compliant" className="h-12 w-auto" />
@@ -523,7 +524,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       </PortalSection>
 
       {/* Footer */}
-      <footer className="bg-[#010124] bg-opacity-90 text-white py-12 px-4 rounded-t-3xl">
+      <footer className="bg-[#010124] bg-opacity-90 text-white py-12 px-4 rounded-t-3xl border-none shadow-none">
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Image src="/hubflo-logo.png" alt="Hubflo" width={32} height={32} className="w-8 h-8 object-contain" />
@@ -627,8 +628,8 @@ function UpgradePackageSection({
             <Card
               key={pkg.name}
               className={
-                `flex flex-col rounded-2xl border border-[#F2C94C] shadow-inner backdrop-blur bg-slate-900/70 text-white px-8 py-8 items-center justify-between min-w-[260px] max-w-xs mx-auto` +
-                (pkg.name === popularPackage ? ' ring-2 ring-[#F2C94C]' : '')
+                `flex flex-col rounded-2xl border border-brand-gold/30 bg-[#10122b]/90 text-white px-8 py-8 items-center justify-between min-w-[260px] max-w-xs mx-auto transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg` +
+                (pkg.name === popularPackage ? ' ring-2 ring-brand-gold/60' : '')
               }
             >
               {pkg.name === popularPackage && (

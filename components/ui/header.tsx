@@ -50,7 +50,7 @@ export function Header() {
               height={32} 
               className="object-contain transition-transform group-hover:scale-110" 
             />
-            <span className={`text-xl font-bold ${isScrolled ? "text-brand-foreground" : "text-brand-DEFAULT"}`}>
+            <span className={`text-xl font-bold ${isScrolled ? "text-white" : "text-brand-DEFAULT"}`}>
               Hubflo
             </span>
           </Link>
@@ -61,7 +61,7 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`font-medium transition-colors duration-200 px-2 py-1 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60 focus-visible:ring-offset-2 text-brand-DEFAULT hover:text-brand-gold`}
+                className={`font-medium transition-colors duration-200 px-2 py-1 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60 focus-visible:ring-offset-2 ${isScrolled ? "text-white hover:text-brand-gold" : "text-brand-DEFAULT hover:text-brand-gold"}`}
               >
                 {item.label}
               </Link>

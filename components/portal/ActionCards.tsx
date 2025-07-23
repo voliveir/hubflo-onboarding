@@ -59,7 +59,7 @@ export function ActionCards({ successPackage, implementationManager = 'vanessa',
         <div
           key={action.title}
           className={cn(
-            "flex flex-col h-full min-h-[400px] text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 transition-all duration-500 hover:border-brand-gold/40 hover:shadow-lg",
+            "flex flex-col h-full min-h-[400px] text-center bg-[#10122b]/90 text-white rounded-3xl p-8 border border-brand-gold/30 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg",
             isVisible && "animate-fade-in-up"
           )}
           style={{ animationDelay: `${index * 100}ms` }}

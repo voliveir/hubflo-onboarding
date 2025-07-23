@@ -77,7 +77,7 @@ export function PackageHighlights({ successPackage }: PackageHighlightsProps) {
         <div
           key={feature.type}
           className={cn(
-            "text-center h-full min-h-[260px] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 transition-all duration-500",
+            "text-center h-full min-h-[260px] bg-[#10122b]/90 text-white rounded-3xl p-8 border border-brand-gold/30 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg",
             isVisible && "animate-fade-in-up",
             isVisible && `animation-delay-${index * 100}`
           )}

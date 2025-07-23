@@ -415,7 +415,7 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
 
         {/* Overall Progress */}
         <div className="max-w-4xl mx-auto mb-12">
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border-2 border-[#ECB22D] p-8">
+          <div className="bg-[#10122b]/90 text-white rounded-3xl border-2 border-brand-gold/30 p-8 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
             <div className="flex items-center space-x-4 mb-6">
               <div className="w-14 h-14 bg-[#ECB22D] rounded-2xl flex items-center justify-center">
                 <CheckCircle className="h-8 w-8 text-[#010124]" />
@@ -452,7 +452,7 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
             const sectionProgress = sectionTotal > 0 ? Math.round((sectionCompleted / sectionTotal) * 100) : 0
 
             return (
-              <div key={sectionName} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-8 transition-all duration-500 hover:border-brand-gold/40 hover:shadow-lg">
+              <div key={sectionName} className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-8 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-3">
                     <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20">
@@ -478,7 +478,7 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
                 </div>
                 <div className="space-y-6 mt-8">
                   {sectionTasks.map((task) => (
-                    <div key={task.id} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl border border-white/20 p-6 flex flex-col gap-2">
+                    <div key={task.id} className="bg-[#181a2f] text-white rounded-2xl border border-brand-gold/30 p-6 flex flex-col gap-2 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
                       <div className="flex items-start space-x-3">
                         <button
                           onClick={() => toggleTask(task.id)}
@@ -563,7 +563,7 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
                               {expandedVideos.has(task.id) && task.videoUrls && task.videoUrls.length > 0 && (
                                 <div className="mt-4 space-y-4">
                                   {task.videoUrls.map((videoUrl, index) => (
-                                    <div key={index} className="bg-white/10 rounded-lg p-4 border border-[#ECB22D]">
+                                    <div key={index} className="bg-[#10122b]/80 text-white rounded-lg p-4 border border-brand-gold/30">
                                       {task.videoUrls!.length > 1 && (
                                         <h5 className="text-sm font-medium text-white mb-2">
                                           Tutorial {index + 1}
@@ -587,7 +587,7 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
 
                               {/* Support Documentation Section */}
                               {expandedSupport.has(task.id) && task.supportLinks && task.supportLinks.length > 0 && (
-                                <div className="mt-4 bg-white/10 rounded-lg p-4 border border-[#ECB22D]">
+                                <div className="mt-4 bg-[#10122b]/80 text-white rounded-lg p-4 border border-brand-gold/30">
                                   <h5 className="text-sm font-medium text-white mb-3">
                                     📖 Support Documentation
                                   </h5>
@@ -598,7 +598,7 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
                                         href={link.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center justify-between p-3 bg-transparent rounded-lg border border-[#ECB22D] hover:border-white hover:bg-white/5 transition-colors group"
+                                        className="flex items-center justify-between p-3 bg-transparent rounded-lg border border-brand-gold/30 hover:border-brand-gold/60 hover:bg-[#181a2f] transition-colors group"
                                       >
                                         <span className="text-sm font-medium text-white group-hover:text-[#ECB22D]">
                                           {link.title}

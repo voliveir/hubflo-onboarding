@@ -26,7 +26,7 @@ const STATE_VARIANTS = {
             <span className="font-semibold text-white">4-6 Weeks</span>
           </div>
         </div>
-        <div className="bg-white/5 rounded-lg p-6 border border-white/10">
+        <div className="bg-[#181a2f] text-white rounded-lg p-6 border border-brand-gold/30">
           <h4 className="font-semibold text-white mb-3">What to Expect:</h4>
           <ul className="space-y-2 text-white/80">
             <li className="flex items-start">
@@ -47,7 +47,7 @@ const STATE_VARIANTS = {
             </li>
           </ul>
         </div>
-        <div className="text-center bg-gradient-to-r from-[#010124] to-brand-gold/10 rounded-lg p-6 border border-brand-gold/20">
+        <div className="text-center bg-[#10122b]/80 text-white rounded-lg p-6 border border-brand-gold/30">
           <h4 className="font-semibold mb-2 text-white">Next Steps</h4>
           <p className="text-white/80 mb-4">
             Your Implementation Manager will reach out to you within 1-2 business days to discuss your app
@@ -122,9 +122,9 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
   const variant = STATE_VARIANTS[status]
 
   return (
-    <div className="rounded-2xl border border-brand-gold/40 bg-surface-dark/70 backdrop-blur shadow-[inset_0_1px_6px_rgba(0,0,0,.25)] overflow-hidden">
+    <div className="rounded-2xl border border-brand-gold/40 bg-[#10122b]/90 text-white shadow-[inset_0_1px_6px_rgba(0,0,0,.25)] overflow-hidden transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
       {/* Header */}
-      <div className="bg-gradient-to-r from-brand-DEFAULT via-transparent to-brand-gold/20 px-8 py-6 flex justify-between items-center">
+      <div className="bg-[#181a2f] px-8 py-6 flex justify-between items-center border-b border-brand-gold/20">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-brand-gold rounded-full flex items-center justify-center">
             <Settings className="h-6 w-6 text-white" />
@@ -143,7 +143,7 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
       </div>
 
       {/* Content */}
-      <div className="p-8">
+      <div className="p-8 bg-transparent">
         {status === "not_started" && variant.content}
 
         {(status === "in_progress" || status === "waiting_for_approval") && (

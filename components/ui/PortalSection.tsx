@@ -22,8 +22,7 @@ export function PortalSection({
     <section 
       id={id}
       className={cn(
-        "py-16 px-4 relative overflow-hidden",
-        gradient && "bg-gradient-to-br from-[#070720] to-[#0d0d25]",
+        "py-16 px-4 relative overflow-hidden bg-transparent",
         className
       )}
     >

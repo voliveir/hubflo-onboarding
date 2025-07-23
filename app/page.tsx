@@ -17,14 +17,15 @@ import { Timeline } from "@/components/ui/timeline"
 export default function HomePage() {
   console.log("HomePage rendered")
   return (
-    <div className="min-h-screen bg-brand-foreground">
+    <div className="min-h-screen relative overflow-x-hidden" style={{ background: 'radial-gradient(ellipse at 60% 0%, #2d2e4a 0%, #070720 60%, #000 100%)' }}>
+      {/* Optional: Add a starfield canvas here if you want the effect site-wide */}
       <Header />
       
       <main className="pt-16">
         <Hero />
 
         {/* Welcome Video Section */}
-        <Section id="welcome" className="bg-gradient-to-b from-brand-foreground via-brand-navy-light to-gray-50 relative overflow-hidden">
+        <Section id="welcome" className="relative overflow-hidden">
           {/* Background Elements */}
           <div className="absolute inset-0 gradient-portal opacity-30" />
           <div className="absolute top-20 right-20 w-64 h-64 bg-brand-gold/5 rounded-full blur-3xl" />
@@ -36,10 +37,10 @@ export default function HomePage() {
                 <Star className="h-4 w-4 text-brand-gold" />
                 <span className="text-brand-gold font-medium text-sm">Premium Onboarding Experience</span>
               </div>
-              <h2 className="text-5xl lg:text-6xl font-bold text-brand-foreground mb-8" style={{textShadow: '0 2px 8px rgba(7,7,32,0.18)'}}>
-                Welcome to <span className="text-brand-DEFAULT">Hubflo Onboarding</span>!
+              <h2 className="text-5xl lg:text-6xl font-bold text-white mb-8" style={{textShadow: '0 2px 8px #EAB30855'}}>
+                Welcome to <span className="text-brand-gold">Hubflo Onboarding</span>!
               </h2>
-              <p className="text-xl text-brand-foreground max-w-4xl mx-auto leading-relaxed" style={{textShadow: '0 2px 8px rgba(7,7,32,0.10)'}}>
+              <p className="text-xl text-white/90 max-w-4xl mx-auto leading-relaxed" style={{textShadow: '0 2px 8px #000'}}>
                 Your personalized onboarding experience starts here. You've made a great choice! Now let's get your team up and running smoothly with Hubflo.
               </p>
             </div>
@@ -129,16 +130,14 @@ export default function HomePage() {
         </Section>
 
         {/* Packages Section */}
-        <Section id="packages" className="bg-white relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-gray-50 to-transparent" />
-          <div className="absolute bottom-0 right-0 w-64 h-64 bg-brand-gold/3 rounded-full blur-3xl" />
+        <Section id="packages" className="relative overflow-hidden">
           
           <div className="relative z-10 text-center mb-20">
             <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
               <Shield className="h-4 w-4 text-brand-gold" />
               <span className="text-brand-gold font-medium text-sm">Choose Your Path</span>
             </div>
-            <h2 className="text-5xl lg:text-6xl font-bold text-brand-DEFAULT mb-8">
+            <h2 className="text-5xl lg:text-6xl font-bold text-white mb-8">
               Hubflo Onboarding Packages
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -258,20 +257,17 @@ export default function HomePage() {
         </Section>
 
         {/* Launch Process Section */}
-        <Section id="launch-process" className="bg-gradient-to-b from-gray-50 via-white to-gray-50 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white to-transparent" />
-          <div className="absolute top-20 right-20 w-48 h-48 bg-brand-gold/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 left-20 w-32 h-32 bg-brand-gold/3 rounded-full blur-2xl" />
+        <Section id="launch-process" className="relative overflow-hidden">
           
           <div className="relative z-10 text-center mb-20">
             <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
               <Clock className="h-4 w-4 text-brand-gold" />
               <span className="text-brand-gold font-medium text-sm">Launch Timeline</span>
             </div>
-            <h2 className="text-5xl lg:text-6xl font-bold text-brand-DEFAULT mb-8">
+            <h2 className="text-5xl lg:text-6xl font-bold text-white mb-8">
               Client Portal Launch Process
             </h2>
-            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-xl text-white/90 max-w-4xl mx-auto leading-relaxed">
               Most of our clients are able to launch a first minimum viable version of their portal to a few customers
               within <span className="font-semibold text-brand-gold">2 to 4 weeks</span> (4 to 8 weeks if you require a lot of customization).
             </p>
@@ -304,16 +300,14 @@ export default function HomePage() {
         </Section>
 
         {/* Integrations Section */}
-        <Section id="integrations" className="bg-white relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-gray-50 to-transparent" />
-          <div className="absolute top-40 right-40 w-56 h-56 bg-brand-gold/4 rounded-full blur-3xl" />
+        <Section id="integrations" className="relative overflow-hidden">
           
           <div className="relative z-10 text-center mb-20">
             <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
               <Zap className="h-4 w-4 text-brand-gold" />
               <span className="text-brand-gold font-medium text-sm">Powerful Integrations</span>
             </div>
-            <h2 className="text-5xl lg:text-6xl font-bold text-brand-DEFAULT mb-8">
+            <h2 className="text-5xl lg:text-6xl font-bold text-white mb-8">
               Hubflo Automations & Integrations
             </h2>
             <div className="text-gray-600 max-w-3xl mx-auto">
@@ -426,19 +420,17 @@ export default function HomePage() {
         </Section>
 
         {/* Support & Tutorials Section */}
-        <Section id="support" className="bg-gradient-to-b from-gray-50 via-white to-gray-50 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white to-transparent" />
-          <div className="absolute bottom-20 right-20 w-40 h-40 bg-brand-gold/4 rounded-full blur-3xl" />
+        <Section id="support" className="relative overflow-hidden">
           
           <div className="relative z-10 text-center mb-20">
             <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
               <Shield className="h-4 w-4 text-brand-gold" />
               <span className="text-brand-gold font-medium text-sm">24/7 Support</span>
             </div>
-            <h2 className="text-5xl lg:text-6xl font-bold text-brand-DEFAULT mb-8">
+            <h2 className="text-5xl lg:text-6xl font-bold text-white mb-8">
               Support & Tutorials
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
               Get the help you need to make the most of your Hubflo onboarding experience.
             </p>
           </div>
@@ -496,19 +488,19 @@ export default function HomePage() {
             <div className="relative">
               <Image src="/hubflo-logo.png" alt="Hubflo Logo" width={40} height={40} className="object-contain" />
             </div>
-            <span style={{color: '#000', fontWeight: 700, fontSize: '2rem', lineHeight: 1, display: 'inline-block', marginLeft: 8, marginTop: 4, marginBottom: 4, textShadow: '0 2px 8px #fff'}}>
+            <span style={{color: '#fff', fontWeight: 700, fontSize: '2rem', lineHeight: 1, display: 'inline-block', marginLeft: 8, marginTop: 4, marginBottom: 4}}>
               Hubflo
             </span>
           </div>
-          <p style={{color: '#000', fontSize: '1.125rem', marginBottom: 32, fontWeight: 500, textShadow: '0 2px 8px #fff', WebkitTextStroke: '0.5px #fff'}}>
+          <p style={{color: '#fff', fontSize: '1.125rem', marginBottom: 32, fontWeight: 500}}>
             Streamlining onboarding experiences with premium support and cutting-edge technology.
           </p>
-          <div style={{color: '#000', opacity: 0.7, fontSize: '1rem', display: 'flex', justifyContent: 'center', gap: 24}}>
+          <div style={{color: '#fff', opacity: 0.8, fontSize: '1rem', display: 'flex', justifyContent: 'center', gap: 24}}>
             <span>© Hubflo 2025</span>
             <span>•</span>
-            <span><a href="https://www.hubflo.com/utility-pages/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></span>
+            <span><a href="https://www.hubflo.com/utility-pages/privacy-policy" target="_blank" rel="noopener noreferrer" style={{color: '#fff'}}>Privacy Policy</a></span>
             <span>•</span>
-            <span><a href="https://www.hubflo.com/utility-pages/terms-of-service" target="_blank" rel="noopener noreferrer">Terms of Service</a></span>
+            <span><a href="https://www.hubflo.com/utility-pages/terms-of-service" target="_blank" rel="noopener noreferrer" style={{color: '#fff'}}>Terms of Service</a></span>
           </div>
         </div>
       </footer>

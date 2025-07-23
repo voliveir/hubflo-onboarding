@@ -18,7 +18,7 @@ export function Timeline({ items }: TimelineProps) {
   return (
     <div className="relative max-w-4xl mx-auto">
       {/* Vertical line */}
-      <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-brand-gold via-brand-gold/50 to-transparent" />
+      <div className="absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-brand-gold via-brand-gold/70 to-transparent shadow-lg" />
       
       <div className="space-y-12">
         {items.map((item, index) => (
@@ -37,7 +37,7 @@ export function Timeline({ items }: TimelineProps) {
             
             {/* Content */}
             <div className="ml-8 flex-1">
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100 dark:bg-brand-navy-light/80 dark:border-brand-navy-lighter">
+              <div className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-brand-gold/30 dark:bg-brand-navy-light/80 dark:border-brand-navy-lighter">
                 <h3 className="text-xl font-semibold text-brand-DEFAULT dark:text-brand-foreground mb-3">
                   {item.title}
                 </h3>

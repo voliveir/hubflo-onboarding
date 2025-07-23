@@ -185,7 +185,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
   return (
     <div ref={ref} className={cn("space-y-6", isVisible && "animate-fade-in-up")}>
       {/* Overall Progress */}
-      <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-8">
+      <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-8 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
         <div className="flex items-center space-x-3 mb-6">
           <div className="w-12 h-12 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20">
             <CheckCircle className="h-6 w-6 text-brand-gold" />
@@ -220,7 +220,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
       {/* Service Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Onboarding Calls */}
-        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-6 transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+        <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
               <Users className="h-5 w-5 text-brand-gold" />
@@ -254,7 +254,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
         </div>
 
         {/* Forms Setup */}
-        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-6 transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+        <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
               <FileText className="h-5 w-5 text-brand-gold" />
@@ -283,7 +283,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
         </div>
 
         {/* SmartDocs */}
-        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-6 transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+        <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
               <BookOpen className="h-5 w-5 text-brand-gold" />
@@ -312,7 +312,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
         </div>
 
         {/* Integrations */}
-        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-6 transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+        <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
               <Zap className="h-5 w-5 text-brand-gold" />
@@ -344,7 +344,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
 
       {/* Elite Features */}
       {(packageLimits.migration || packageLimits.slack) && (
-        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-8">
+        <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-8 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20">
@@ -361,7 +361,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {packageLimits.migration && (
-              <div className="flex items-center justify-between p-4 border border-brand-gold/40 rounded-2xl bg-white/5">
+              <div className="flex items-center justify-between p-4 border border-brand-gold/40 rounded-2xl bg-[#181a2f] text-white">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-brand-gold/10 rounded-lg flex items-center justify-center border border-brand-gold/20">
                     <Database className="h-4 w-4 text-brand-gold" />
@@ -378,7 +378,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
             )}
 
             {packageLimits.slack && (
-              <div className="flex items-center justify-between p-4 border border-brand-gold/40 rounded-2xl bg-white/5">
+              <div className="flex items-center justify-between p-4 border border-brand-gold/40 rounded-2xl bg-[#181a2f] text-white">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-brand-gold/10 rounded-lg flex items-center justify-center border border-brand-gold/20">
                     <MessageSquare className="h-4 w-4 text-brand-gold" />

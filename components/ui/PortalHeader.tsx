@@ -8,19 +8,10 @@ interface PortalHeaderProps {
   className?: string
 }
 
-export function PortalHeader({ children, className }: PortalHeaderProps) {
+export function PortalHeader({ children }: { children: React.ReactNode }) {
   return (
-    <nav 
-      className={cn(
-        "sticky top-[64px] z-40 bg-white/90 backdrop-blur-md border-b border-brand-gold/20 transition-all duration-300",
-        className
-      )}
-    >
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex flex-wrap gap-2 justify-center">
-          {children}
-        </div>
-      </div>
+    <nav className="bg-white text-brand-DEFAULT shadow-sm border-b border-brand-gold/10 px-4 py-3 flex justify-center items-center gap-8 text-base font-semibold fixed top-24 left-0 right-0 w-full z-40" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+      {children}
     </nav>
   )
 }

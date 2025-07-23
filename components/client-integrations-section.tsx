@@ -238,7 +238,7 @@ export function ClientIntegrationsSection({
               </h3>
               <div className="grid gap-6">
                 {featuredIntegrations.map((integration) => (
-                  <div key={integration.id} className="bg-gradient-to-br from-brand-gold/10 to-brand-gold/5 backdrop-blur-sm rounded-3xl border border-brand-gold/40 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
+                  <div key={integration.id} className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/40 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
                         <div className="w-10 h-10 bg-brand-gold/20 rounded-xl flex items-center justify-center border border-brand-gold/40">
@@ -280,7 +280,7 @@ export function ClientIntegrationsSection({
               <h3 className="text-xl font-semibold text-white mb-6">Additional Integrations</h3>
               <div className="grid md:grid-cols-2 gap-6">
                 {additionalIntegrations.map((integration) => (
-                  <div key={integration.id} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-6 transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+                  <div key={integration.id} className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
                         <div className="w-10 h-10 bg-brand-gold/20 rounded-xl flex items-center justify-center border border-brand-gold/40">
@@ -312,7 +312,7 @@ export function ClientIntegrationsSection({
 
           {/* Help Section */}
           {successPackage.toLowerCase() === "light" ? (
-            <div className="bg-gradient-to-br from-brand-gold/10 to-brand-gold/5 backdrop-blur-sm rounded-3xl border border-brand-gold/40 p-8 text-center">
+            <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/40 p-8 text-center transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
               <h3 className="text-xl font-semibold text-white mb-4">Need More Help?</h3>
               <p className="text-white/80 mb-6">
                 If you need hands-on help setting up integrations, you'll need to upgrade your success package to <strong>Premium</strong>, <strong>Gold</strong>, or <strong>Elite</strong>.
@@ -322,7 +322,7 @@ export function ClientIntegrationsSection({
               </p>
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-brand-gold/10 to-brand-gold/5 backdrop-blur-sm rounded-3xl border border-brand-gold/40 p-8 text-center">
+            <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/40 p-8 text-center transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
               <h3 className="text-xl font-semibold text-white mb-4">Need Help Setting These Up?</h3>
               <p className="text-white/80 mb-6">
                 Our implementation team can help configure these integrations during your onboarding calls.

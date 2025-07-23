@@ -100,7 +100,7 @@ export function ClientFeaturesSection({ features }: ClientFeaturesSectionProps) 
           if (!feature) return null
 
           return (
-            <div key={clientFeature.id} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-6 h-full flex flex-col transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+            <div key={clientFeature.id} className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 h-full flex flex-col transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
               <div className="flex-shrink-0 mb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">

@@ -34,10 +34,10 @@ export function CardHover({
       className="group"
     >
       <Card className={cn(
-        "relative overflow-hidden border-0 shadow-lg transition-all duration-300",
-        "bg-white/80 backdrop-blur-sm dark:bg-brand-navy-light/80",
-        "hover:shadow-2xl hover:ring-2 hover:ring-brand-gold/20",
-        "group-hover:bg-white/90 dark:group-hover:bg-brand-navy-light/90",
+        "relative overflow-hidden border border-brand-gold/30 shadow-lg transition-all duration-300",
+        "bg-[#10122b]/90 text-white",
+        "hover:shadow-2xl hover:ring-2 hover:ring-brand-gold/40",
+        "group-hover:bg-[#181a2f]",
         className
       )}>
         {(title || description || icon || badge) && (
@@ -53,12 +53,12 @@ export function CardHover({
               </div>
             )}
             {title && (
-              <CardTitle className="text-brand-DEFAULT dark:text-brand-foreground text-xl font-semibold">
+              <CardTitle className="text-white text-xl font-semibold">
                 {title}
               </CardTitle>
             )}
             {description && (
-              <CardDescription className="text-gray-600 dark:text-gray-300 text-base">
+              <CardDescription className="text-white/80 text-base">
                 {description}
               </CardDescription>
             )}

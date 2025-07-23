@@ -51,7 +51,7 @@ export function FeedbackBoardClientView({ clientId }: { clientId: string }) {
         {STATUS_COLUMNS.map(col => {
           const colCards = cards.filter(c => c.status === col.key);
           return (
-            <div key={col.key} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-4 min-h-[300px] transition-all duration-300 hover:border-brand-gold/40">
+            <div key={col.key} className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-4 min-h-[300px] transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
               <div className="font-bold text-lg mb-4 text-white">{col.label}</div>
               {loading ? (
                 <div className="text-center text-white/60 py-8">Loading...</div>
@@ -64,7 +64,7 @@ export function FeedbackBoardClientView({ clientId }: { clientId: string }) {
                 </div>
               ) : (
                 colCards.map(card => (
-                  <div key={card.id} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl border border-white/20 p-4 mb-3 transition-all duration-300 hover:border-brand-gold/40 hover:shadow-lg">
+                  <div key={card.id} className="bg-[#181a2f] text-white rounded-2xl border border-brand-gold/30 p-4 mb-3 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
                     <div className="flex items-center justify-between mb-3">
                       <div className="font-semibold text-base text-white">{card.title}</div>
                       <Badge className={TYPE_COLORS[card.type]}>{card.type.charAt(0).toUpperCase() + card.type.slice(1)}</Badge>
