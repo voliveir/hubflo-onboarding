@@ -134,11 +134,11 @@ export function ClientIntegrationsSection({
                 </p>
                 <Button className="bg-brand-gold hover:bg-brand-gold/90 text-brand-DEFAULT transition-all duration-200 hover:scale-105" asChild>
                   <a
-                    href="https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"
+                    href="https://app.hubflo.com/forms/da0484e6-3211-466a-b2cd-483fcad141d8"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Schedule Integration Planning Call
+                    Submit a Integration Request
                   </a>
                 </Button>
               </div>
@@ -332,11 +332,11 @@ export function ClientIntegrationsSection({
               </p>
               <Button className="bg-brand-gold hover:bg-brand-gold/90 text-brand-DEFAULT transition-all duration-200 hover:scale-105" asChild>
                 <a
-                  href={calendarIntegrationsCall || "https://calendly.com/vanessa-hubflo/onboarding-kickoff-with-hubflo-clone"}
+                  href="https://app.hubflo.com/forms/da0484e6-3211-466a-b2cd-483fcad141d8"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Schedule Integration Call
+                  Submit a Integration Request
                 </a>
               </Button>
             </div>

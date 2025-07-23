@@ -40,6 +40,11 @@ const navigation = [
     icon: BarChart3,
   },
   {
+    name: "Customer Success",
+    href: "/admin/customer-success",
+    icon: BarChart3,
+  },
+  {
     name: "Clients",
     icon: Users,
     children: [
