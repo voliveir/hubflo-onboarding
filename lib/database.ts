@@ -2550,3 +2550,134 @@ export async function getDueClientFollowUps({ daysAhead = 7 } = {}): Promise<(Cl
 export async function markClientFollowUpDone(id: string): Promise<ClientFollowUp | null> {
   return completeClientFollowUp(id)
 }
+
+// ACTIVITY LOG: CRUD for client_activity_log table
+export async function getClientActivityLog(clientId: string) {
+  const { data, error } = await supabase
+    .from("client_activity_log")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function addClientActivityLog({ client_id, event_type, event_data, created_by }: {
+  client_id: string;
+  event_type: string;
+  event_data?: any;
+  created_by?: string;
+}) {
+  const { data, error } = await supabase
+    .from("client_activity_log")
+    .insert([{ client_id, event_type, event_data, created_by }])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+
+// CONTACTS: CRUD for client_contacts table
+export async function getClientContacts(clientId: string) {
+  const { data, error } = await supabase
+    .from("client_contacts")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
+export async function addClientContact(contact: {
+  client_id: string;
+  name: string;
+  email: string;
+  role?: string;
+  phone?: string;
+  notes?: string;
+}) {
+  const { data, error } = await supabase
+    .from("client_contacts")
+    .insert([contact])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateClientContact(id: string, updates: {
+  name?: string;
+  email?: string;
+  role?: string;
+  phone?: string;
+  notes?: string;
+}) {
+  const { data, error } = await supabase
+    .from("client_contacts")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteClientContact(id: string) {
+  const { error } = await supabase
+    .from("client_contacts")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
+  return true;
+}
+
+// TAGS: CRUD for client_tags table
+export async function getClientTags(clientId: string) {
+  const { data, error } = await supabase
+    .from("client_tags")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
+export async function addClientTag(clientId: string, tag: string) {
+  const { data, error } = await supabase
+    .from("client_tags")
+    .insert([{ client_id: clientId, tag }])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteClientTag(id: string) {
+  const { error } = await supabase
+    .from("client_tags")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
+  return true;
+}
+
+export async function updateClientActivityLog(id: string, updates: { event_data?: any; created_at?: string; }) {
+  const { data, error } = await supabase
+    .from("client_activity_log")
+    .update({ ...updates })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteClientActivityLog(id: string) {
+  const { error } = await supabase
+    .from("client_activity_log")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
+  return true;
+}
