@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     // Send data to Zapier webhook
     try {
-      await fetch('https://hooks.zapier.com/hooks/catch/11430058/uu5eofg/', {
+      await fetch('https://hooks.zapier.com/hooks/catch/19641456/uu57mzs/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
