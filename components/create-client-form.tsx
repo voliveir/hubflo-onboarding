@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { createClient, checkSlugAvailability } from "@/lib/database"
+import { checkSlugAvailability } from "@/lib/database"
 import { Loader2, Check, X, Palette, Settings, Package, Calendar, Users, DollarSign } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
@@ -187,13 +187,20 @@ export default function CreateClientForm() {
         throw new Error("Slug is not available")
       }
 
-      // Create the client
-      const result = await createClient(formData)
+      // Call the API route instead of direct DB insert
+      const response = await fetch("/api/create-client", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "b7f2e1c4-9a3d-4e8b-8c2a-7d5e6f1a2b3c", // Replace with your actual key if different
+        },
+        body: JSON.stringify(formData),
+      });
 
-      // Check if result is an error object (Supabase errors have code, details, hint, message)
-      if (result && typeof result === "object" && ("code" in result || "message" in result || "error" in result)) {
-        const errorMessage = extractErrorMessage(result)
-        throw new Error(errorMessage)
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to create client");
       }
 
       // Success - redirect after a short delay
