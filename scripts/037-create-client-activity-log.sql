@@ -10,3 +10,22 @@ create table if not exists public.client_activity_log (
 );
 
 create index if not exists idx_client_activity_log_client_id on public.client_activity_log(client_id); 
+
+-- Migration: Add follow_up_email_sent column to clients table for persistent follow-up tracking
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS follow_up_email_sent BOOLEAN DEFAULT false; 
+
+-- Migration: Create client_follow_up_emails table for tracking follow-up email reminders per client and interval
+CREATE TABLE IF NOT EXISTS client_follow_up_emails (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    reminder_number INTEGER NOT NULL, -- 1 for week 1, 2 for week 3, etc.
+    reminder_date DATE NOT NULL,
+    sent BOOLEAN NOT NULL DEFAULT FALSE,
+    sent_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(client_id, reminder_number)
+);
+
+-- Add index for quick lookup
+CREATE INDEX IF NOT EXISTS idx_client_follow_up_emails_client_id ON client_follow_up_emails(client_id); 

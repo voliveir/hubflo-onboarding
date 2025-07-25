@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS clients (
     notes TEXT,
     status VARCHAR(50) NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'archived')),
     onboarding_email_sent BOOLEAN DEFAULT false,
+    follow_up_email_sent BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

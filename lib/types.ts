@@ -27,6 +27,7 @@ export interface Client {
   created_at: string
   updated_at: string
   onboarding_email_sent: boolean
+  follow_up_email_sent?: boolean;
   // Milestone dates for each package type
   light_onboarding_call_date?: string | null
   premium_first_call_date?: string | null
@@ -452,6 +453,17 @@ export interface ClientFollowUp {
   notes?: string | null
   created_at: string
   updated_at: string
+}
+
+export interface ClientFollowUpEmail {
+  id: string;
+  client_id: string;
+  reminder_number: number;
+  reminder_date: string; // ISO date string
+  sent: boolean;
+  sent_at?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // Analytics Types

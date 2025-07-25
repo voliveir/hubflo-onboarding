@@ -23,6 +23,7 @@ import type {
   ClientSatisfactionScore,
   AnalyticsOverview,
   FeedbackBoardCard,
+  ClientFollowUpEmail,
 } from "./types"
 import { addDays, startOfDay, endOfDay, isWithinInterval, parseISO } from "date-fns"
 
@@ -123,6 +124,7 @@ function transformClientFromDb(data: any): Client {
     churn_risk: data.churn_risk || false,
     extra_call_dates: data.extra_call_dates || [],
     onboarding_email_sent: data.onboarding_email_sent ?? false,
+    follow_up_email_sent: data.follow_up_email_sent ?? false,
   }
 }
 
@@ -250,6 +252,7 @@ export async function createClient(formData: any): Promise<Client> {
       figma_workflow_url: formData.figma_workflow_url || "",
       implementation_manager: formData.implementation_manager || undefined,
       onboarding_email_sent: typeof formData.onboarding_email_sent !== "undefined" ? formData.onboarding_email_sent : false,
+      follow_up_email_sent: typeof formData.follow_up_email_sent !== "undefined" ? formData.follow_up_email_sent : false,
     }
 
     const { data, error } = await supabase.from("clients").insert([clientData]).select().single()
@@ -2680,4 +2683,57 @@ export async function deleteClientActivityLog(id: string) {
     .eq("id", id);
   if (error) throw error;
   return true;
+}
+
+/**
+ * Mark follow-up email as sent for a client
+ */
+export async function markFollowUpEmailSent(clientId: string): Promise<void> {
+  const { error } = await supabase
+    .from("clients")
+    .update({ follow_up_email_sent: true, updated_at: new Date().toISOString() })
+    .eq("id", clientId)
+  if (error) throw error
+}
+
+/**
+ * Get all follow-up email reminders for a client
+ */
+export async function getClientFollowUpEmails(clientId: string): Promise<ClientFollowUpEmail[]> {
+  const { data, error } = await supabase
+    .from("client_follow_up_emails")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("reminder_number", { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Create a follow-up email reminder for a client and interval
+ */
+export async function createClientFollowUpEmail(clientId: string, reminder_number: number, reminder_date: string): Promise<void> {
+  const { error } = await supabase
+    .from("client_follow_up_emails")
+    .upsert({
+      client_id: clientId,
+      reminder_number,
+      reminder_date,
+      sent: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "client_id,reminder_number" })
+  if (error) throw error
+}
+
+/**
+ * Mark a follow-up email reminder as sent
+ */
+export async function markClientFollowUpEmailSent(clientId: string, reminder_number: number): Promise<void> {
+  const { error } = await supabase
+    .from("client_follow_up_emails")
+    .update({ sent: true, sent_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq("client_id", clientId)
+    .eq("reminder_number", reminder_number)
+  if (error) throw error
 }

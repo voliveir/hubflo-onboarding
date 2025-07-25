@@ -35,6 +35,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
       starter: { calls: 1, forms: 1, smartdocs: 1, integrations: 0, migration: false, slack: false },
       professional: { calls: 3, forms: 5, smartdocs: 5, integrations: 3, migration: false, slack: true },
       enterprise: { calls: 999, forms: 999, smartdocs: 999, integrations: 999, migration: true, slack: true },
+      no_success: { calls: 0, forms: 0, smartdocs: 0, integrations: 0, migration: false, slack: false },
     }
 
     const packageLimits = limits[client.success_package] || limits.premium
@@ -80,9 +81,25 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
 
     // Count calls
     if (packageLimits.calls > 0) {
+      let completedCalls = client.calls_completed
+      // If the first call date is in the future, do not count it as completed
+      const callDates = [
+        client.light_onboarding_call_date,
+        client.premium_first_call_date,
+        client.premium_second_call_date,
+        client.gold_first_call_date,
+        client.gold_second_call_date,
+        client.gold_third_call_date,
+        ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
+      ].filter((d): d is string => !!d).map(date => new Date(date))
+      const firstCallDate = callDates.length > 0 ? new Date(Math.min(...callDates.map(d => d.getTime()))) : null
+      const now = new Date()
+      if (firstCallDate && firstCallDate > now) {
+        completedCalls = 0
+      }
       totalTasks += packageLimits.calls === 999 ? Math.max(client.calls_scheduled, 1) : packageLimits.calls
       completedTasks += Math.min(
-        client.calls_completed,
+        completedCalls,
         packageLimits.calls === 999 ? Math.max(client.calls_scheduled, 1) : packageLimits.calls,
       )
     }
@@ -146,6 +163,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
       starter: { calls: 1, forms: 1, smartdocs: 1, integrations: 0, migration: false, slack: false },
       professional: { calls: 3, forms: 5, smartdocs: 5, integrations: 3, migration: false, slack: true },
       enterprise: { calls: 999, forms: 999, smartdocs: 999, integrations: 999, migration: true, slack: true },
+      no_success: { calls: 0, forms: 0, smartdocs: 0, integrations: 0, migration: false, slack: false },
     }
 
     return limits[client.success_package] || limits.premium
@@ -175,7 +193,24 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
   }
 
   const callsStatus = getServiceStatus(
-    client.calls_completed,
+    // If the first call date is in the future, do not count as completed
+    (() => {
+      const callDates = [
+        client.light_onboarding_call_date,
+        client.premium_first_call_date,
+        client.premium_second_call_date,
+        client.gold_first_call_date,
+        client.gold_second_call_date,
+        client.gold_third_call_date,
+        ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
+      ].filter((d): d is string => !!d).map(date => new Date(date))
+      const firstCallDate = callDates.length > 0 ? new Date(Math.min(...callDates.map(d => d.getTime()))) : null
+      const now = new Date()
+      if (firstCallDate && firstCallDate > now) {
+        return 0
+      }
+      return client.calls_completed
+    })(),
     isUnlimited(packageLimits.calls) ? client.calls_scheduled : packageLimits.calls,
   )
   const formsStatus = getServiceStatus(client.forms_setup, packageLimits.forms)
