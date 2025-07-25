@@ -20,6 +20,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
     smartdocs: 0,
     integrations: 0,
   })
+  const [showDates, setShowDates] = useState(false);
 
   useEffect(() => {
     calculateProgress()
@@ -197,9 +198,11 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
     client.gold_second_call_date,
     client.gold_third_call_date,
     ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
-  ].filter((d): d is string => !!d).map(date => new Date(date))
-  const now = new Date()
-  const completedCallsForDisplay = callDates.filter(date => date <= now).length
+  ].filter((d): d is string => !!d).map(date => new Date(date));
+  const now = new Date();
+  const completedCallDates: Date[] = callDates.filter(date => date <= now).sort((a, b) => a.getTime() - b.getTime());
+  const scheduledCallDates: Date[] = callDates.filter(date => date > now).sort((a, b) => a.getTime() - b.getTime());
+  const completedCallsForDisplay = completedCallDates.length;
   const callsStatus = getServiceStatus(
     // Only count calls as completed if their date is today or in the past
     completedCallsForDisplay,
@@ -247,41 +250,87 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
       {/* Service Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Onboarding Calls */}
-        <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
-              <Users className="h-5 w-5 text-brand-gold" />
+        <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
+                <Users className="h-5 w-5 text-brand-gold" />
+              </div>
+              <Badge variant="outline" className={`${callsStatus.color} border-brand-gold/40 bg-white/10`}>
+                {callsStatus.text}
+              </Badge>
             </div>
-            <Badge variant="outline" className={`${callsStatus.color} border-brand-gold/40 bg-white/10`}>
-              {callsStatus.text}
-            </Badge>
+            <h3 className="font-semibold text-lg mb-2 text-white">Onboarding Calls</h3>
+            <div className="text-2xl font-bold mb-2 text-white">
+              {completedCallsForDisplay}/
+              {isUnlimited(packageLimits.calls) ||
+              client.success_package === "elite" ||
+              client.success_package === "enterprise"
+                ? "∞"
+                : packageLimits.calls}
+            </div>
+            <p className="text-sm text-white/80 mb-4">
+              {isUnlimited(packageLimits.calls) ||
+              client.success_package === "elite" ||
+              client.success_package === "enterprise"
+                ? `${completedCallsForDisplay} calls completed`
+                : `${completedCallsForDisplay}/${packageLimits.calls} calls completed`}
+            </p>
+            <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden mb-2">
+              <div
+                className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
+                style={{
+                  width: `${
+                    (completedCallsForDisplay /
+                      (isUnlimited(packageLimits.calls) ? (client.calls_scheduled || 1) : packageLimits.calls)) * 100
+                  }%`
+                }}
+              />
+            </div>
           </div>
-          <h3 className="font-semibold text-lg mb-2 text-white">Onboarding Calls</h3>
-          <div className="text-2xl font-bold mb-2 text-white">
-            {completedCallsForDisplay}/
-            {isUnlimited(packageLimits.calls) ||
-            client.success_package === "elite" ||
-            client.success_package === "enterprise"
-              ? "∞"
-              : packageLimits.calls}
-          </div>
-          <p className="text-sm text-white/80 mb-4">
-            {isUnlimited(packageLimits.calls) ||
-            client.success_package === "elite" ||
-            client.success_package === "enterprise"
-              ? `${completedCallsForDisplay} calls completed`
-              : `${completedCallsForDisplay}/${packageLimits.calls} calls completed`}
-          </p>
-          <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+          {/* Expandable Dates Section */}
+          <div className="mt-2">
+            <button
+              className="text-brand-gold text-xs underline hover:text-brand-gold/80 focus:outline-none focus:ring-2 focus:ring-brand-gold rounded transition-all"
+              aria-expanded={showDates}
+              aria-controls="onboarding-call-dates-section"
+              onClick={() => setShowDates(v => !v)}
+              type="button"
+            >
+              {showDates ? "Hide Dates" : "Show Dates"}
+            </button>
             <div
-              className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
-              style={{
-                width: `${
-                  (completedCallsForDisplay /
-                    (isUnlimited(packageLimits.calls) ? (client.calls_scheduled || 1) : packageLimits.calls)) * 100
-                }%`
-              }}
-            />
+              id="onboarding-call-dates-section"
+              className={`transition-all duration-300 overflow-hidden ${showDates ? 'max-h-40 mt-2' : 'max-h-0'}`}
+              aria-hidden={!showDates}
+            >
+              {(scheduledCallDates.length > 0 || completedCallDates.length > 0) ? (
+                <div className="space-y-2">
+                  {scheduledCallDates.length > 0 && (
+                    <div>
+                      <div className="text-xs text-white/70 mb-1">Scheduled Call Dates:</div>
+                      <ul className="text-xs text-white/90 space-y-1">
+                        {scheduledCallDates.map((date: Date, idx: number) => (
+                          <li key={"scheduled-" + idx}>• {date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {completedCallDates.length > 0 && (
+                    <div>
+                      <div className="text-xs text-white/70 mb-1">Completed Call Dates:</div>
+                      <ul className="text-xs text-white/90 space-y-1">
+                        {completedCallDates.map((date: Date, idx: number) => (
+                          <li key={"completed-" + idx}>• {date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-xs text-white/60 mt-2">No calls scheduled yet.</div>
+              )}
+            </div>
           </div>
         </div>
 
