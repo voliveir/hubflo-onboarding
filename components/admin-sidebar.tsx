@@ -34,16 +34,16 @@ const navigation = [
     href: "/admin/analytics",
     icon: TrendingUp,
   },
-  {
-    name: "Client Follow-ups",
-    href: "/admin/client-follow-ups",
-    icon: BarChart3,
-  },
-  {
-    name: "Customer Success",
-    href: "/admin/customer-success",
-    icon: BarChart3,
-  },
+  // {
+  //   name: "Client Follow-ups",
+  //   href: "/admin/client-follow-ups",
+  //   icon: BarChart3,
+  // },
+  // {
+  //   name: "Customer Success",
+  //   href: "/admin/customer-success",
+  //   icon: BarChart3,
+  // },
   {
     name: "Clients",
     icon: Users,

@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, Building2, Tag, NotebookPen, Clock, CheckCircle, Calendar, Phone, TrendingUp, UserCheck, Pencil, Trash2 } from "lucide-react";
+import { Users, Building2, Tag, NotebookPen, Clock, CheckCircle, Calendar, Phone, TrendingUp, UserCheck, Pencil, Trash2, List, Table as TableIcon } from "lucide-react";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { type Client } from "@/lib/types";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -38,6 +39,7 @@ export function CustomerSuccessManager() {
   const [healthScore, setHealthScore] = useState<number | null>(null);
   const [editingHealth, setEditingHealth] = useState(false);
   const [healthInput, setHealthInput] = useState("");
+  const [viewMode, setViewMode] = useState<'card' | 'table'>("card");
 
   useEffect(() => {
     getAllClients().then(setClients);
@@ -288,30 +290,95 @@ export function CustomerSuccessManager() {
     <div className="flex bg-gradient-to-br from-[#10122b]/80 via-[#181a2f]/90 to-[#1a1a40]/95 rounded-3xl shadow-2xl border border-[#F2C94C]/10 backdrop-blur-xl p-4">
       {/* Client List */}
       <div className="w-1/3 min-w-[260px] max-w-[340px] border-r border-[#F2C94C]/10 bg-[#10122b]/80 p-4 flex flex-col rounded-2xl shadow-lg backdrop-blur-md">
-        <Input
-          placeholder="Search clients..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="mb-4 bg-[#181a2f]/80 text-white border-[#F2C94C]/20 rounded-xl shadow-inner"
-        />
-        <div className="flex-1 overflow-y-auto space-y-2">
-          {filteredClients.map((client) => (
-            <Card
-              key={client.id}
-              className={`cursor-pointer bg-gradient-to-br from-[#181a2f]/80 to-[#10122b]/90 border border-[#F2C94C]/20 hover:border-[#F2C94C]/40 transition-all rounded-xl shadow-md backdrop-blur-md ${selectedClient?.id === client.id ? "ring-2 ring-[#F2C94C]" : ""}`}
-              onClick={() => setSelectedClient(client)}
-            >
-              <CardContent className="p-4 flex flex-col gap-1">
-                <span className="font-semibold text-white">{client.name}</span>
-                <span className="text-xs text-[#F2C94C]">{client.success_package?.toUpperCase() || "-"}</span>
-                <span className="text-xs text-white/60">{client.status}</span>
-              </CardContent>
-            </Card>
-          ))}
-          {filteredClients.length === 0 && (
-            <div className="text-white/60 text-center mt-8">No clients found.</div>
-          )}
+        <div className="flex items-center gap-2 mb-4">
+          <Input
+            placeholder="Search clients..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 bg-[#181a2f]/80 text-white border-[#F2C94C]/20 rounded-xl shadow-inner"
+          />
+          <Button
+            size="icon"
+            variant={viewMode === 'card' ? 'default' : 'outline'}
+            className={viewMode === 'card' ? 'bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-[#010124] shadow-gold-glow' : 'border-[#F2C94C] text-[#F2C94C]'}
+            onClick={() => setViewMode('card')}
+            aria-label="Card view"
+          >
+            <List />
+          </Button>
+          <Button
+            size="icon"
+            variant={viewMode === 'table' ? 'default' : 'outline'}
+            className={viewMode === 'table' ? 'bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-[#010124] shadow-gold-glow' : 'border-[#F2C94C] text-[#F2C94C]'}
+            onClick={() => setViewMode('table')}
+            aria-label="Table view"
+          >
+            <TableIcon />
+          </Button>
         </div>
+        {viewMode === 'card' ? (
+          <div className="flex-1 overflow-y-auto space-y-2">
+            {filteredClients.map((client) => (
+              <Card
+                key={client.id}
+                className={`cursor-pointer bg-gradient-to-br from-[#181a2f]/80 to-[#10122b]/90 border border-[#F2C94C]/20 hover:border-[#F2C94C]/40 transition-all rounded-xl shadow-md backdrop-blur-md ${selectedClient?.id === client.id ? "ring-2 ring-[#F2C94C]" : ""}`}
+                onClick={() => setSelectedClient(client)}
+              >
+                <CardContent className="p-4 flex flex-col gap-1">
+                  <span className="font-semibold text-white">{client.name}</span>
+                  <span className="text-xs text-[#F2C94C]">{client.success_package?.toUpperCase() || "-"}</span>
+                  <span className="text-xs text-white/60">{client.status}</span>
+                </CardContent>
+              </Card>
+            ))}
+            {filteredClients.length === 0 && (
+              <div className="text-white/60 text-center mt-8">No clients found.</div>
+            )}
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto">
+            <Table className="min-w-full text-white/90 bg-transparent">
+              <TableHeader>
+                <TableRow className="bg-[#181a2f]/80 border-b border-[#F2C94C]/20">
+                  <TableHead className="text-[#F2C94C] font-bold">Name</TableHead>
+                  <TableHead className="text-[#F2C94C] font-bold">Package</TableHead>
+                  <TableHead className="text-[#F2C94C] font-bold">Status</TableHead>
+                  <TableHead className="text-[#F2C94C] font-bold">ARR</TableHead>
+                  <TableHead className="text-[#F2C94C] font-bold">CSM</TableHead>
+                  <TableHead className="text-[#F2C94C] font-bold">Users</TableHead>
+                  <TableHead className="text-[#F2C94C] font-bold">Health</TableHead>
+                  <TableHead className="text-[#F2C94C] font-bold">Last Activity</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredClients.map((client) => (
+                  <TableRow
+                    key={client.id}
+                    className={`cursor-pointer transition-all ${selectedClient?.id === client.id ? "bg-[#181a2f]/60 ring-2 ring-[#F2C94C]" : "hover:bg-[#181a2f]/40"}`}
+                    onClick={() => setSelectedClient(client)}
+                  >
+                    <TableCell className="font-semibold">{client.name}</TableCell>
+                    <TableCell><Badge variant="outline" className="text-[#F2C94C] border-[#F2C94C]/40 bg-white/10 backdrop-blur-sm font-bold px-3 py-1 rounded-full">{client.success_package?.toUpperCase() || "-"}</Badge></TableCell>
+                    <TableCell>{client.status}</TableCell>
+                    <TableCell>${client.revenue_amount?.toLocaleString() || 0}</TableCell>
+                    <TableCell>{client.implementation_manager || "—"}</TableCell>
+                    <TableCell>{client.number_of_users ?? "—"}</TableCell>
+                    <TableCell>{(() => {
+                      const match = client.notes && client.notes.match(/health\s*[:=]?\s*(\d+)/i);
+                      return match ? match[1] : "—";
+                    })()}</TableCell>
+                    <TableCell>{client.updated_at ? new Date(client.updated_at).toLocaleDateString() : "—"}</TableCell>
+                  </TableRow>
+                ))}
+                {filteredClients.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-white/60 py-8">No clients found.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
       {/* Detail Panel */}
       <div className="flex-1 p-10 bg-gradient-to-br from-[#181a2f]/80 via-[#10122b]/90 to-[#1a1a40]/95 rounded-3xl ml-6">
