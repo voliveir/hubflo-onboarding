@@ -81,8 +81,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
 
     // Count calls
     if (packageLimits.calls > 0) {
-      let completedCalls = client.calls_completed
-      // If the first call date is in the future, do not count it as completed
+      // Only count calls as completed if their date is today or in the past
       const callDates = [
         client.light_onboarding_call_date,
         client.premium_first_call_date,
@@ -92,11 +91,8 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
         client.gold_third_call_date,
         ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
       ].filter((d): d is string => !!d).map(date => new Date(date))
-      const firstCallDate = callDates.length > 0 ? new Date(Math.min(...callDates.map(d => d.getTime()))) : null
       const now = new Date()
-      if (firstCallDate && firstCallDate > now) {
-        completedCalls = 0
-      }
+      const completedCalls = callDates.filter(date => date <= now).length
       totalTasks += packageLimits.calls === 999 ? Math.max(client.calls_scheduled, 1) : packageLimits.calls
       completedTasks += Math.min(
         completedCalls,
@@ -192,25 +188,21 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
     return { text: "Pending", color: "text-white/60" }
   }
 
+  // Calculate completed calls for display (only those with date <= today)
+  const callDates = [
+    client.light_onboarding_call_date,
+    client.premium_first_call_date,
+    client.premium_second_call_date,
+    client.gold_first_call_date,
+    client.gold_second_call_date,
+    client.gold_third_call_date,
+    ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
+  ].filter((d): d is string => !!d).map(date => new Date(date))
+  const now = new Date()
+  const completedCallsForDisplay = callDates.filter(date => date <= now).length
   const callsStatus = getServiceStatus(
-    // If the first call date is in the future, do not count as completed
-    (() => {
-      const callDates = [
-        client.light_onboarding_call_date,
-        client.premium_first_call_date,
-        client.premium_second_call_date,
-        client.gold_first_call_date,
-        client.gold_second_call_date,
-        client.gold_third_call_date,
-        ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
-      ].filter((d): d is string => !!d).map(date => new Date(date))
-      const firstCallDate = callDates.length > 0 ? new Date(Math.min(...callDates.map(d => d.getTime()))) : null
-      const now = new Date()
-      if (firstCallDate && firstCallDate > now) {
-        return 0
-      }
-      return client.calls_completed
-    })(),
+    // Only count calls as completed if their date is today or in the past
+    completedCallsForDisplay,
     isUnlimited(packageLimits.calls) ? client.calls_scheduled : packageLimits.calls,
   )
   const formsStatus = getServiceStatus(client.forms_setup, packageLimits.forms)
@@ -266,7 +258,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
           </div>
           <h3 className="font-semibold text-lg mb-2 text-white">Onboarding Calls</h3>
           <div className="text-2xl font-bold mb-2 text-white">
-            {client.calls_completed}/
+            {completedCallsForDisplay}/
             {isUnlimited(packageLimits.calls) ||
             client.success_package === "elite" ||
             client.success_package === "enterprise"
@@ -277,13 +269,18 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
             {isUnlimited(packageLimits.calls) ||
             client.success_package === "elite" ||
             client.success_package === "enterprise"
-              ? `${client.calls_completed} calls completed`
-              : `${client.calls_completed}/${packageLimits.calls} calls completed`}
+              ? `${completedCallsForDisplay} calls completed`
+              : `${completedCallsForDisplay}/${packageLimits.calls} calls completed`}
           </p>
           <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
             <div
               className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${progress.calls}%` }}
+              style={{
+                width: `${
+                  (completedCallsForDisplay /
+                    (isUnlimited(packageLimits.calls) ? (client.calls_scheduled || 1) : packageLimits.calls)) * 100
+                }%`
+              }}
             />
           </div>
         </div>
@@ -311,7 +308,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
           </p>
           <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
             <div
-              className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
+              className={`h-full rounded-full transition-all duration-500 ease-out ${packageLimits.forms === 0 ? 'bg-white/30' : 'bg-brand-gold'}`}
               style={{ width: `${progress.forms}%` }}
             />
           </div>
@@ -340,7 +337,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
           </p>
           <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
             <div
-              className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
+              className={`h-full rounded-full transition-all duration-500 ease-out ${packageLimits.smartdocs === 0 ? 'bg-white/30' : 'bg-brand-gold'}`}
               style={{ width: `${progress.smartdocs}%` }}
             />
           </div>
@@ -370,7 +367,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
           </p>
           <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
             <div
-              className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
+              className={`h-full rounded-full transition-all duration-500 ease-out ${packageLimits.integrations === 0 ? 'bg-white/30' : 'bg-brand-gold'}`}
               style={{ width: `${progress.integrations}%` }}
             />
           </div>
