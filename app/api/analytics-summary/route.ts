@@ -159,6 +159,25 @@ export async function GET(req: Request) {
     // Revenue at Risk (Churn Risk)
     const revenueAtRiskChurn = filteredClients.filter(c => c.churn_risk === true).reduce((sum, c) => sum + (Number(c.revenue_amount) || 0), 0);
 
+    // Calculate ARR by month for heatmap
+    const arrByMonth: Record<string, Record<string, number>> = {};
+    let minYear = new Date().getFullYear();
+    let maxYear = new Date().getFullYear();
+    
+    filteredClients.forEach(client => {
+      if (!client.created_at) return;
+      const date = new Date(client.created_at);
+      const year = date.getFullYear();
+      const month = date.getMonth(); // 0-indexed
+      const revenue = Number(client.revenue_amount) || 0;
+      
+      if (!arrByMonth[year]) arrByMonth[year] = {};
+      arrByMonth[year][month] = (arrByMonth[year][month] || 0) + revenue;
+      
+      if (year < minYear) minYear = year;
+      if (year > maxYear) maxYear = year;
+    });
+
     return NextResponse.json({
       ...analytics,
       arr,
@@ -200,6 +219,7 @@ export async function GET(req: Request) {
       clients,
       revenueLostToChurnedClients,
       revenueAtRiskChurn,
+      arrByMonth,
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch analytics summary.' }, { status: 500 });

@@ -658,7 +658,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
         <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] w-full">
           {/* Heatmap grid */}
           {data.clients && data.clients.length > 0 ? (
-            <ClientJoinHeatmap clients={data.clients} />
+            <ClientJoinHeatmap clients={data.clients} arrByMonth={data.arrByMonth} />
           ) : (
             <div className="text-white/60">No client join data available.</div>
           )}
@@ -1400,7 +1400,7 @@ export default function AnalyticsPage() {
   );
 }
 
-function ClientJoinHeatmap({ clients }: { clients: any[] }) {
+function ClientJoinHeatmap({ clients, arrByMonth }: { clients: any[], arrByMonth?: Record<string, Record<string, number>> }) {
   // Group clients by year and month
   const joinCounts: Record<string, Record<string, number>> = {};
   let minYear = new Date().getFullYear();
@@ -1452,14 +1452,25 @@ function ClientJoinHeatmap({ clients }: { clients: any[] }) {
               <td className="text-white/80 text-xs font-normal p-1 text-right pr-2 min-w-0">{year}</td>
               {months.map((_, mIdx) => {
                 const count = joinCounts[year]?.[mIdx] || 0;
+                const arr = arrByMonth?.[year]?.[mIdx] || 0;
+                const tooltip = arr > 0 
+                  ? `${months[mIdx]} ${year}: ${count} client${count === 1 ? '' : 's'} | ARR: $${arr.toLocaleString()}`
+                  : `${months[mIdx]} ${year}: ${count} client${count === 1 ? '' : 's'}`;
                 return (
                   <td
                     key={mIdx}
-                    title={`${months[mIdx]} ${year}: ${count} client${count === 1 ? '' : 's'}`}
-                    className="rounded transition-all border border-[#23244a] text-center align-middle min-w-0"
+                    title={tooltip}
+                    className="rounded transition-all border border-[#23244a] text-center align-middle min-w-0 relative group"
                     style={{ background: getColor(count), color: count > maxCount * 0.6 ? '#10122b' : '#fff', fontWeight: count > 0 ? 'bold' : 'normal', width: `${100 / 12}%` }}
                   >
-                    {count > 0 ? count : ''}
+                    <div className="flex flex-col items-center justify-center">
+                      <span>{count > 0 ? count : ''}</span>
+                      {arr > 0 && (
+                        <span className="text-xs opacity-80" style={{ color: count > maxCount * 0.6 ? '#10122b' : '#fff' }}>
+                          ${(arr / 1000).toFixed(0)}k
+                        </span>
+                      )}
+                    </div>
                   </td>
                 );
               })}
