@@ -45,12 +45,12 @@ export interface Client {
   figma_workflow_url?: string | null
   white_label_status?: "not_started" | "in_progress" | "waiting_for_approval" | "complete"
   white_label_checklist?: {
-    create_assets?: boolean
-    create_natively_app?: boolean
-    create_test_user?: boolean
-    test_login?: boolean
-    download_and_create_ios_app?: boolean
-    submit?: boolean
+    create_assets?: { completed: boolean, completed_at?: string }
+    create_natively_app?: { completed: boolean, completed_at?: string }
+    create_test_user?: { completed: boolean, completed_at?: string }
+    test_login?: { completed: boolean, completed_at?: string }
+    download_and_create_ios_app?: { completed: boolean, completed_at?: string }
+    submit?: { completed: boolean, completed_at?: string }
   }
   white_label_android_url?: string | null
   white_label_ios_url?: string | null
@@ -316,12 +316,12 @@ export interface CreateClientData {
   status?: "draft" | "active"
   white_label_status?: "not_started" | "in_progress" | "waiting_for_approval" | "complete"
   white_label_checklist?: {
-    create_assets?: boolean
-    create_natively_app?: boolean
-    create_test_user?: boolean
-    test_login?: boolean
-    download_and_create_ios_app?: boolean
-    submit?: boolean
+    create_assets?: { completed: boolean, completed_at?: string }
+    create_natively_app?: { completed: boolean, completed_at?: string }
+    create_test_user?: { completed: boolean, completed_at?: string }
+    test_login?: { completed: boolean, completed_at?: string }
+    download_and_create_ios_app?: { completed: boolean, completed_at?: string }
+    submit?: { completed: boolean, completed_at?: string }
   }
   white_label_android_url?: string | null
   white_label_ios_url?: string | null
@@ -341,12 +341,12 @@ export interface UpdateClientData extends Partial<CreateClientData> {
   project_completion_percentage?: number
   white_label_status?: "not_started" | "in_progress" | "waiting_for_approval" | "complete"
   white_label_checklist?: {
-    create_assets?: boolean
-    create_natively_app?: boolean
-    create_test_user?: boolean
-    test_login?: boolean
-    download_and_create_ios_app?: boolean
-    submit?: boolean
+    create_assets?: { completed: boolean, completed_at?: string }
+    create_natively_app?: { completed: boolean, completed_at?: string }
+    create_test_user?: { completed: boolean, completed_at?: string }
+    test_login?: { completed: boolean, completed_at?: string }
+    download_and_create_ios_app?: { completed: boolean, completed_at?: string }
+    submit?: { completed: boolean, completed_at?: string }
   }
   white_label_android_url?: string | null
   white_label_ios_url?: string | null

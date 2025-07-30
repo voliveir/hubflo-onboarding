@@ -7,7 +7,7 @@ import Image from "next/image"
 
 interface WhiteLabelProgressProps {
   status: "not_started" | "in_progress" | "waiting_for_approval" | "complete"
-  checklist: Record<string, boolean>
+  checklist: Record<string, { completed: boolean, completed_at?: string }>
   androidUrl?: string
   iosUrl?: string
   updatedAt: string
@@ -148,7 +148,7 @@ function StatusPill({ variant }: { variant: string }) {
   )
 }
 
-function getWhiteLabelProgress(checklist: Record<string, boolean>) {
+function getWhiteLabelProgress(checklist: Record<string, { completed: boolean, completed_at?: string }>) {
   if (!checklist) return 0
   const steps = [
     "create_assets",
@@ -159,15 +159,16 @@ function getWhiteLabelProgress(checklist: Record<string, boolean>) {
     "submit",
   ]
   const total = steps.length
-  const completed = steps.filter((k) => checklist[k]).length
+  const completed = steps.filter((k) => checklist[k]?.completed).length
   return Math.round((completed / total) * 100)
 }
 
-function StepIndicator({ step, isCompleted, isCurrent, isWaiting }: { 
+function StepIndicator({ step, isCompleted, isCurrent, isWaiting, completedAt }: { 
   step: typeof CLIENT_STEPS[0], 
   isCompleted: boolean, 
   isCurrent: boolean,
-  isWaiting: boolean 
+  isWaiting: boolean,
+  completedAt?: string
 }) {
   return (
     <div className={cn(
@@ -218,15 +219,21 @@ function StepIndicator({ step, isCompleted, isCurrent, isWaiting }: {
             <span>Currently in progress</span>
           </div>
         )}
-        {isWaiting && (
-          <div className="mt-3 flex items-center gap-2 text-orange-400 text-xs">
-            <Clock className="h-3 w-3" />
-            <span>Waiting for approval</span>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+                 {isWaiting && (
+           <div className="mt-3 flex items-center gap-2 text-orange-400 text-xs">
+             <Clock className="h-3 w-3" />
+             <span>Waiting for approval</span>
+           </div>
+         )}
+         {isCompleted && completedAt && (
+           <div className="mt-3 flex items-center gap-2 text-green-400 text-xs">
+             <CheckCircle className="h-3 w-3" />
+             <span>Completed: {new Date(completedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+           </div>
+         )}
+       </div>
+     </div>
+   )
 }
 
 export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, updatedAt }: WhiteLabelProgressProps) {
@@ -238,7 +245,7 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
     if (status === "not_started") return -1
     if (status === "complete") return CLIENT_STEPS.length
     
-    const completedSteps = CLIENT_STEPS.filter(step => checklist[step.key])
+    const completedSteps = CLIENT_STEPS.filter(step => checklist[step.key]?.completed)
     return completedSteps.length
   }
 
@@ -284,23 +291,26 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
               </div>
             </div>
 
-            <div className="space-y-4">
-              {CLIENT_STEPS.map((step, index) => {
-                const isCompleted = checklist[step.key] || false
-                const isCurrent = index === currentStepIndex && !isCompleted
-                const isWaiting = status === "waiting_for_approval" && index === CLIENT_STEPS.length - 1 && !isCompleted
-                
-                return (
-                  <StepIndicator
-                    key={step.key}
-                    step={step}
-                    isCompleted={isCompleted}
-                    isCurrent={isCurrent}
-                    isWaiting={isWaiting}
-                  />
-                )
-              })}
-            </div>
+                         <div className="space-y-4">
+               {CLIENT_STEPS.map((step, index) => {
+                 const stepData = checklist[step.key]
+                 const isCompleted = stepData?.completed || false
+                 const isCurrent = index === currentStepIndex && !isCompleted
+                 const isWaiting = status === "waiting_for_approval" && index === CLIENT_STEPS.length - 1 && !isCompleted
+                 const completedAt = stepData?.completed_at
+                 
+                 return (
+                   <StepIndicator
+                     key={step.key}
+                     step={step}
+                     isCompleted={isCompleted}
+                     isCurrent={isCurrent}
+                     isWaiting={isWaiting}
+                     completedAt={completedAt}
+                   />
+                 )
+               })}
+             </div>
 
             <div className="text-white/60 text-sm text-center mt-8">
               Last updated: {new Date(updatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}, {new Date(updatedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}

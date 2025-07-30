@@ -107,7 +107,13 @@ export default function MobileAppWhiteLabelPage() {
     }, [localStatus, localChecklist, localAndroidUrl, localIosUrl, client])
 
     const handleChecklistChange = (stepKey: string, checked: boolean) => {
-      setLocalChecklist((prev) => ({ ...prev, [stepKey]: checked }))
+      setLocalChecklist((prev) => ({
+        ...prev,
+        [stepKey]: {
+          completed: checked,
+          completed_at: checked ? new Date().toISOString() : undefined
+        }
+      }))
     }
 
     const handleSave = async () => {
@@ -182,7 +188,7 @@ export default function MobileAppWhiteLabelPage() {
                 {CHECKLIST_STEPS.map(step => (
                   <li key={step.key} className="flex items-center gap-3">
                     <Checkbox
-                      checked={!!localChecklist[step.key]}
+                      checked={!!localChecklist[step.key]?.completed}
                       onCheckedChange={checked => handleChecklistChange(step.key, !!checked)}
                       disabled={savingId === client.id}
                       className={`w-5 h-5 rounded border data-[state=checked]:bg-gradient-to-br data-[state=checked]:from-[#F2C94C] data-[state=checked]:to-[#F2994A] data-[state=checked]:border-[#F2C94C] data-[state=checked]:text-[#010124] border-gray-600`}

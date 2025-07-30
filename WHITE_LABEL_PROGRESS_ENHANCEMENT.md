@@ -60,7 +60,8 @@ The enhanced progress tracking appears in the client portal at `/clients/[slug]`
 ### Database Schema
 The existing database already supports all required fields:
 - `white_label_status`: Current status
-- `white_label_checklist`: JSON object with step completion
+- `white_label_checklist`: JSON object with step completion and timestamps
+  - Structure: `{step_key: {completed: boolean, completed_at?: string}}`
 - `white_label_android_url`: Google Play Store URL
 - `white_label_ios_url`: Apple App Store URL
 
@@ -99,6 +100,20 @@ The admin interface at `/admin/mobile-app-white-label` allows:
 3. **Professional Presentation**: Polished UI with brand colors
 4. **Real-time Updates**: Changes reflect immediately
 5. **Mobile Responsive**: Works on all devices
+
+## Recent Enhancements
+
+### ✅ Completion Timestamps (Implemented)
+- **Feature**: Each checklist step now tracks when it was completed
+- **Benefits**: 
+  - Clients can see exactly when each step was finished
+  - Admins can track completion dates for audit purposes
+  - Better transparency and accountability
+- **Implementation**: 
+  - Updated database structure to store `{completed: boolean, completed_at: string}`
+  - Enhanced admin interface to capture timestamps
+  - Client portal shows completion dates for finished steps
+  - Backward compatible migration for existing data
 
 ## Future Enhancements
 
