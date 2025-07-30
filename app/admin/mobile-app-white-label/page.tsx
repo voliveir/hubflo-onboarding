@@ -33,13 +33,13 @@ const CHECKLIST_STEPS = [
 ]
 
 type WhiteLabelChecklist = {
-  [key: string]: boolean | undefined
-  create_assets?: boolean
-  create_natively_app?: boolean
-  create_test_user?: boolean
-  test_login?: boolean
-  download_and_create_ios_app?: boolean
-  submit?: boolean
+  [key: string]: { completed: boolean, completed_at?: string } | undefined
+  create_assets?: { completed: boolean, completed_at?: string }
+  create_natively_app?: { completed: boolean, completed_at?: string }
+  create_test_user?: { completed: boolean, completed_at?: string }
+  test_login?: { completed: boolean, completed_at?: string }
+  download_and_create_ios_app?: { completed: boolean, completed_at?: string }
+  submit?: { completed: boolean, completed_at?: string }
 }
 
 function StatusPill({ status }: { status: string }) {
@@ -116,6 +116,16 @@ export default function MobileAppWhiteLabelPage() {
       }))
     }
 
+    const handleDateChange = (stepKey: string, dateString: string) => {
+      setLocalChecklist((prev) => ({
+        ...prev,
+        [stepKey]: {
+          completed: prev[stepKey]?.completed || false,
+          completed_at: dateString ? new Date(dateString).toISOString() : undefined
+        }
+      }))
+    }
+
     const handleSave = async () => {
       setSavingId(client.id)
       await supabase
@@ -184,18 +194,38 @@ export default function MobileAppWhiteLabelPage() {
             </div>
             <div>
               <Label className="mb-6 text-gray-300">Internal Checklist</Label>
-              <ul className="space-y-2 mt-2">
-                {CHECKLIST_STEPS.map(step => (
-                  <li key={step.key} className="flex items-center gap-3">
-                    <Checkbox
-                      checked={!!localChecklist[step.key]?.completed}
-                      onCheckedChange={checked => handleChecklistChange(step.key, !!checked)}
-                      disabled={savingId === client.id}
-                      className={`w-5 h-5 rounded border data-[state=checked]:bg-gradient-to-br data-[state=checked]:from-[#F2C94C] data-[state=checked]:to-[#F2994A] data-[state=checked]:border-[#F2C94C] data-[state=checked]:text-[#010124] border-gray-600`}
-                    />
-                    <span className="text-base text-white">{step.label}</span>
-                  </li>
-                ))}
+              <ul className="space-y-3 mt-2">
+                {CHECKLIST_STEPS.map(step => {
+                  const stepData = localChecklist[step.key]
+                  const isCompleted = stepData?.completed || false
+                  const completedAt = stepData?.completed_at
+                  
+                  return (
+                    <li key={step.key} className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={isCompleted}
+                          onCheckedChange={checked => handleChecklistChange(step.key, !!checked)}
+                          disabled={savingId === client.id}
+                          className={`w-5 h-5 rounded border data-[state=checked]:bg-gradient-to-br data-[state=checked]:from-[#F2C94C] data-[state=checked]:to-[#F2994A] data-[state=checked]:border-[#F2C94C] data-[state=checked]:text-[#010124] border-gray-600`}
+                        />
+                        <span className="text-base text-white">{step.label}</span>
+                      </div>
+                      {isCompleted && (
+                        <div className="ml-8 flex items-center gap-2">
+                          <Label className="text-sm text-gray-400">Completed on:</Label>
+                          <Input
+                            type="datetime-local"
+                            value={completedAt ? new Date(completedAt).toISOString().slice(0, 16) : ""}
+                            onChange={e => handleDateChange(step.key, e.target.value)}
+                            disabled={savingId === client.id}
+                            className="bg-[#15173d] border border-white/10 text-white text-sm h-8 px-2"
+                          />
+                        </div>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
             <div className="pt-2">
