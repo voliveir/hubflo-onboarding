@@ -270,12 +270,18 @@ export default function MobileAppWhiteLabelPage() {
             </div>
             <div>
               <Label className="mb-1 text-gray-300">App Description</Label>
-              <Input
+              <div className="mb-2 text-xs text-gray-400">
+                Use <code className="bg-gray-800 px-1 rounded">**bold**</code> for emphasis, 
+                <code className="bg-gray-800 px-1 rounded ml-1">•</code> for bullet points, 
+                and line breaks for paragraphs.
+              </div>
+              <textarea
                 value={localAppDescription}
                 onChange={e => setLocalAppDescription(e.target.value)}
                 disabled={savingId === client.id}
-                placeholder="Enter app description"
-                className="bg-[#15173d] border border-white/10 text-white placeholder:text-gray-500"
+                placeholder="Enter app description with formatting..."
+                rows={8}
+                className="w-full bg-[#15173d] border border-white/10 text-white placeholder:text-gray-500 rounded-md p-3 resize-y"
               />
             </div>
             <div>

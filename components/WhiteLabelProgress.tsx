@@ -319,7 +319,58 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
             <h3 className="text-lg font-semibold mb-2 text-brand-gold">App Details</h3>
             <ul className="space-y-2 text-white/90">
               <li><span className="font-semibold">App Name:</span> {appName || "[App Name Here]"}</li>
-              <li><span className="font-semibold">Description:</span> {appDescription || "[App Description Here]"}</li>
+              <li>
+                <span className="font-semibold">Description:</span>
+                <div className="mt-2 text-white/90 leading-relaxed">
+                  {appDescription ? (
+                    <div className="whitespace-pre-wrap">
+                      {appDescription.split('\n').map((line, index) => {
+                        const trimmedLine = line.trim();
+                        
+                        // Skip empty lines
+                        if (!trimmedLine) {
+                          return <div key={index} className="mb-2"></div>;
+                        }
+                        
+                        // Handle bullet points
+                        if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
+                          const bulletContent = trimmedLine.replace(/^[•\-*]\s*/, '');
+                          return (
+                            <div key={index} className="flex items-start gap-2 mb-2">
+                              <span className="text-brand-gold mt-1 flex-shrink-0">•</span>
+                              <span>{bulletContent}</span>
+                            </div>
+                          );
+                        }
+                        
+                        // Handle bold text (wrapped in **)
+                        if (trimmedLine.includes('**')) {
+                          const parts = trimmedLine.split(/(\*\*.*?\*\*)/g);
+                          return (
+                            <div key={index} className="mb-2">
+                              {parts.map((part, partIndex) => {
+                                if (part.startsWith('**') && part.endsWith('**')) {
+                                  return (
+                                    <span key={partIndex} className="font-bold text-brand-gold">
+                                      {part.slice(2, -2)}
+                                    </span>
+                                  );
+                                }
+                                return <span key={partIndex}>{part}</span>;
+                              })}
+                            </div>
+                          );
+                        }
+                        
+                        // Regular line
+                        return <div key={index} className="mb-2">{trimmedLine}</div>;
+                      })}
+                    </div>
+                  ) : (
+                    "[App Description Here]"
+                  )}
+                </div>
+              </li>
               <li>
                 <span className="font-semibold">Assets:</span>
                 {appAssets && appAssets.length > 0 ? (
