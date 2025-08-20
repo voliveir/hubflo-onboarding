@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { Client } from "@/lib/types"
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
-import { Loader2 } from "lucide-react"
+import { Loader2, X } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -19,6 +19,7 @@ const supabase = createSupabaseClient(supabaseUrl, supabaseKey)
 const STATUS_OPTIONS = [
   { value: "not_started", label: "Not Started" },
   { value: "in_progress", label: "In Progress" },
+  { value: "client_approval", label: "Client Approval" }, // NEW status
   { value: "waiting_for_approval", label: "Waiting for Approval" },
   { value: "complete", label: "Complete" },
 ]
@@ -29,6 +30,8 @@ const CHECKLIST_STEPS = [
   { key: "create_test_user", label: "Create test user/portal" },
   { key: "test_login", label: "Test the application login locally" },
   { key: "download_and_create_ios_app", label: "Download the application from Natively and create a new application in iOS" },
+  // NEW: Client Approval step
+  { key: "client_approval", label: "Client Approval of app details (assets, name, description)" },
   { key: "submit", label: "Submit" },
 ]
 
@@ -46,12 +49,14 @@ function StatusPill({ status }: { status: string }) {
   const map: Record<string, string> = {
     not_started: 'bg-slate-700 text-slate-200',
     in_progress: 'bg-gradient-to-r from-[#F2C94C]/80 to-[#F2994A]/80 text-[#010124]',
+    client_approval: 'bg-blue-500/20 text-blue-300 border-blue-500/40', // NEW style
     complete: 'bg-emerald-600 text-white',
     waiting_for_approval: 'bg-slate-500 text-white',
   }
   const labelMap: Record<string, string> = {
     not_started: 'Not Started',
     in_progress: 'In Progress',
+    client_approval: 'Client Approval', // NEW label
     complete: 'Complete',
     waiting_for_approval: 'Waiting for Approval',
   }
@@ -83,13 +88,21 @@ export default function MobileAppWhiteLabelPage() {
     const [localChecklist, setLocalChecklist] = useState<WhiteLabelChecklist>(client.white_label_checklist || {})
     const [localAndroidUrl, setLocalAndroidUrl] = useState(client.white_label_android_url || "")
     const [localIosUrl, setLocalIosUrl] = useState(client.white_label_ios_url || "")
+    const [localAppName, setLocalAppName] = useState(client.white_label_app_name || "")
+    const [localAppDescription, setLocalAppDescription] = useState(client.white_label_app_description || "")
+    const [localAppAssets, setLocalAppAssets] = useState<string[]>(client.white_label_app_assets || [])
+    const fileInputRef = useRef<HTMLInputElement | null>(null)
     const [dirty, setDirty] = useState(false)
+    const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
     useEffect(() => {
       setLocalStatus(client.white_label_status || "not_started")
       setLocalChecklist(client.white_label_checklist || {})
       setLocalAndroidUrl(client.white_label_android_url || "")
       setLocalIosUrl(client.white_label_ios_url || "")
+      setLocalAppName(client.white_label_app_name || "")
+      setLocalAppDescription(client.white_label_app_description || "")
+      setLocalAppAssets(client.white_label_app_assets || [])
       setDirty(false)
     }, [client])
 
@@ -98,13 +111,16 @@ export default function MobileAppWhiteLabelPage() {
         localStatus !== (client.white_label_status || "not_started") ||
         JSON.stringify(localChecklist) !== JSON.stringify(client.white_label_checklist || {}) ||
         localAndroidUrl !== (client.white_label_android_url || "") ||
-        localIosUrl !== (client.white_label_ios_url || "")
+        localIosUrl !== (client.white_label_ios_url || "") ||
+        localAppName !== (client.white_label_app_name || "") ||
+        localAppDescription !== (client.white_label_app_description || "") ||
+        localAppAssets.join(",") !== (client.white_label_app_assets || []).join(",")
       ) {
         setDirty(true)
       } else {
         setDirty(false)
       }
-    }, [localStatus, localChecklist, localAndroidUrl, localIosUrl, client])
+    }, [localStatus, localChecklist, localAndroidUrl, localIosUrl, localAppName, localAppDescription, localAppAssets, client])
 
     const handleChecklistChange = (stepKey: string, checked: boolean) => {
       setLocalChecklist((prev) => ({
@@ -126,20 +142,94 @@ export default function MobileAppWhiteLabelPage() {
       }))
     }
 
-    const handleSave = async () => {
-      setSavingId(client.id)
-      await supabase
-        .from("clients")
-        .update({
-          white_label_status: localStatus,
-          white_label_checklist: localChecklist,
-          white_label_android_url: localAndroidUrl,
-          white_label_ios_url: localIosUrl,
-        })
-        .eq("id", client.id)
-      await fetchClients()
-      setSavingId(null)
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files) return;
+      
+      const uploadedUrls: string[] = [];
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        try {
+          // Use the server-side API route for upload
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('clientId', client.id);
+          
+          console.log('Uploading file via API:', file.name);
+          
+          const response = await fetch('/api/upload-asset', {
+            method: 'POST',
+            body: formData,
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Upload API error:', errorData);
+            alert(`Failed to upload ${file.name}: ${errorData.error || 'Unknown error'}`);
+            continue;
+          }
+          
+          const result = await response.json();
+          console.log('Upload API success:', result);
+          
+          if (result.success && result.publicUrl) {
+            uploadedUrls.push(result.publicUrl);
+            console.log('Added public URL from API:', result.publicUrl);
+          } else {
+            console.error('API returned no public URL');
+            alert(`Failed to get public URL for ${file.name}`);
+          }
+        } catch (error) {
+          console.error('Error processing file:', error);
+          alert(`Error processing ${file.name}: ${error}`);
+        }
+      }
+      
+      // Update the local state with all uploaded URLs
+      if (uploadedUrls.length > 0) {
+        setLocalAppAssets(prev => {
+          const newAssets = [...prev, ...uploadedUrls];
+          console.log('Updated localAppAssets after upload:', newAssets);
+          return newAssets;
+        });
+      }
+      
+      // Clear the file input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const handleRemoveAsset = (url: string) => {
+      setLocalAppAssets(prev => prev.filter(u => u !== url))
     }
+
+    const handleSave = async () => {
+      setSavingId(client.id);
+      try {
+        const { error } = await supabase
+          .from("clients")
+          .update({
+            white_label_status: localStatus,
+            white_label_checklist: localChecklist,
+            white_label_android_url: localAndroidUrl,
+            white_label_ios_url: localIosUrl,
+            white_label_app_name: localAppName,
+            white_label_app_description: localAppDescription,
+            white_label_app_assets: localAppAssets,
+          })
+          .eq("id", client.id);
+        if (error) {
+          alert('Failed to save client: ' + error.message);
+          console.error('Save error:', error);
+        } else {
+          console.log('Saved client with assets:', localAppAssets);
+          await fetchClients();
+        }
+      } finally {
+        setSavingId(null);
+      }
+    };
 
     return (
       <div id={client.id} className="scroll-mt-32">
@@ -167,6 +257,71 @@ export default function MobileAppWhiteLabelPage() {
                 placeholder="Paste iOS App Store URL"
                 className="bg-[#15173d] border border-white/10 text-white placeholder:text-gray-500"
               />
+            </div>
+            <div>
+              <Label className="mb-1 text-gray-300">App Name</Label>
+              <Input
+                value={localAppName}
+                onChange={e => setLocalAppName(e.target.value)}
+                disabled={savingId === client.id}
+                placeholder="Enter app name"
+                className="bg-[#15173d] border border-white/10 text-white placeholder:text-gray-500"
+              />
+            </div>
+            <div>
+              <Label className="mb-1 text-gray-300">App Description</Label>
+              <Input
+                value={localAppDescription}
+                onChange={e => setLocalAppDescription(e.target.value)}
+                disabled={savingId === client.id}
+                placeholder="Enter app description"
+                className="bg-[#15173d] border border-white/10 text-white placeholder:text-gray-500"
+              />
+            </div>
+            <div>
+              <Label className="mb-1 text-gray-300">App Assets (upload images)</Label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                disabled={savingId === client.id}
+                className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-gold/20 file:text-brand-gold hover:file:bg-brand-gold/40"
+              />
+              <div className="flex gap-2 mt-2 flex-wrap">
+                {localAppAssets.map((url, i) => (
+                  <div key={i} className="relative group">
+                    <img 
+                      src={url} 
+                      alt={`Asset ${i + 1}`} 
+                      className="h-16 w-16 object-cover rounded shadow border border-white/10 bg-[#181a2f] cursor-pointer hover:border-brand-gold/50 hover:scale-105 transition-all duration-200" 
+                      onClick={() => setSelectedImage(url)}
+                      onLoad={() => console.log(`Image ${i + 1} loaded successfully:`, url)}
+                      onError={(e) => {
+                        console.error(`Image ${i + 1} failed to load:`, url);
+                        console.error('Error details:', e);
+                        // Try to fetch the image to see what error we get
+                        fetch(url)
+                          .then(response => {
+                            console.log(`Fetch response for image ${i + 1}:`, response.status, response.statusText);
+                            return response.text();
+                          })
+                          .then(text => console.log(`Response body for image ${i + 1}:`, text.substring(0, 200)))
+                          .catch(fetchError => console.error(`Fetch error for image ${i + 1}:`, fetchError));
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAsset(url)}
+                      className="absolute top-0 right-0 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                      aria-label="Remove asset"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
             <div>
               <Label className="mb-1 text-gray-300">Status</Label>
@@ -228,6 +383,31 @@ export default function MobileAppWhiteLabelPage() {
                 })}
               </ul>
             </div>
+            {client.white_label_client_approval_status && (
+              <div className="mt-4">
+                <Label className="text-gray-300">Client Approval Status</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={
+                    client.white_label_client_approval_status === "approved"
+                      ? "text-green-400 font-semibold"
+                      : client.white_label_client_approval_status === "changes_requested"
+                      ? "text-orange-400 font-semibold"
+                      : "text-yellow-300 font-semibold"
+                  }>
+                    {client.white_label_client_approval_status === "approved"
+                      ? "Approved"
+                      : client.white_label_client_approval_status === "changes_requested"
+                      ? "Changes Requested"
+                      : "Pending"}
+                  </span>
+                  {client.white_label_client_approval_at && (
+                    <span className="text-xs text-gray-400 ml-2">
+                      {new Date(client.white_label_client_approval_at).toLocaleString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
             <div className="pt-2">
               <Button
                 onClick={handleSave}
@@ -239,6 +419,29 @@ export default function MobileAppWhiteLabelPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Full Screen Image Modal */}
+        {selectedImage && (
+          <div 
+            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedImage(null)}
+          >
+            <div className="relative max-w-4xl max-h-full">
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute -top-12 right-0 text-white hover:text-gray-300 text-2xl font-bold bg-black/50 rounded-full w-10 h-10 flex items-center justify-center"
+              >
+                ×
+              </button>
+              <img 
+                src={selectedImage || ""} 
+                alt="Full size asset" 
+                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </div>
+        )}
       </div>
     )
   }

@@ -1,16 +1,23 @@
 "use client"
 
-import { Settings, Clock, Copy, Loader, CheckCircle, Circle, AlertCircle } from "lucide-react"
+import { Settings, Clock, Copy, Loader, CheckCircle, Circle, AlertCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
+import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 
 interface WhiteLabelProgressProps {
-  status: "not_started" | "in_progress" | "waiting_for_approval" | "complete"
+  status: "not_started" | "in_progress" | "client_approval" | "waiting_for_approval" | "complete"
   checklist: Record<string, { completed: boolean, completed_at?: string }>
   androidUrl?: string
   iosUrl?: string
   updatedAt: string
+  clientId: string // NEW: needed for API call
+  approvalStatus?: "pending" | "approved" | "changes_requested"
+  appName?: string | null
+  appDescription?: string | null
+  appAssets?: string[] | null
 }
 
 // Client-facing step descriptions
@@ -49,6 +56,14 @@ const CLIENT_STEPS = [
     description: "Preparing your app for app store submission",
     clientDescription: "We're preparing your app for submission to the Apple App Store and Google Play Store with all required materials.",
     estimatedTime: "3-5 days"
+  },
+  // NEW: Client Approval step
+  {
+    key: "client_approval",
+    title: "Client Approval of App Details",
+    description: "Client reviews and approves app assets, name, and description before submission.",
+    clientDescription: "Please review your app's assets, name, and description. Approve or request changes before we submit to the app stores.",
+    estimatedTime: "1-2 days"
   },
   {
     key: "submit",
@@ -111,6 +126,11 @@ const STATE_VARIANTS = {
     subtitle: "Your personalized mobile application",
     content: null // Will be rendered with progress
   },
+  client_approval: {
+    title: "Review & Approve Your App Details",
+    subtitle: "Your action is required before we submit your app!",
+    content: null // Will be rendered with review/approval UI
+  },
   waiting_for_approval: {
     title: "Custom White Label App Development", 
     subtitle: "Your personalized mobile application",
@@ -156,6 +176,7 @@ function getWhiteLabelProgress(checklist: Record<string, { completed: boolean, c
     "create_test_user",
     "test_login",
     "download_and_create_ios_app",
+    "client_approval", // NEW: client approval step
     "submit",
   ]
   const total = steps.length
@@ -236,8 +257,28 @@ function StepIndicator({ step, isCompleted, isCurrent, isWaiting, completedAt }:
    )
 }
 
-export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, updatedAt }: WhiteLabelProgressProps) {
+export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, updatedAt, clientId, approvalStatus, appName, appDescription, appAssets }: WhiteLabelProgressProps) {
+  const [decision, setDecision] = useState<"approved" | "changes_requested" | null>(
+    approvalStatus === "pending" ? null : (approvalStatus as "approved" | "changes_requested" | null)
+  )
+  const [loading, setLoading] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+
+  // Debug: Log when component renders
+  console.log('WhiteLabelProgress component rendered, selectedImage:', selectedImage);
+  
+  // Simple test: Show selectedImage value in the UI
+  const debugInfo = selectedImage ? `SELECTED: ${selectedImage.substring(0, 50)}...` : 'No image selected';
   const progress = getWhiteLabelProgress(checklist)
+
+  // Debug selectedImage state
+  useEffect(() => {
+    console.log('selectedImage changed:', selectedImage);
+    if (selectedImage) {
+      console.log('Modal should be visible now');
+      console.log('Component should render modal with selectedImage:', selectedImage);
+    }
+  }, [selectedImage]);
   const variant = STATE_VARIANTS[status]
 
   // Determine current step
@@ -251,8 +292,160 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
 
   const currentStepIndex = getCurrentStep()
 
+  // Special client approval UI
+  if (status === "client_approval") {
+    const handleDecision = async (choice: "approved" | "changes_requested") => {
+      setLoading(true)
+      try {
+        await fetch("/api/update-client", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clientId,
+            updates: {
+              white_label_client_approval_status: choice,
+              white_label_client_approval_at: new Date().toISOString(),
+            },
+          }),
+        })
+        setDecision(choice)
+      } finally {
+        setLoading(false)
+      }
+    }
+    return (
+      <div className="rounded-2xl border border-brand-gold/40 bg-[#10122b]/90 text-white shadow-[inset_0_1px_6px_rgba(0,0,0,.25)] overflow-hidden transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
+        <div className="bg-[#181a2f] px-8 py-6 flex justify-between items-center border-b border-brand-gold/20">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-brand-gold rounded-full flex items-center justify-center">
+              <Settings className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">Review & Approve Your App Details</h2>
+              <p className="text-white/80 text-sm">Please review your app's assets, name, and description. Approve or request changes before we submit to the app stores.</p>
+            </div>
+          </div>
+          <StatusPill variant={status} />
+        </div>
+        <div className="p-8 bg-transparent">
+          {/* Debug Info */}
+          <div className="mb-4 p-2 bg-red-500 text-white text-xs">
+            DEBUG: {debugInfo}
+          </div>
+          
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold mb-2 text-brand-gold">App Details</h3>
+            <ul className="space-y-2 text-white/90">
+              <li><span className="font-semibold">App Name:</span> {appName || "[App Name Here]"}</li>
+              <li><span className="font-semibold">Description:</span> {appDescription || "[App Description Here]"}</li>
+              <li>
+                <span className="font-semibold">Assets:</span>
+                {appAssets && appAssets.length > 0 ? (
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    {appAssets.map((url, i) => (
+                      <img 
+                        key={i} 
+                        src={url} 
+                        alt={`Asset ${i + 1}`} 
+                        className="h-16 rounded shadow border border-white/10 bg-[#181a2f] cursor-pointer hover:border-brand-gold/50 hover:scale-105 transition-all duration-200" 
+                        onClick={() => {
+                          console.log('Image clicked:', url);
+                          setSelectedImage(url);
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  " [Logos, Screenshots, etc. Here]"
+                )}
+              </li>
+            </ul>
+
+            {/* Full Screen Image Preview */}
+            {selectedImage && (
+              <div 
+                className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+                onClick={() => setSelectedImage(null)}
+              >
+                <div className="relative max-w-4xl max-h-full">
+                  <button
+                    onClick={() => setSelectedImage(null)}
+                    className="absolute -top-12 right-0 text-white hover:text-gray-300 text-2xl font-bold bg-black/50 rounded-full w-10 h-10 flex items-center justify-center"
+                  >
+                    ×
+                  </button>
+                  <img
+                    src={selectedImage}
+                    alt="App Asset Preview"
+                    className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Approval buttons and confirmation logic remain unchanged */}
+          {decision ? (
+            <div className="mt-6 text-center text-green-400 font-semibold">
+              Thank you! Your decision ({decision === "approved" ? "Approved" : "Changes Requested"}) has been recorded.
+            </div>
+          ) : (
+            <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
+              <Button
+                variant="default"
+                size="lg"
+                className="bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] font-bold rounded-xl shadow-gold-glow shadow-md shadow-black/30"
+                disabled={loading}
+                onClick={() => handleDecision("approved")}
+              >
+                Approve
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                className="bg-gradient-to-br from-[#F2994A] to-[#F2C94C] text-[#010124] font-bold rounded-xl shadow-gold-glow shadow-md shadow-black/30"
+                disabled={loading}
+                onClick={() => handleDecision("changes_requested")}
+              >
+                Request Changes
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="rounded-2xl border border-brand-gold/40 bg-[#10122b]/90 text-white shadow-[inset_0_1px_6px_rgba(0,0,0,.25)] overflow-hidden transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
+    <div className="relative">
+      {/* Test Modal using Portal */}
+      {selectedImage && typeof window !== 'undefined' && createPortal(
+        <div 
+          style={{
+            position: 'fixed',
+            top: '50px',
+            left: '50px',
+            width: '300px',
+            height: '200px',
+            backgroundColor: 'red',
+            zIndex: 999999,
+            border: '5px solid yellow',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '20px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+          onClick={() => setSelectedImage(null)}
+        >
+          TEST MODAL - CLICK TO CLOSE
+        </div>,
+        document.body
+      )}
+      
+      <div className="rounded-2xl border border-brand-gold/40 bg-[#10122b]/90 text-white shadow-[inset_0_1px_6px_rgba(0,0,0,.25)] overflow-hidden transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
       {/* Header */}
       <div className="bg-[#181a2f] px-8 py-6 flex justify-between items-center border-b border-brand-gold/20">
         <div className="flex items-center gap-4">
@@ -399,6 +592,65 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
           </div>
         )}
       </div>
+    </div>
+
+    {/* Image Modal */}
+    {selectedImage && (
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'red',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}
+        onClick={() => setSelectedImage(null)}
+      >
+        <div style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
+          <button
+            onClick={() => setSelectedImage(null)}
+            style={{
+              position: 'absolute',
+              top: '-50px',
+              right: '0',
+              background: 'white',
+              border: 'none',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              cursor: 'pointer',
+              fontSize: '20px',
+              zIndex: 100000
+            }}
+          >
+            ×
+          </button>
+          <div style={{ color: 'white', textAlign: 'center', marginBottom: '20px', fontSize: '18px' }}>
+            DEBUG: Modal is visible! Image URL: {selectedImage}
+          </div>
+          <img 
+            src={selectedImage || ""} 
+            alt="Full size asset" 
+            style={{
+              maxWidth: '100%',
+              maxHeight: '100%',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onError={(e) => console.error('Modal image failed to load:', e)}
+            onLoad={() => console.log('Modal image loaded successfully')}
+          />
+        </div>
+      </div>
+    )}
     </div>
   )
 } 

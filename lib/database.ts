@@ -125,6 +125,14 @@ function transformClientFromDb(data: any): Client {
     extra_call_dates: data.extra_call_dates || [],
     onboarding_email_sent: data.onboarding_email_sent ?? false,
     follow_up_email_sent: data.follow_up_email_sent ?? false,
+    // NEW: white label app details
+    white_label_app_name: data.white_label_app_name || null,
+    white_label_app_description: data.white_label_app_description || null,
+    white_label_app_assets: Array.isArray(data.white_label_app_assets)
+      ? data.white_label_app_assets
+      : (typeof data.white_label_app_assets === 'string' && data.white_label_app_assets
+          ? JSON.parse(data.white_label_app_assets)
+          : []),
   }
 }
 
@@ -333,7 +341,12 @@ export async function getClient(identifier: string): Promise<Client | null> {
 
 export async function getClientBySlug(slug: string): Promise<Client | null> {
   try {
-    const { data, error } = await supabase.from("clients").select("*").eq("slug", slug).single()
+    // Force fresh data by adding a cache-busting parameter
+    const { data, error } = await supabase
+      .from("clients")
+      .select(`*, white_label_app_name, white_label_app_description, white_label_app_assets`)
+      .eq("slug", slug)
+      .single()
 
     if (error) {
       if (error.code === "PGRST116") {
@@ -342,6 +355,12 @@ export async function getClientBySlug(slug: string): Promise<Client | null> {
       console.error("Error fetching client:", error)
       return null
     }
+
+    console.log('Fresh client data from DB:', {
+      id: data.id,
+      name: data.name,
+      assets: data.white_label_app_assets
+    });
 
     return transformClientFromDb(data)
   } catch (error) {

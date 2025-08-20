@@ -50,10 +50,15 @@ export interface Client {
     create_test_user?: { completed: boolean, completed_at?: string }
     test_login?: { completed: boolean, completed_at?: string }
     download_and_create_ios_app?: { completed: boolean, completed_at?: string }
+    client_approval?: { completed: boolean, completed_at?: string }
     submit?: { completed: boolean, completed_at?: string }
   }
+  white_label_client_approval_status?: "pending" | "approved" | "changes_requested"
   white_label_android_url?: string | null
   white_label_ios_url?: string | null
+  white_label_app_name?: string | null
+  white_label_app_description?: string | null
+  white_label_app_assets?: string[] | null
   feedback_board_enabled?: boolean
   implementation_manager: string
   calendar_contact_success?: string | null

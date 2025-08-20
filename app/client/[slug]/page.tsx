@@ -54,7 +54,8 @@ interface ClientPageProps {
 }
 
 export default async function ClientPage({ params }: ClientPageProps) {
-  const client = await getClientBySlug(params.slug)
+  // Force fresh data by adding a timestamp
+  const client = await getClientBySlug(await params.slug)
 
   if (!client) {
     notFound()
@@ -395,6 +396,11 @@ export default async function ClientPage({ params }: ClientPageProps) {
                 androidUrl={client.white_label_android_url ?? undefined}
                 iosUrl={client.white_label_ios_url ?? undefined}
                 updatedAt={client.updated_at}
+                clientId={client.id}
+                approvalStatus={client.white_label_client_approval_status}
+                appName={client.white_label_app_name}
+                appDescription={client.white_label_app_description}
+                appAssets={client.white_label_app_assets}
               />
             )}
           </div>

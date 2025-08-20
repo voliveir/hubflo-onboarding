@@ -29,3 +29,9 @@ CREATE TABLE IF NOT EXISTS client_follow_up_emails (
 
 -- Add index for quick lookup
 CREATE INDEX IF NOT EXISTS idx_client_follow_up_emails_client_id ON client_follow_up_emails(client_id); 
+
+-- Add white label app details fields
+ALTER TABLE clients
+  ADD COLUMN IF NOT EXISTS white_label_app_name TEXT,
+  ADD COLUMN IF NOT EXISTS white_label_app_description TEXT,
+  ADD COLUMN IF NOT EXISTS white_label_app_assets JSONB; 
