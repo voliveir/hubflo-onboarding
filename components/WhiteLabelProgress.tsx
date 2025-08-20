@@ -264,21 +264,7 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
   const [loading, setLoading] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
-  // Debug: Log when component renders
-  console.log('WhiteLabelProgress component rendered, selectedImage:', selectedImage);
-  
-  // Simple test: Show selectedImage value in the UI
-  const debugInfo = selectedImage ? `SELECTED: ${selectedImage.substring(0, 50)}...` : 'No image selected';
   const progress = getWhiteLabelProgress(checklist)
-
-  // Debug selectedImage state
-  useEffect(() => {
-    console.log('selectedImage changed:', selectedImage);
-    if (selectedImage) {
-      console.log('Modal should be visible now');
-      console.log('Component should render modal with selectedImage:', selectedImage);
-    }
-  }, [selectedImage]);
   const variant = STATE_VARIANTS[status]
 
   // Determine current step
@@ -328,10 +314,6 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
           <StatusPill variant={status} />
         </div>
         <div className="p-8 bg-transparent">
-          {/* Debug Info */}
-          <div className="mb-4 p-2 bg-red-500 text-white text-xs">
-            DEBUG: {debugInfo}
-          </div>
           
           <div className="mb-8">
             <h3 className="text-lg font-semibold mb-2 text-brand-gold">App Details</h3>
