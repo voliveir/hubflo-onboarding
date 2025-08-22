@@ -54,6 +54,12 @@ export interface Client {
     submit?: { completed: boolean, completed_at?: string }
   }
   white_label_client_approval_status?: "pending" | "approved" | "changes_requested"
+  white_label_client_approval_at?: string | null
+  white_label_approval_requested_at?: string | null
+  white_label_approval_notification_sent_at?: string | null
+  white_label_approval_feedback?: string | null
+  white_label_approval_feedback_at?: string | null
+  white_label_implementation_manager_notified_at?: string | null
   white_label_android_url?: string | null
   white_label_ios_url?: string | null
   white_label_app_name?: string | null

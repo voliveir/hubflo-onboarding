@@ -207,17 +207,25 @@ export default function MobileAppWhiteLabelPage() {
     const handleSave = async () => {
       setSavingId(client.id);
       try {
+        // Prepare update data
+        const updateData: any = {
+          white_label_status: localStatus,
+          white_label_checklist: localChecklist,
+          white_label_android_url: localAndroidUrl,
+          white_label_ios_url: localIosUrl,
+          white_label_app_name: localAppName,
+          white_label_app_description: localAppDescription,
+          white_label_app_assets: localAppAssets,
+        };
+
+        // Set approval requested timestamp when status changes to client_approval
+        if (localStatus === "client_approval" && client.white_label_status !== "client_approval") {
+          updateData.white_label_approval_requested_at = new Date().toISOString();
+        }
+
         const { error } = await supabase
           .from("clients")
-          .update({
-            white_label_status: localStatus,
-            white_label_checklist: localChecklist,
-            white_label_android_url: localAndroidUrl,
-            white_label_ios_url: localIosUrl,
-            white_label_app_name: localAppName,
-            white_label_app_description: localAppDescription,
-            white_label_app_assets: localAppAssets,
-          })
+          .update(updateData)
           .eq("id", client.id);
         if (error) {
           alert('Failed to save client: ' + error.message);
@@ -390,28 +398,65 @@ export default function MobileAppWhiteLabelPage() {
               </ul>
             </div>
             {client.white_label_client_approval_status && (
-              <div className="mt-4">
-                <Label className="text-gray-300">Client Approval Status</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className={
-                    client.white_label_client_approval_status === "approved"
-                      ? "text-green-400 font-semibold"
-                      : client.white_label_client_approval_status === "changes_requested"
-                      ? "text-orange-400 font-semibold"
-                      : "text-yellow-300 font-semibold"
-                  }>
-                    {client.white_label_client_approval_status === "approved"
-                      ? "Approved"
-                      : client.white_label_client_approval_status === "changes_requested"
-                      ? "Changes Requested"
-                      : "Pending"}
-                  </span>
-                  {client.white_label_client_approval_at && (
-                    <span className="text-xs text-gray-400 ml-2">
-                      {new Date(client.white_label_client_approval_at).toLocaleString()}
+              <div className="mt-4 space-y-3">
+                <div>
+                  <Label className="text-gray-300">Client Approval Status</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={
+                      client.white_label_client_approval_status === "approved"
+                        ? "text-green-400 font-semibold"
+                        : client.white_label_client_approval_status === "changes_requested"
+                        ? "text-orange-400 font-semibold"
+                        : "text-yellow-300 font-semibold"
+                    }>
+                      {client.white_label_client_approval_status === "approved"
+                        ? "Approved"
+                        : client.white_label_client_approval_status === "changes_requested"
+                        ? "Changes Requested"
+                        : "Pending"}
                     </span>
-                  )}
+                    {client.white_label_client_approval_at && (
+                      <span className="text-xs text-gray-400 ml-2">
+                        {new Date(client.white_label_client_approval_at).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
                 </div>
+
+                {/* Approval Requested Timestamp */}
+                {client.white_label_approval_requested_at && (
+                  <div>
+                    <Label className="text-gray-300 text-xs">Approval Requested</Label>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {new Date(client.white_label_approval_requested_at).toLocaleString()}
+                    </div>
+                  </div>
+                )}
+
+                {/* Client Feedback */}
+                {client.white_label_approval_feedback && (
+                  <div>
+                    <Label className="text-gray-300 text-xs">Client Feedback</Label>
+                    <div className="text-xs text-gray-400 mt-1 bg-gray-800 p-2 rounded">
+                      {client.white_label_approval_feedback}
+                    </div>
+                    {client.white_label_approval_feedback_at && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        Provided: {new Date(client.white_label_approval_feedback_at).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Implementation Manager Notification */}
+                {client.white_label_implementation_manager_notified_at && (
+                  <div>
+                    <Label className="text-gray-300 text-xs">IM Notified</Label>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {new Date(client.white_label_implementation_manager_notified_at).toLocaleString()}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             <div className="pt-2">

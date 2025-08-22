@@ -258,11 +258,12 @@ function StepIndicator({ step, isCompleted, isCurrent, isWaiting, completedAt }:
 }
 
 export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, updatedAt, clientId, approvalStatus, appName, appDescription, appAssets }: WhiteLabelProgressProps) {
-  const [decision, setDecision] = useState<"approved" | "changes_requested" | null>(
-    approvalStatus === "pending" ? null : (approvalStatus as "approved" | "changes_requested" | null)
-  )
+  // Use approvalStatus from props to determine if decision has been made
+  const hasDecision = approvalStatus && approvalStatus !== "pending"
   const [loading, setLoading] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState("")
+  const [showFeedbackBox, setShowFeedbackBox] = useState(false)
 
   const progress = getWhiteLabelProgress(checklist)
   const variant = STATE_VARIANTS[status]
@@ -283,18 +284,43 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
     const handleDecision = async (choice: "approved" | "changes_requested") => {
       setLoading(true)
       try {
-        await fetch("/api/update-client", {
+        const updates: any = {
+          white_label_client_approval_status: choice,
+          white_label_client_approval_at: new Date().toISOString(),
+        };
+
+        // Add feedback if requesting changes
+        if (choice === "changes_requested" && feedback.trim()) {
+          updates.white_label_approval_feedback = feedback.trim();
+          updates.white_label_approval_feedback_at = new Date().toISOString();
+          console.log('Adding feedback to updates:', updates.white_label_approval_feedback);
+        }
+
+        // Notify implementation manager if approved
+        if (choice === "approved") {
+          updates.white_label_implementation_manager_notified_at = new Date().toISOString();
+        }
+
+        console.log('Sending updates to API:', updates);
+
+        const response = await fetch("/api/update-client", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             clientId,
-            updates: {
-              white_label_client_approval_status: choice,
-              white_label_client_approval_at: new Date().toISOString(),
-            },
+            updates,
           }),
         })
-        setDecision(choice)
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('API error:', errorData);
+          alert('Failed to submit decision. Please try again.');
+          return;
+        }
+        
+        // Force a hard refresh to get updated data from server
+        window.location.href = window.location.href;
       } finally {
         setLoading(false)
       }
@@ -417,31 +443,55 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
               </div>
             )}
           </div>
-          {/* Approval buttons and confirmation logic remain unchanged */}
-          {decision ? (
+          {/* Approval buttons and confirmation logic */}
+          {hasDecision ? (
             <div className="mt-6 text-center text-green-400 font-semibold">
-              Thank you! Your decision ({decision === "approved" ? "Approved" : "Changes Requested"}) has been recorded.
+              Thank you! Your decision ({approvalStatus === "approved" ? "Approved" : "Changes Requested"}) has been recorded.
             </div>
           ) : (
-            <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
-              <Button
-                variant="default"
-                size="lg"
-                className="bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] font-bold rounded-xl shadow-gold-glow shadow-md shadow-black/30"
-                disabled={loading}
-                onClick={() => handleDecision("approved")}
-              >
-                Approve
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                className="bg-gradient-to-br from-[#F2994A] to-[#F2C94C] text-[#010124] font-bold rounded-xl shadow-gold-glow shadow-md shadow-black/30"
-                disabled={loading}
-                onClick={() => handleDecision("changes_requested")}
-              >
-                Request Changes
-              </Button>
+            <div className="space-y-4">
+              {/* Feedback Box */}
+              {showFeedbackBox && (
+                <div className="bg-gray-800/50 rounded-lg p-4 border border-orange-500/30">
+                  <label className="block text-sm font-medium text-white mb-2">
+                    Please provide details about what changes you'd like:
+                  </label>
+                  <textarea
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="Describe the changes you'd like to see..."
+                    rows={4}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-md p-3 resize-y"
+                  />
+                </div>
+              )}
+
+              <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
+                <Button
+                  variant="default"
+                  size="lg"
+                  className="bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] font-bold rounded-xl shadow-gold-glow shadow-md shadow-black/30"
+                  disabled={loading}
+                  onClick={() => handleDecision("approved")}
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="bg-gradient-to-br from-[#F2994A] to-[#F2C94C] text-[#010124] font-bold rounded-xl shadow-gold-glow shadow-md shadow-black/30"
+                  disabled={loading}
+                  onClick={() => {
+                    if (!showFeedbackBox) {
+                      setShowFeedbackBox(true);
+                    } else if (feedback.trim()) {
+                      handleDecision("changes_requested");
+                    }
+                  }}
+                >
+                  {showFeedbackBox ? "Submit Changes Request" : "Request Changes"}
+                </Button>
+              </div>
             </div>
           )}
         </div>

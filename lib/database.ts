@@ -133,6 +133,14 @@ function transformClientFromDb(data: any): Client {
       : (typeof data.white_label_app_assets === 'string' && data.white_label_app_assets
           ? JSON.parse(data.white_label_app_assets)
           : []),
+    // NEW: white label approval workflow fields
+    white_label_client_approval_status: data.white_label_client_approval_status || null,
+    white_label_client_approval_at: data.white_label_client_approval_at || null,
+    white_label_approval_requested_at: data.white_label_approval_requested_at || null,
+    white_label_approval_notification_sent_at: data.white_label_approval_notification_sent_at || null,
+    white_label_approval_feedback: data.white_label_approval_feedback || null,
+    white_label_approval_feedback_at: data.white_label_approval_feedback_at || null,
+    white_label_implementation_manager_notified_at: data.white_label_implementation_manager_notified_at || null,
   }
 }
 
