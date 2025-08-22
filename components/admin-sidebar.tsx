@@ -57,6 +57,7 @@ const navigation = [
       { name: "Vanessa Clients", href: "/admin/clients?implementation_manager=vanessa" },
       { name: "Vishal Clients", href: "/admin/clients?implementation_manager=vishal" },
       { name: "Add New Client", href: "/admin/clients/new" },
+      { name: "Implementation Milestones", href: "/admin/clients/milestones" },
     ] as NavChild[],
   },
   {
@@ -73,6 +74,11 @@ const navigation = [
     name: "Feedback Board",
     href: "/admin/feedback-board",
     icon: Kanban,
+  },
+  {
+    name: "Milestones",
+    href: "/admin/milestones",
+    icon: BarChart3,
   },
   {
     name: "Features",

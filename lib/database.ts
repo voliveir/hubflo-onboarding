@@ -2764,3 +2764,202 @@ export async function markClientFollowUpEmailSent(clientId: string, reminder_num
     .eq("reminder_number", reminder_number)
   if (error) throw error
 }
+
+// ============================================================================
+// IMPLEMENTATION MILESTONES FUNCTIONS
+// ============================================================================
+
+export interface ImplementationMilestone {
+  id: string
+  client_id: string
+  title: string
+  description?: string
+  category: string
+  order_index: number
+  estimated_days?: number
+  status: 'pending' | 'in_progress' | 'completed' | 'blocked'
+  completed_at?: string
+  completed_by?: string
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface MilestoneTemplate {
+  id: string
+  name: string
+  description?: string
+  category: string
+  estimated_days?: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Get all milestones for a client
+ */
+export async function getClientMilestones(clientId: string): Promise<ImplementationMilestone[]> {
+  const { data, error } = await supabase
+    .from("implementation_milestones")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("order_index", { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Get milestone templates
+ */
+export async function getMilestoneTemplates(): Promise<MilestoneTemplate[]> {
+  const { data, error } = await supabase
+    .from("milestone_templates")
+    .select("*")
+    .eq("is_active", true)
+    .order("name", { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Create a new milestone for a client
+ */
+export async function createClientMilestone(milestone: Omit<ImplementationMilestone, 'id' | 'created_at' | 'updated_at'>): Promise<ImplementationMilestone> {
+  const { data, error } = await supabase
+    .from("implementation_milestones")
+    .insert([milestone])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update a milestone
+ */
+export async function updateClientMilestone(id: string, updates: Partial<ImplementationMilestone>): Promise<ImplementationMilestone> {
+  const { data, error } = await supabase
+    .from("implementation_milestones")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Delete a milestone
+ */
+export async function deleteClientMilestone(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("implementation_milestones")
+    .delete()
+    .eq("id", id)
+  if (error) throw error
+}
+
+/**
+ * Reorder milestones for a client
+ */
+export async function reorderClientMilestones(clientId: string, milestoneIds: string[]): Promise<void> {
+  const updates = milestoneIds.map((id, index) => ({
+    id,
+    order_index: index,
+    updated_at: new Date().toISOString()
+  }))
+  
+  const { error } = await supabase
+    .from("implementation_milestones")
+    .upsert(updates)
+  if (error) throw error
+}
+
+/**
+ * Calculate milestone completion percentage for a client
+ */
+export async function calculateMilestoneCompletion(clientId: string): Promise<number> {
+  const { data, error } = await supabase
+    .rpc('calculate_milestone_completion', { client_uuid: clientId })
+  if (error) throw error
+  return data || 0
+}
+
+/**
+ * Bulk create milestones from templates for a client
+ */
+export async function createMilestonesFromTemplates(clientId: string, templateIds: string[]): Promise<ImplementationMilestone[]> {
+  // Get the templates
+  const { data: templates, error: templateError } = await supabase
+    .from("milestone_templates")
+    .select("*")
+    .in("id", templateIds)
+  if (templateError) throw templateError
+
+  // Get current highest order index
+  const { data: existingMilestones } = await supabase
+    .from("implementation_milestones")
+    .select("order_index")
+    .eq("client_id", clientId)
+    .order("order_index", { ascending: false })
+    .limit(1)
+  
+  let nextOrderIndex = existingMilestones?.[0]?.order_index || 0
+
+  // Create milestones from templates
+  const milestones = templates.map((template, index) => ({
+    client_id: clientId,
+    title: template.name,
+    description: template.description,
+    category: template.category,
+    order_index: nextOrderIndex + index + 1,
+    estimated_days: template.estimated_days,
+    status: 'pending' as const,
+  }))
+
+  const { data, error } = await supabase
+    .from("implementation_milestones")
+    .insert(milestones)
+    .select()
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Create a new milestone template
+ */
+export async function createMilestoneTemplate(template: Omit<MilestoneTemplate, 'id' | 'created_at' | 'updated_at'>): Promise<MilestoneTemplate> {
+  const { data, error } = await supabase
+    .from("milestone_templates")
+    .insert([template])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update a milestone template
+ */
+export async function updateMilestoneTemplate(id: string, updates: Partial<MilestoneTemplate>): Promise<MilestoneTemplate> {
+  const { data, error } = await supabase
+    .from("milestone_templates")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Delete a milestone template
+ */
+export async function deleteMilestoneTemplate(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("milestone_templates")
+    .delete()
+    .eq("id", id)
+  if (error) throw error
+}

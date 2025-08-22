@@ -37,6 +37,7 @@ import * as React from "react"
 import CollapsibleVideos, { CollapsibleLinks } from "@/components/CollapsibleVideos"
 import OnboardingProgressClient from './OnboardingProgressClient'
 import { ClientChecklist } from "@/components/client-checklist"
+import { ImplementationMilestonesRoadWrapper } from "@/components/ImplementationMilestonesRoadWrapper"
 
 import { FeedbackBoardClientViewWrapper } from '@/components/FeedbackBoardClientViewWrapper'
 import { PortalSection } from "@/components/ui/PortalSection"
@@ -263,6 +264,15 @@ export default async function ClientPage({ params }: ClientPageProps) {
           <ClientImplementationProgressWrapper client={client} />
         </div>
       </PortalSection>
+
+      {/* Implementation Milestones Section */}
+      {(client.milestones_enabled ?? true) && (
+        <PortalSection gradient={false} className="bg-transparent mt-16">
+          <div className="max-w-6xl mx-auto">
+            <ImplementationMilestonesRoadWrapper client={client} />
+          </div>
+        </PortalSection>
+      )}
 
       {/* Next Steps Section */}
       <PortalSection id="next-steps" gradient={false} className="bg-transparent mt-16">

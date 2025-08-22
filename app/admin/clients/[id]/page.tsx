@@ -5,7 +5,7 @@ import { AdminSidebar } from "@/components/admin-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { User, Package, ExternalLink, Edit, Settings, BarChart3, Zap, Calendar, DollarSign, Users, Building, Phone, Mail, Globe, CheckCircle, Clock, XCircle } from "lucide-react"
+import { User, Package, ExternalLink, Edit, Settings, BarChart3, Zap, Calendar, DollarSign, Users, Building, Phone, Mail, Globe, CheckCircle, Clock, XCircle, Flag } from "lucide-react"
 import Link from "next/link"
 
 interface PageProps {
@@ -15,7 +15,7 @@ interface PageProps {
 }
 
 export default async function ClientDetailPage({ params }: PageProps) {
-  const client = await getClientById(params.id)
+  const client = await getClientById(await params.id)
 
   if (!client) {
     notFound()
@@ -250,6 +250,12 @@ export default async function ClientDetailPage({ params }: PageProps) {
                         <BarChart3 className="text-[#F2C94C]" />
                         <Link href={`/admin/clients/${client.id}/tracking`} className="flex-1 text-left">
                           Project Tracking
+                        </Link>
+                      </button>
+                      <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                        <Flag className="text-[#F2C94C]" />
+                        <Link href={`/admin/clients/${client.id}/milestones`} className="flex-1 text-left">
+                          Implementation Milestones
                         </Link>
                       </button>
                       <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">

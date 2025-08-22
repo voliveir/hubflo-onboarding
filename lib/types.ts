@@ -74,6 +74,9 @@ export interface Client {
   churned?: boolean
   is_demo?: boolean
   churn_risk?: boolean
+  // Milestone management fields
+  milestones_enabled?: boolean
+  milestone_road_theme?: 'default' | 'mountain' | 'ocean' | 'forest' | 'city'
 }
 
 export interface Integration {
@@ -719,3 +722,36 @@ export interface ImplementationManager {
   created_at: string;
   updated_at: string;
 }
+
+// ============================================================================
+// IMPLEMENTATION MILESTONES TYPES
+// ============================================================================
+
+export interface ImplementationMilestone {
+  id: string;
+  client_id: string;
+  title: string;
+  description?: string;
+  category: string;
+  order_index: number;
+  estimated_days?: number;
+  status: 'pending' | 'in_progress' | 'completed' | 'blocked';
+  completed_at?: string;
+  completed_by?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MilestoneTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  category: string;
+  estimated_days?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+

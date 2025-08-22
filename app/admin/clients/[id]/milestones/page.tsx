@@ -1,16 +1,16 @@
 import { PasswordProtection } from "@/components/password-protection"
 import { AdminSidebar } from "@/components/admin-sidebar"
-import { ProjectTrackingAdmin } from "@/components/project-tracking-admin"
+import { MilestonesManager } from "@/components/milestones-manager"
 import { getClientById } from "@/lib/database"
 import { notFound } from "next/navigation"
 
-interface ClientTrackingPageProps {
+interface ClientMilestonesPageProps {
   params: {
     id: string
   }
 }
 
-export default async function ClientTrackingPage({ params }: ClientTrackingPageProps) {
+export default async function ClientMilestonesPage({ params }: ClientMilestonesPageProps) {
   const client = await getClientById(await params.id)
 
   if (!client) {
@@ -24,10 +24,10 @@ export default async function ClientTrackingPage({ params }: ClientTrackingPageP
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-7xl mx-auto p-8">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-white">{client.name} - Project Tracking</h1>
-              <p className="text-white/80">Track implementation progress and milestones</p>
+              <h1 className="text-3xl font-bold text-white">{client.name} - Implementation Milestones</h1>
+              <p className="text-white/80">Manage implementation milestones and track progress</p>
             </div>
-            <ProjectTrackingAdmin client={client} />
+            <MilestonesManager client={client} />
           </div>
         </main>
       </div>
