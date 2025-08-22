@@ -159,8 +159,11 @@ export function ImplementationMilestonesRoad({ client }: ImplementationMilestone
     const curve = Math.sin(progress * Math.PI * 1.5) * 30 + Math.cos(progress * Math.PI * 0.8) * 15
     const yOffset = progress * 80 + curve
     
+    // Make the road more compact - use 90% of width and add padding
+    const leftPosition = 5 + (progress * 90) // 5% padding on each side
+    
     return {
-      left: `${(index / (total - 1)) * 100}%`,
+      left: `${leftPosition}%`,
       top: `${yOffset}%`,
       transform: `translate(-50%, -50%)`,
     }
@@ -177,7 +180,12 @@ export function ImplementationMilestonesRoad({ client }: ImplementationMilestone
     const startY = progress * 80 + curve
     const endY = nextProgress * 80 + nextCurve
     
-    const path = `M ${(progress * 100)} ${startY} Q ${((progress + nextProgress) / 2) * 100} ${(startY + endY) / 2} ${(nextProgress * 100)} ${endY}`
+    // Use the same compact positioning as getRoadPath
+    const startX = 5 + (progress * 90)
+    const endX = 5 + (nextProgress * 90)
+    const controlX = (startX + endX) / 2
+    
+    const path = `M ${startX} ${startY} Q ${controlX} ${(startY + endY) / 2} ${endX} ${endY}`
     
     return (
       <svg
@@ -329,7 +337,7 @@ export function ImplementationMilestonesRoad({ client }: ImplementationMilestone
 
               {/* Milestone info card */}
               <div className="absolute top-24 left-1/2 transform -translate-x-1/2 w-72 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto">
-                <div className="bg-gradient-to-br from-[#1a1c3a]/95 to-[#0a0b1a]/95 backdrop-blur-md border border-[#F2C94C]/30 shadow-2xl rounded-xl p-4">
+                <div className="bg-gradient-to-br from-[#1a1c3a]/95 to-[#0a0b1a]/95 backdrop-blur-md border border-[#F2C94C]/30 shadow-2xl rounded-xl p-4 max-w-[280px]">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
                       <div className="text-2xl">
@@ -341,14 +349,14 @@ export function ImplementationMilestonesRoad({ client }: ImplementationMilestone
                       {milestone.description && (
                         <p className="text-white/70 text-sm mb-3 leading-relaxed">{milestone.description}</p>
                       )}
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1">
                         <Badge className={`text-xs ${getCategoryColor(milestone.category)} border-0`}>
                           {getCategoryIcon(milestone.category)}
                           <span className="ml-1 font-medium">{milestone.category}</span>
                         </Badge>
                         {milestone.estimated_days && (
                           <Badge variant="outline" className="text-xs text-white/70 border-white/20">
-                            {milestone.estimated_days} days
+                            {milestone.estimated_days}d
                           </Badge>
                         )}
                       </div>
@@ -373,33 +381,33 @@ export function ImplementationMilestonesRoad({ client }: ImplementationMilestone
                 className="flex items-center gap-4 p-6 bg-gradient-to-r from-white/5 to-white/3 rounded-xl border border-white/10 hover:border-[#F2C94C]/40 transition-all duration-300 cursor-pointer group backdrop-blur-sm"
                 onClick={() => setSelectedMilestone(milestone)}
               >
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="flex items-center gap-3 flex-shrink-0">
                     <div className="text-2xl">
                       {getStatusIcon(milestone.status)}
                     </div>
-                    <div>
-                      <div className="font-semibold text-white group-hover:text-[#F2C94C] transition-colors text-lg">
-                        {milestone.title}
-                      </div>
-                      {milestone.description && (
-                        <div className="text-white/70 text-sm mt-1">{milestone.description}</div>
-                      )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-white group-hover:text-[#F2C94C] transition-colors text-lg truncate">
+                      {milestone.title}
                     </div>
+                    {milestone.description && (
+                      <div className="text-white/70 text-sm mt-1 line-clamp-2">{milestone.description}</div>
+                    )}
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <Badge className={`${getCategoryColor(milestone.category)} border-0 font-medium`}>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Badge className={`${getCategoryColor(milestone.category)} border-0 font-medium text-xs`}>
                     {getCategoryIcon(milestone.category)}
                     <span className="ml-1">{milestone.category}</span>
                   </Badge>
-                  <Badge className={`${getStatusColor(milestone.status)} border-0 font-medium`}>
+                  <Badge className={`${getStatusColor(milestone.status)} border-0 font-medium text-xs`}>
                     {milestone.status.replace("_", " ")}
                   </Badge>
                   {milestone.estimated_days && (
-                    <Badge variant="outline" className="text-white/70 border-white/20 font-medium">
-                      {milestone.estimated_days} days
+                    <Badge variant="outline" className="text-white/70 border-white/20 font-medium text-xs">
+                      {milestone.estimated_days}d
                     </Badge>
                   )}
                 </div>
@@ -411,7 +419,7 @@ export function ImplementationMilestonesRoad({ client }: ImplementationMilestone
 
       {/* Milestone Detail Dialog */}
       <Dialog open={!!selectedMilestone} onOpenChange={() => setSelectedMilestone(null)}>
-        <DialogContent className="bg-gradient-to-br from-[#1a1c3a] to-[#0a0b1a] border-[#F2C94C]/30 text-white max-w-lg backdrop-blur-md">
+        <DialogContent className="bg-gradient-to-br from-[#1a1c3a] to-[#0a0b1a] border-[#F2C94C]/30 text-white max-w-lg backdrop-blur-md max-h-[90vh] overflow-y-auto">
           <DialogHeader className="pb-4">
             <DialogTitle className="flex items-center gap-3 text-xl">
               <div className="text-2xl">
