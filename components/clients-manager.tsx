@@ -12,7 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { toast } from "@/hooks/use-toast"
 import { getAllClients, deleteClient } from "@/lib/database"
 import { type Client } from "@/lib/types"
-import { Plus, Search, Edit, Trash2, Eye, Users, Package, Calendar, Filter, X, ChevronDown, ChevronUp, DollarSign, Clock, AlertTriangle } from "lucide-react"
+import { Plus, Search, Edit, Trash2, Eye, Users, Package, Calendar, Filter, X, ChevronDown, ChevronUp, DollarSign, Clock, AlertTriangle, Download } from "lucide-react"
 import Link from "next/link"
 import { EditClientForm } from "./edit-client-form"
 import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
@@ -277,6 +277,108 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
     setEditingClient(null)
   }
 
+  const handleExportCSV = () => {
+    if (filteredClients.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No clients to export",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Create CSV headers
+    const headers = [
+      "ID",
+      "Name", 
+      "Slug",
+      "Email",
+      "Status",
+      "Success Package",
+      "Billing Type",
+      "Plan Type",
+      "Number of Users",
+      "Revenue Amount",
+      "Implementation Manager",
+      "Created At",
+      "Light Onboarding Call Date",
+      "Premium First Call Date",
+      "Premium Second Call Date", 
+      "Gold First Call Date",
+      "Gold Second Call Date",
+      "Gold Third Call Date",
+      "Elite Configurations Started Date",
+      "Elite Integrations Started Date",
+      "Elite Verification Completed Date",
+      "Extra Call Dates",
+      "Custom App",
+      "Churned",
+      "Churn Risk",
+      "Onboarding Email Sent"
+    ]
+
+    // Create CSV rows
+    const csvRows = [
+      headers,
+      ...filteredClients.map(client => [
+        client.id,
+        client.name,
+        client.slug,
+        client.email || "",
+        client.status,
+        client.success_package,
+        client.billing_type,
+        client.plan_type,
+        client.number_of_users || 0,
+        client.revenue_amount,
+        client.implementation_manager,
+        client.created_at ? new Date(client.created_at).toISOString().slice(0, 10) : "",
+        client.light_onboarding_call_date ? new Date(client.light_onboarding_call_date).toISOString().slice(0, 10) : "",
+        client.premium_first_call_date ? new Date(client.premium_first_call_date).toISOString().slice(0, 10) : "",
+        client.premium_second_call_date ? new Date(client.premium_second_call_date).toISOString().slice(0, 10) : "",
+        client.gold_first_call_date ? new Date(client.gold_first_call_date).toISOString().slice(0, 10) : "",
+        client.gold_second_call_date ? new Date(client.gold_second_call_date).toISOString().slice(0, 10) : "",
+        client.gold_third_call_date ? new Date(client.gold_third_call_date).toISOString().slice(0, 10) : "",
+        client.elite_configurations_started_date ? new Date(client.elite_configurations_started_date).toISOString().slice(0, 10) : "",
+        client.elite_integrations_started_date ? new Date(client.elite_integrations_started_date).toISOString().slice(0, 10) : "",
+        client.elite_verification_completed_date ? new Date(client.elite_verification_completed_date).toISOString().slice(0, 10) : "",
+        Array.isArray(client.extra_call_dates) ? client.extra_call_dates.join("; ") : "",
+        client.custom_app || "",
+        client.churned ? "Yes" : "No",
+        client.churn_risk ? "Yes" : "No",
+        client.onboarding_email_sent ? "Yes" : "No"
+      ])
+    ]
+
+    // Convert to CSV string
+    const csvContent = csvRows.map(row => 
+      row.map(field => {
+        // Escape fields that contain commas, quotes, or newlines
+        if (typeof field === 'string' && (field.includes(',') || field.includes('"') || field.includes('\n'))) {
+          return `"${field.replace(/"/g, '""')}"`
+        }
+        return field
+      }).join(',')
+    ).join('\n')
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `clients-export-${new Date().toISOString().slice(0, 10)}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    toast({
+      title: "Export Successful",
+      description: `Exported ${filteredClients.length} clients to CSV`,
+    })
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -349,12 +451,22 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
           <h2 className="text-2xl font-bold text-white">Client Management</h2>
           <p className="text-white/80">Manage your client accounts and configurations</p>
         </div>
-        <Button asChild className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-white font-semibold h-11 px-6 text-[18px] shadow-md hover:brightness-110 border border-[#F2C94C]/70 flex items-center">
-          <Link href="/admin/clients/new">
-            <Plus className="h-5 w-5 mr-2" />
-            Add New Client
-          </Link>
-        </Button>
+        <div className="flex gap-3">
+          <Button 
+            onClick={handleExportCSV}
+            variant="outline"
+            className="bg-[#181a2f] border border-slate-600 text-white hover:bg-[#23244a] h-11 px-6 text-[18px] flex items-center"
+          >
+            <Download className="h-5 w-5 mr-2" />
+            Export CSV
+          </Button>
+          <Button asChild className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-white font-semibold h-11 px-6 text-[18px] shadow-md hover:brightness-110 border border-[#F2C94C]/70 flex items-center">
+            <Link href="/admin/clients/new">
+              <Plus className="h-5 w-5 mr-2" />
+              Add New Client
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Card className="bg-[#10122b]/90 ring-1 ring-[#F2C94C]/30 rounded-2xl p-0">
