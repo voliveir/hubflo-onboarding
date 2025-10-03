@@ -382,19 +382,26 @@ export default async function ClientPage({ params }: ClientPageProps) {
                 {/* Google Play Store */}
                 <div className="flex flex-col h-full min-h-[400px] text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/20 transition-all duration-500 hover:border-brand-gold/40 hover:shadow-lg">
                   <div className="flex flex-col items-center mb-6">
-                    <div className="w-14 h-14 bg-gray-400/10 rounded-2xl flex items-center justify-center mb-4 border border-gray-400/20">
-                      <Smartphone className="h-6 w-6 text-gray-400" />
+                    <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-brand-gold/20">
+                      <Smartphone className="h-6 w-6 text-brand-gold" />
                     </div>
                     <h3 className="text-xl font-bold text-white mb-4">Google Play Store</h3>
                   </div>
-                  <div className="text-gray-400 mb-2">Android app coming soon</div>
+                  <div className="text-brand-gold mb-2 font-semibold">Android app now available!</div>
                   <div className="text-sm text-white/80 mb-6">
-                    The Android version of your branded Hubflo app is currently in development and will be available soon.
+                    Download your branded Hubflo app from the Google Play Store and share it with your clients for seamless project management on the go.
                   </div>
-                  <Button className="w-full bg-gray-300 text-gray-500 cursor-not-allowed mt-auto" disabled>
-                    <Clock className="mr-2 h-4 w-4" />
-                    Coming Soon
-                  </Button>
+                  <a 
+                    href="https://play.google.com/store/apps/details?id=com.hubflo.app" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-full"
+                  >
+                    <Button className="w-full bg-gradient-to-r from-brand-gold to-brand-gold/80 hover:from-brand-gold/90 hover:to-brand-gold/70 text-white font-semibold mt-auto transition-all duration-200 hover:shadow-lg hover:shadow-brand-gold/25">
+                      <Smartphone className="mr-2 h-4 w-4" />
+                      Download on Google Play
+                    </Button>
+                  </a>
                 </div>
               </div>
             )}
