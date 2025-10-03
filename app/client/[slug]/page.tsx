@@ -391,16 +391,14 @@ export default async function ClientPage({ params }: ClientPageProps) {
                   <div className="text-sm text-white/80 mb-6">
                     Your Gray Label Hubflo app is available on the Google Play Store. Please share this link with your clients to give them mobile access to their projects.
                   </div>
-                  <a 
-                    href="https://play.google.com/store/apps/details?id=com.hubflo.app" 
-                    target="_blank" 
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.hubflo.app"
+                    target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full"
+                    className="w-full bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT font-semibold mt-auto rounded-2xl px-6 py-3 text-center block transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
                   >
-                    <Button className="w-full bg-gradient-to-r from-brand-gold to-brand-gold/80 hover:from-brand-gold/90 hover:to-brand-gold/70 text-white font-semibold mt-auto transition-all duration-200 hover:shadow-lg hover:shadow-brand-gold/25">
-                      <Smartphone className="mr-2 h-4 w-4" />
-                      Download on Google Play
-                    </Button>
+                    <Smartphone className="h-4 w-4" />
+                    Download on Google Play
                   </a>
                 </div>
               </div>
