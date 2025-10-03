@@ -387,9 +387,9 @@ export default async function ClientPage({ params }: ClientPageProps) {
                     </div>
                     <h3 className="text-xl font-bold text-white mb-4">Google Play Store</h3>
                   </div>
-                  <div className="text-brand-gold mb-2 font-semibold">Android app now available!</div>
+                  <div className="text-white/80 mb-2">Download for Android</div>
                   <div className="text-sm text-white/80 mb-6">
-                    Download your branded Hubflo app from the Google Play Store and share it with your clients for seamless project management on the go.
+                    Your Gray Label Hubflo app is available on the Google Play Store. Please share this link with your clients to give them mobile access to their projects.
                   </div>
                   <a 
                     href="https://play.google.com/store/apps/details?id=com.hubflo.app" 
