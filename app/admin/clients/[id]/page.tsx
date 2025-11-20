@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { User, Package, ExternalLink, Edit, Settings, BarChart3, Zap, Calendar, DollarSign, Users, Building, Phone, Mail, Globe, CheckCircle, Clock, XCircle, Flag } from "lucide-react"
 import Link from "next/link"
+import { ClientTimeTracking } from "@/components/client-time-tracking"
 
 interface PageProps {
   params: {
@@ -222,6 +223,13 @@ export default async function ClientDetailPage({ params }: PageProps) {
                       </CardContent>
                     </Card>
                   )}
+
+                  {/* Time Tracking */}
+                  <ClientTimeTracking
+                    clientId={client.id}
+                    clientName={client.name}
+                    clientACV={client.revenue_amount}
+                  />
                 </div>
 
                 {/* Sidebar - 4 cols on xl, 12 on <lg */}

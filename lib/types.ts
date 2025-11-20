@@ -38,6 +38,7 @@ export interface Client {
   elite_configurations_started_date?: string | null
   elite_integrations_started_date?: string | null
   elite_verification_completed_date?: string | null
+  graduation_date?: string | null
   extra_call_dates?: string[] // Additional call dates
   workflow_builder_enabled: boolean
   workflow?: any // JSON object for workflow builder data
@@ -752,6 +753,33 @@ export interface MilestoneTemplate {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+// ============================================================================
+// TIME TRACKING TYPES
+// ============================================================================
+
+export interface TimeEntry {
+  id: string;
+  client_id: string;
+  entry_type: 'meeting' | 'email' | 'initial_setup' | 'automation_workflow' | 'api_integration' | 'testing_debugging' | 'training_handoff' | 'revisions_rework' | 'implementation';
+  date: string;
+  duration_minutes: number;
+  description?: string;
+  notes?: string;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientTimeSummary {
+  client_id: string;
+  total_minutes: number;
+  total_hours: number;
+  meeting_minutes: number;
+  email_minutes: number;
+  implementation_minutes: number;
+  entry_count: number;
 }
 
 

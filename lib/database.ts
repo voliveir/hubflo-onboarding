@@ -2963,3 +2963,196 @@ export async function deleteMilestoneTemplate(id: string): Promise<void> {
     .eq("id", id)
   if (error) throw error
 }
+
+// ============================================================================
+// TIME TRACKING FUNCTIONS
+// ============================================================================
+
+import type { TimeEntry, ClientTimeSummary } from "./types"
+
+/**
+ * Get all time entries for a client
+ */
+export async function getClientTimeEntries(clientId: string): Promise<TimeEntry[]> {
+  const { data, error } = await supabase
+    .from("client_time_entries")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false })
+
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Get time entries with filters
+ */
+export async function getTimeEntries(filters: {
+  clientId?: string
+  startDate?: string
+  endDate?: string
+  entryType?: "meeting" | "email" | "implementation"
+} = {}): Promise<TimeEntry[]> {
+  let query = supabase
+    .from("client_time_entries")
+    .select("*")
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false })
+
+  if (filters.clientId) {
+    query = query.eq("client_id", filters.clientId)
+  }
+
+  if (filters.startDate) {
+    query = query.gte("date", filters.startDate)
+  }
+
+  if (filters.endDate) {
+    query = query.lte("date", filters.endDate)
+  }
+
+  if (filters.entryType) {
+    query = query.eq("entry_type", filters.entryType)
+  }
+
+  const { data, error } = await query
+
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Create a new time entry
+ */
+export async function createTimeEntry(
+  entry: Omit<TimeEntry, "id" | "created_at" | "updated_at">
+): Promise<TimeEntry> {
+  const { data, error } = await supabase
+    .from("client_time_entries")
+    .insert([entry])
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update a time entry
+ */
+export async function updateTimeEntry(
+  id: string,
+  updates: Partial<Omit<TimeEntry, "id" | "client_id" | "created_at">>
+): Promise<TimeEntry> {
+  const { data, error } = await supabase
+    .from("client_time_entries")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Delete a time entry
+ */
+export async function deleteTimeEntry(id: string): Promise<void> {
+  const { error } = await supabase.from("client_time_entries").delete().eq("id", id)
+  if (error) throw error
+}
+
+/**
+ * Get time summary for a client
+ */
+export async function getClientTimeSummary(clientId: string): Promise<ClientTimeSummary> {
+  // Try to use the database function first
+  const { data: functionData, error: functionError } = await supabase.rpc(
+    "get_client_total_time",
+    { client_uuid: clientId }
+  )
+
+  if (!functionError && functionData && functionData.length > 0) {
+    const result = functionData[0]
+    return {
+      client_id: clientId,
+      total_minutes: result.total_minutes || 0,
+      total_hours: result.total_hours || 0,
+      meeting_minutes: result.meeting_minutes || 0,
+      email_minutes: result.email_minutes || 0,
+      implementation_minutes: result.implementation_minutes || 0,
+      entry_count: 0, // Will be calculated separately
+    }
+  }
+
+  // Fallback to manual calculation
+  const entries = await getClientTimeEntries(clientId)
+  const totalMinutes = entries.reduce((sum, e) => sum + e.duration_minutes, 0)
+
+  return {
+    client_id: clientId,
+    total_minutes: totalMinutes,
+    total_hours: totalMinutes / 60.0,
+    meeting_minutes: entries
+      .filter((e) => e.entry_type === "meeting")
+      .reduce((sum, e) => sum + e.duration_minutes, 0),
+    email_minutes: entries
+      .filter((e) => e.entry_type === "email")
+      .reduce((sum, e) => sum + e.duration_minutes, 0),
+    implementation_minutes: entries
+      .filter((e) => e.entry_type === "implementation")
+      .reduce((sum, e) => sum + e.duration_minutes, 0),
+    entry_count: entries.length,
+  }
+}
+
+/**
+ * Get time summaries for all clients
+ */
+export async function getAllClientTimeSummaries(): Promise<
+  (ClientTimeSummary & { client_name?: string; client_acv?: number })[]
+> {
+  const { data: entries, error: entriesError } = await supabase
+    .from("client_time_entries")
+    .select("client_id, entry_type, duration_minutes, client:clients(name, revenue_amount)")
+
+  if (entriesError) throw entriesError
+
+  const clientSummaries: Record<
+    string,
+    ClientTimeSummary & { client_name?: string; client_acv?: number }
+  > = {}
+
+  entries.forEach((entry: any) => {
+    const clientId = entry.client_id
+    if (!clientSummaries[clientId]) {
+      clientSummaries[clientId] = {
+        client_id: clientId,
+        total_minutes: 0,
+        total_hours: 0,
+        meeting_minutes: 0,
+        email_minutes: 0,
+        implementation_minutes: 0,
+        entry_count: 0,
+        client_name: entry.client?.name,
+        client_acv: entry.client?.revenue_amount,
+      }
+    }
+
+    clientSummaries[clientId].total_minutes += entry.duration_minutes
+    clientSummaries[clientId].total_hours = clientSummaries[clientId].total_minutes / 60.0
+    clientSummaries[clientId].entry_count++
+
+    if (entry.entry_type === "meeting") {
+      clientSummaries[clientId].meeting_minutes += entry.duration_minutes
+    } else if (entry.entry_type === "email") {
+      clientSummaries[clientId].email_minutes += entry.duration_minutes
+    } else if (entry.entry_type === "implementation") {
+      clientSummaries[clientId].implementation_minutes += entry.duration_minutes
+    }
+  })
+
+  return Object.values(clientSummaries)
+}

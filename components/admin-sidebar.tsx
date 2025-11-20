@@ -31,8 +31,11 @@ const navigation = [
   },
   {
     name: "Analytics",
-    href: "/admin/analytics",
     icon: TrendingUp,
+    children: [
+      { name: "Analytics Dashboard", href: "/admin/analytics" },
+      { name: "Time Tracking", href: "/admin/analytics/time-tracking" },
+    ] as NavChild[],
   },
   // {
   //   name: "Client Follow-ups",
