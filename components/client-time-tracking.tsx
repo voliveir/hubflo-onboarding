@@ -36,12 +36,14 @@ interface ClientTimeTrackingProps {
   clientId: string
   clientName: string
   clientACV?: number
+  clientPackage?: string
 }
 
 export function ClientTimeTracking({
   clientId,
   clientName,
   clientACV = 0,
+  clientPackage = "",
 }: ClientTimeTrackingProps) {
   const [entries, setEntries] = useState<TimeEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -198,12 +200,32 @@ export function ClientTimeTracking({
     return `${mins}m`
   }
 
+  const formatDateString = (dateString: string) => {
+    // Format YYYY-MM-DD to MM/DD/YYYY without timezone conversion
+    if (!dateString) return ""
+    const [year, month, day] = dateString.split("-")
+    return `${month}/${day}/${year}`
+  }
+
   const calculateTimeToACVRatio = (totalHours: number, acv: number) => {
     if (!acv || acv === 0) return null
     return (totalHours / acv) * 1000 // Hours per $1000 ACV
   }
 
   const HOURLY_RATE = 85 // Fully loaded cost of implementation hourly rate
+
+  const getPackageCost = (packageType: string): number => {
+    const packageCosts: Record<string, number> = {
+      light: 0,
+      premium: 599,
+      gold: 990,
+      elite: 1600,
+      starter: 0,
+      professional: 599,
+      enterprise: 1600,
+    }
+    return packageCosts[packageType?.toLowerCase()] || 0
+  }
 
   const calculateBreakevenTimeline = (totalHours: number, acv: number) => {
     if (!acv || acv === 0 || totalHours === 0) return null
@@ -215,6 +237,19 @@ export function ClientTimeTracking({
     if (!acv || acv === 0 || totalHours === 0) return null
     const totalCost = totalHours * HOURLY_RATE
     return acv / totalCost // Higher is better
+  }
+
+  const calculatePackageROI = (totalHours: number, packageCost: number) => {
+    if (!packageCost || packageCost === 0 || totalHours === 0) return null
+    const totalCost = totalHours * HOURLY_RATE
+    if (totalCost === 0) return null
+    return totalCost / packageCost // Ratio of actual cost to package cost (lower is better)
+  }
+
+  const calculatePackageCostSavings = (totalHours: number, packageCost: number) => {
+    if (packageCost === 0) return null // Free packages
+    const totalCost = totalHours * HOURLY_RATE
+    return totalCost - packageCost // Positive = over budget, Negative = under budget
   }
 
   return (
@@ -412,20 +447,22 @@ export function ClientTimeTracking({
         )}
 
         {/* ROI Metrics */}
-        {summary && clientACV > 0 && (
+        {summary && (clientACV > 0 || getPackageCost(clientPackage) > 0) && (
           <div className="mb-6 space-y-4">
-            <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <div className="text-sm text-white/70">Time to ACV Ratio</div>
-                  <div className="text-lg font-bold text-white mt-1">
-                    {calculateTimeToACVRatio(summary.total_hours || 0, clientACV)?.toFixed(2) || "0.00"}{" "}
-                    hrs per $1k ACV
+            {clientACV > 0 && (
+              <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <div className="text-sm text-white/70">Time to ACV Ratio</div>
+                    <div className="text-lg font-bold text-white mt-1">
+                      {calculateTimeToACVRatio(summary.total_hours || 0, clientACV)?.toFixed(2) || "0.00"}{" "}
+                      hrs per $1k ACV
+                    </div>
                   </div>
+                  <TrendingUp className="h-8 w-8 text-[#F2C94C]" />
                 </div>
-                <TrendingUp className="h-8 w-8 text-[#F2C94C]" />
               </div>
-            </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
                 <div className="text-sm text-white/70 mb-1">Implementation Cost</div>
@@ -436,9 +473,9 @@ export function ClientTimeTracking({
                   {summary.total_hours?.toFixed(1) || 0} hours × ${HOURLY_RATE}/hr
                 </div>
               </div>
-              {calculateBreakevenTimeline(summary.total_hours || 0, clientACV) !== null && (
+              {clientACV > 0 && calculateBreakevenTimeline(summary.total_hours || 0, clientACV) !== null && (
                 <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
-                  <div className="text-sm text-white/70 mb-1">Breakeven Timeline</div>
+                  <div className="text-sm text-white/70 mb-1">Breakeven Timeline (ACV)</div>
                   <div className="text-xl font-bold text-blue-400">
                     {calculateBreakevenTimeline(summary.total_hours || 0, clientACV)?.toFixed(1)} months
                   </div>
@@ -447,9 +484,9 @@ export function ClientTimeTracking({
                   </div>
                 </div>
               )}
-              {calculateROIEfficiencyScore(summary.total_hours || 0, clientACV) !== null && (
+              {clientACV > 0 && calculateROIEfficiencyScore(summary.total_hours || 0, clientACV) !== null && (
                 <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
-                  <div className="text-sm text-white/70 mb-1">ROI Efficiency Score</div>
+                  <div className="text-sm text-white/70 mb-1">ROI Efficiency Score (ACV)</div>
                   <div className={`text-xl font-bold ${
                     (calculateROIEfficiencyScore(summary.total_hours || 0, clientACV) || 0) >= 10 
                       ? 'text-green-400' 
@@ -463,6 +500,51 @@ export function ClientTimeTracking({
                     ACV / Implementation Cost (higher is better)
                   </div>
                 </div>
+              )}
+              {getPackageCost(clientPackage) > 0 && (
+                <>
+                  <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
+                    <div className="text-sm text-white/70 mb-1">Package Cost</div>
+                    <div className="text-xl font-bold text-white">
+                      ${getPackageCost(clientPackage).toLocaleString()}
+                    </div>
+                    <div className="text-xs text-white/60 mt-1 capitalize">
+                      {clientPackage} Package
+                    </div>
+                  </div>
+                  {calculatePackageCostSavings(summary.total_hours || 0, getPackageCost(clientPackage)) !== null && (
+                    <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
+                      <div className="text-sm text-white/70 mb-1">Cost vs Package</div>
+                      <div className={`text-xl font-bold ${
+                        (calculatePackageCostSavings(summary.total_hours || 0, getPackageCost(clientPackage)) || 0) <= 0
+                          ? 'text-green-400'
+                          : 'text-red-400'
+                      }`}>
+                        {calculatePackageCostSavings(summary.total_hours || 0, getPackageCost(clientPackage))! < 0
+                          ? `$${Math.abs(calculatePackageCostSavings(summary.total_hours || 0, getPackageCost(clientPackage))!).toLocaleString()} under`
+                          : `$${calculatePackageCostSavings(summary.total_hours || 0, getPackageCost(clientPackage))!.toLocaleString()} over`}
+                      </div>
+                      <div className="text-xs text-white/60 mt-1">
+                        Actual cost vs package price
+                      </div>
+                    </div>
+                  )}
+                  {calculatePackageROI(summary.total_hours || 0, getPackageCost(clientPackage)) !== null && (
+                    <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
+                      <div className="text-sm text-white/70 mb-1">Cost Ratio</div>
+                      <div className={`text-xl font-bold ${
+                        (calculatePackageROI(summary.total_hours || 0, getPackageCost(clientPackage)) || 0) <= 1
+                          ? 'text-green-400'
+                          : 'text-red-400'
+                      }`}>
+                        {calculatePackageROI(summary.total_hours || 0, getPackageCost(clientPackage))?.toFixed(2)}x
+                      </div>
+                      <div className="text-xs text-white/60 mt-1">
+                        Actual Cost / Package Cost {calculatePackageROI(summary.total_hours || 0, getPackageCost(clientPackage))! <= 1 ? '(under budget)' : '(over budget)'}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -494,7 +576,7 @@ export function ClientTimeTracking({
                     className="border-slate-700 hover:bg-[#0d1120]"
                   >
                     <TableCell className="text-white">
-                      {new Date(entry.date).toLocaleDateString()}
+                      {formatDateString(entry.date)}
                     </TableCell>
                     <TableCell className="text-white">
                       <div className="flex items-center gap-2">

@@ -229,6 +229,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
                     clientId={client.id}
                     clientName={client.name}
                     clientACV={client.revenue_amount}
+                    clientPackage={client.success_package}
                   />
                 </div>
 

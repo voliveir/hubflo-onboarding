@@ -3112,17 +3112,17 @@ export async function getClientTimeSummary(clientId: string): Promise<ClientTime
  * Get time summaries for all clients
  */
 export async function getAllClientTimeSummaries(): Promise<
-  (ClientTimeSummary & { client_name?: string; client_acv?: number })[]
+  (ClientTimeSummary & { client_name?: string; client_acv?: number; client_package?: string })[]
 > {
   const { data: entries, error: entriesError } = await supabase
     .from("client_time_entries")
-    .select("client_id, entry_type, duration_minutes, client:clients(name, revenue_amount)")
+    .select("client_id, entry_type, duration_minutes, client:clients(name, revenue_amount, success_package)")
 
   if (entriesError) throw entriesError
 
   const clientSummaries: Record<
     string,
-    ClientTimeSummary & { client_name?: string; client_acv?: number }
+    ClientTimeSummary & { client_name?: string; client_acv?: number; client_package?: string }
   > = {}
 
   entries.forEach((entry: any) => {
@@ -3138,6 +3138,7 @@ export async function getAllClientTimeSummaries(): Promise<
         entry_count: 0,
         client_name: entry.client?.name,
         client_acv: entry.client?.revenue_amount,
+        client_package: entry.client?.success_package,
       }
     }
 

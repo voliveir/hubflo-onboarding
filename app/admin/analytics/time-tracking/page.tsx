@@ -204,6 +204,10 @@ export default function TimeTrackingPage() {
     return clients.find((c) => c.id === clientId)?.revenue_amount || 0
   }
 
+  const getClientPackage = (clientId: string) => {
+    return clients.find((c) => c.id === clientId)?.success_package || ""
+  }
+
   const getEntryTypeIcon = (type: string) => {
     switch (type) {
       case "meeting":
@@ -300,12 +304,32 @@ export default function TimeTrackingPage() {
     return `${mins}m`
   }
 
+  const formatDateString = (dateString: string) => {
+    // Format YYYY-MM-DD to MM/DD/YYYY without timezone conversion
+    if (!dateString) return ""
+    const [year, month, day] = dateString.split("-")
+    return `${month}/${day}/${year}`
+  }
+
   const calculateTimeToACVRatio = (totalHours: number, acv: number) => {
     if (!acv || acv === 0) return null
     return (totalHours / acv) * 1000 // Hours per $1000 ACV
   }
 
   const HOURLY_RATE = 85 // Fully loaded cost of implementation hourly rate
+
+  const getPackageCost = (packageType: string): number => {
+    const packageCosts: Record<string, number> = {
+      light: 0,
+      premium: 599,
+      gold: 990,
+      elite: 1600,
+      starter: 0,
+      professional: 599,
+      enterprise: 1600,
+    }
+    return packageCosts[packageType?.toLowerCase()] || 0
+  }
 
   const calculateBreakevenTimeline = (totalHours: number, acv: number) => {
     if (!acv || acv === 0 || totalHours === 0) return null
@@ -317,6 +341,19 @@ export default function TimeTrackingPage() {
     if (!acv || acv === 0 || totalHours === 0) return null
     const totalCost = totalHours * HOURLY_RATE
     return acv / totalCost // Higher is better
+  }
+
+  const calculatePackageROI = (totalHours: number, packageCost: number) => {
+    if (!packageCost || packageCost === 0 || totalHours === 0) return null
+    const totalCost = totalHours * HOURLY_RATE
+    if (totalCost === 0) return null
+    return totalCost / packageCost // Ratio of actual cost to package cost (lower is better)
+  }
+
+  const calculatePackageCostSavings = (totalHours: number, packageCost: number) => {
+    if (packageCost === 0) return null // Free packages
+    const totalCost = totalHours * HOURLY_RATE
+    return totalCost - packageCost // Positive = over budget, Negative = under budget
   }
 
   return (
@@ -663,53 +700,77 @@ export default function TimeTrackingPage() {
               <div className="space-y-6 mb-6">
                 {/* Time Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {summary.map((s: any, idx: number) => {
-                    const clientName = s.client_id ? getClientName(s.client_id) : "All Clients"
-                    const acv = s.client_id ? getClientACV(s.client_id) : 0
-                    const timeToACV = calculateTimeToACVRatio(s.total_hours || 0, acv)
-                    const totalCost = (s.total_hours || 0) * HOURLY_RATE
-                    const breakevenTimeline = calculateBreakevenTimeline(s.total_hours || 0, acv)
-                    const roiEfficiencyScore = calculateROIEfficiencyScore(s.total_hours || 0, acv)
+                {summary.map((s: any, idx: number) => {
+                  const clientName = s.client_name || (s.client_id ? getClientName(s.client_id) : "All Clients")
+                  const acv = s.client_acv || (s.client_id ? getClientACV(s.client_id) : 0)
+                  const packageType = s.client_package || (s.client_id ? getClientPackage(s.client_id) : "")
+                  const packageCost = getPackageCost(packageType)
+                  const timeToACV = calculateTimeToACVRatio(s.total_hours || 0, acv)
+                  const totalCost = (s.total_hours || 0) * HOURLY_RATE
+                  const breakevenTimeline = calculateBreakevenTimeline(s.total_hours || 0, acv)
+                  const roiEfficiencyScore = calculateROIEfficiencyScore(s.total_hours || 0, acv)
+                  const packageROI = calculatePackageROI(s.total_hours || 0, packageCost)
+                  const packageCostSavings = calculatePackageCostSavings(s.total_hours || 0, packageCost)
 
-                    return (
-                      <Card
-                        key={idx}
-                        className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6"
-                      >
-                        <div className="text-sm text-white/70 mb-2">{clientName}</div>
-                        <div className="text-2xl font-bold text-white mb-1">
-                          {formatDuration(s.total_minutes || 0)}
+                  return (
+                    <Card
+                      key={idx}
+                      className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6"
+                    >
+                      <div className="text-sm text-white/70 mb-2">{clientName}</div>
+                      <div className="text-2xl font-bold text-white mb-1">
+                        {formatDuration(s.total_minutes || 0)}
+                      </div>
+                      <div className="text-xs text-white/60 mb-3">
+                        {s.total_hours?.toFixed(1) || 0} hours
+                      </div>
+                      {timeToACV !== null && (
+                        <div className="text-xs text-yellow-400 mb-1">
+                          {timeToACV.toFixed(2)} hrs per $1k ACV
                         </div>
-                        <div className="text-xs text-white/60 mb-3">
-                          {s.total_hours?.toFixed(1) || 0} hours
-                        </div>
-                        {timeToACV !== null && (
-                          <div className="text-xs text-yellow-400 mb-1">
-                            {timeToACV.toFixed(2)} hrs per $1k ACV
+                      )}
+                      {acv > 0 && (
+                        <>
+                          <div className="text-xs text-white/60 mt-3 pt-3 border-t border-slate-700">
+                            <div className="mb-1">Implementation Cost: ${totalCost.toLocaleString()}</div>
+                            {breakevenTimeline !== null && (
+                              <div className="mb-1">
+                                Breakeven (ACV): <span className="text-blue-400 font-semibold">{breakevenTimeline.toFixed(1)} months</span>
+                              </div>
+                            )}
+                            {roiEfficiencyScore !== null && (
+                              <div className="mb-1">
+                                ROI Score (ACV): <span className={`font-semibold ${roiEfficiencyScore >= 10 ? 'text-green-400' : roiEfficiencyScore >= 5 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                  {roiEfficiencyScore.toFixed(2)}x
+                                </span>
+                              </div>
+                            )}
                           </div>
-                        )}
-                        {acv > 0 && (
-                          <>
-                            <div className="text-xs text-white/60 mt-3 pt-3 border-t border-slate-700">
-                              <div className="mb-1">Implementation Cost: ${totalCost.toLocaleString()}</div>
-                              {breakevenTimeline !== null && (
-                                <div className="mb-1">
-                                  Breakeven: <span className="text-blue-400 font-semibold">{breakevenTimeline.toFixed(1)} months</span>
-                                </div>
-                              )}
-                              {roiEfficiencyScore !== null && (
-                                <div>
-                                  ROI Score: <span className={`font-semibold ${roiEfficiencyScore >= 10 ? 'text-green-400' : roiEfficiencyScore >= 5 ? 'text-yellow-400' : 'text-red-400'}`}>
-                                    {roiEfficiencyScore.toFixed(2)}x
-                                  </span>
-                                </div>
-                              )}
+                        </>
+                      )}
+                      {packageCost > 0 && (
+                        <div className="text-xs text-white/60 mt-3 pt-3 border-t border-slate-700">
+                          <div className="mb-1">Package Cost: ${packageCost.toLocaleString()}</div>
+                          {packageCostSavings !== null && (
+                            <div className="mb-1">
+                              Cost vs Package: <span className={`font-semibold ${packageCostSavings <= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {packageCostSavings < 0 ? `$${Math.abs(packageCostSavings).toLocaleString()} under` : `$${packageCostSavings.toLocaleString()} over`}
+                              </span>
                             </div>
-                          </>
-                        )}
-                      </Card>
-                    )
-                  })}
+                          )}
+                          {packageROI !== null && (
+                            <div>
+                              Cost Ratio: <span className={`font-semibold ${packageROI <= 1 ? 'text-green-400' : 'text-red-400'}`}>
+                                {packageROI.toFixed(2)}x
+                              </span>
+                              <span className="text-white/50 ml-1">({packageROI <= 1 ? 'under budget' : 'over budget'})</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </Card>
+                  )
+                })}
                 </div>
               </div>
             )}
@@ -754,7 +815,7 @@ export default function TimeTrackingPage() {
                             className="border-slate-700 hover:bg-[#0d1120]"
                           >
                             <TableCell className="text-white">
-                              {new Date(entry.date).toLocaleDateString()}
+                              {formatDateString(entry.date)}
                             </TableCell>
                             <TableCell className="text-white">{clientName}</TableCell>
                             <TableCell className="text-white">
