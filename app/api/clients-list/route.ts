@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       }
     }
     
-    // Otherwise, return list of clients with id, name, and revenue_amount
+    // Otherwise, return list of clients with id, name, revenue_amount, and implementation_manager
     const clients = await getAllClients()
     return NextResponse.json(
       clients
@@ -42,6 +42,7 @@ export async function GET(req: NextRequest) {
           id: c.id,
           name: c.name,
           revenue_amount: c.revenue_amount,
+          implementation_manager: c.implementation_manager,
         }))
     )
   } catch (e) {
