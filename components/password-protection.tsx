@@ -24,9 +24,39 @@ export function PasswordProtection({ children }: PasswordProtectionProps) {
 
   useEffect(() => {
     // Check if user is already authenticated in this session
-    const isAuth = sessionStorage.getItem(SESSION_KEY) === "true"
-    setIsAuthenticated(isAuth)
-    setIsLoading(false)
+    const checkAuth = () => {
+      const isAuth = sessionStorage.getItem(SESSION_KEY) === "true"
+      setIsAuthenticated(isAuth)
+      setIsLoading(false)
+    }
+    
+    // Initial check
+    checkAuth()
+    
+    // Listen for extension authentication event
+    const handleExtensionAuth = () => {
+      checkAuth()
+    }
+    
+    window.addEventListener('hubfloExtensionAuth', handleExtensionAuth)
+    
+    // Also check periodically in case content script runs after component mounts
+    const interval = setInterval(checkAuth, 500)
+    
+    // Check on storage events (in case sessionStorage is set from another tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === SESSION_KEY) {
+        checkAuth()
+      }
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    
+    return () => {
+      window.removeEventListener('hubfloExtensionAuth', handleExtensionAuth)
+      window.removeEventListener('storage', handleStorageChange)
+      clearInterval(interval)
+    }
   }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
