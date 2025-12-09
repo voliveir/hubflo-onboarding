@@ -42,6 +42,8 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
   const [showChurnRiskModal, setShowChurnRiskModal] = useState(false);
   // 2. Add state for churned clients modal
   const [showChurnedClientsModal, setShowChurnedClientsModal] = useState(false);
+  // Add state for expiring contracts modal
+  const [showExpiringContractsModal, setShowExpiringContractsModal] = useState(false);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -336,6 +338,44 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
                     <tr key={client.id} className="border-b border-[#23244a] hover:bg-[#23244a]/40">
                       <td className="py-2 px-3">{client.name}</td>
                       <td className="py-2 px-3">{client.implementation_manager ?? '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 6. Expiring Contracts Modal component
+  function ExpiringContractsModal({ open, onClose, clients }: { open: boolean, onClose: () => void, clients: any[] }) {
+    if (!open) return null;
+    const safeClients = Array.isArray(clients) ? clients : [];
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+        <div className="bg-[#181a2f] rounded-2xl shadow-2xl p-8 w-full max-w-2xl relative">
+          <button onClick={onClose} className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-gold-400">×</button>
+          <h3 className="text-xl font-bold text-white mb-4">Expiring Contracts (90d)</h3>
+          <div className="overflow-y-auto max-h-[60vh]">
+            <table className="min-w-full text-white">
+              <thead>
+                <tr className="border-b border-[#23244a]">
+                  <th className="py-2 px-3 text-left">Name</th>
+                  <th className="py-2 px-3 text-left">Contract End Date</th>
+                  <th className="py-2 px-3 text-left">Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {safeClients.length === 0 ? (
+                  <tr><td colSpan={3} className="py-4 text-center text-slate-400">No contracts expiring in the next 90 days.</td></tr>
+                ) : (
+                  safeClients.map((client, idx) => (
+                    <tr key={client.id} className="border-b border-[#23244a] hover:bg-[#23244a]/40">
+                      <td className="py-2 px-3">{client.name}</td>
+                      <td className="py-2 px-3">{client.end ? new Date(client.end).toLocaleDateString() : '-'}</td>
+                      <td className="py-2 px-3">${typeof client.revenue === 'number' ? client.revenue.toLocaleString() : (client.revenue || '-')}</td>
                     </tr>
                   ))
                 )}
@@ -842,7 +882,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
             </div>
             <div className="text-3xl font-extrabold text-yellow-300">{data.implementationHealth?.atRiskClients ?? '-'}</div>
           </Card>
-          <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
+          <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] cursor-pointer hover:border-gold-400 transition-colors" onClick={() => setShowExpiringContractsModal(true)}>
             <div className="text-base text-white mb-1 font-medium">
               <div className="flex items-center gap-1">
                 <span>Expiring Contracts (90d)</span>
@@ -851,7 +891,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
                     <TooltipTrigger asChild>
                       <HelpCircle
                         className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={() => setOpenMetricModal('expiringContracts')}
+                        onClick={e => { e.stopPropagation(); setOpenMetricModal('expiringContracts'); }}
                       />
                     </TooltipTrigger>
                     <TooltipContent side="top">Clients with contracts ending in the next 90 days.</TooltipContent>
@@ -1367,6 +1407,11 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
         open={showChurnedClientsModal}
         onClose={() => setShowChurnedClientsModal(false)}
         clients={data.churnedClientList || []}
+      />
+      <ExpiringContractsModal
+        open={showExpiringContractsModal}
+        onClose={() => setShowExpiringContractsModal(false)}
+        clients={data.contractRenewal?.expiring90 || []}
       />
       {/* Success Package Breakdown */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
