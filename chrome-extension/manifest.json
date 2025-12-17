@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Hubflo Implementation Manager",
+  "version": "1.0.0",
+  "description": "Quick access to client management and time tracking for implementhubflo.com",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "sidePanel",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://implementhubflo.com/*",
+    "http://localhost:3000/*"
+  ],
+  "action": {},
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://implementhubflo.com/*",
+        "http://localhost:3000/*"
+      ],
+      "js": ["content-script.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "options_page": "options.html"
+}
+

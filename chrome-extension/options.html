@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hubflo Manager - Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚙️ Settings</h1>
+      <p class="subtitle">Configure your Hubflo Manager extension</p>
+    </div>
+
+    <div class="settings-section">
+      <div class="setting-item">
+        <label for="apiUrl">API Base URL</label>
+        <input type="text" id="apiUrl" class="input" placeholder="https://implementhubflo.com">
+        <p class="help-text">The base URL for your Hubflo implementation site</p>
+      </div>
+
+      <div class="setting-item">
+        <label class="toggle-label">
+          <input type="checkbox" id="autoAuth" checked>
+          <span>Auto-authenticate on implementhubflo.com</span>
+        </label>
+        <p class="help-text">Automatically bypass password protection when visiting implementhubflo.com</p>
+      </div>
+
+      <div class="actions">
+        <button id="saveBtn" class="btn btn-primary">💾 Save Settings</button>
+        <button id="testBtn" class="btn btn-secondary">🔍 Test Connection</button>
+      </div>
+
+      <div id="status" class="status-message"></div>
+    </div>
+
+    <div class="info-section">
+      <h2>About</h2>
+      <p>Hubflo Implementation Manager extension allows you to quickly track time and manage clients without opening the full dashboard.</p>
+      
+      <h3>Features</h3>
+      <ul>
+        <li>Quick time entry creation</li>
+        <li>Client list browsing</li>
+        <li>Quick access to client pages</li>
+        <li>Direct link to dashboard</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
+

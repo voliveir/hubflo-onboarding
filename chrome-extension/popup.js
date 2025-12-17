@@ -20,6 +20,23 @@ let activeFilters = {
   client: 'all'
 };
 
+// Timer State
+let timerState = {
+  isRunning: false,
+  startTime: null,
+  elapsedSeconds: 0,
+  intervalId: null
+};
+
+// Task Timer State (separate from time entry timer)
+let taskTimerState = {
+  taskId: null,
+  isRunning: false,
+  startTime: null,
+  elapsedSeconds: 0,
+  intervalId: null
+};
+
 // ROI Constants
 const HOURLY_RATE = 85; // Fully loaded cost of implementation hourly rate
 
@@ -43,6 +60,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Load today's summary on init
   loadTodaySummary();
+  
+  // Initialize timer
+  initializeTimer();
+  
+  // Request notification permission
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  
+  // Initialize badge
+  updateTimerBadge();
 });
 
 // Load settings from storage
@@ -96,6 +124,50 @@ function setupEventListeners() {
     chrome.runtime.openOptionsPage();
   });
 
+  // Quick Actions menu
+  const quickActionsBtn = document.getElementById('quickActionsBtn');
+  const quickActionsMenu = document.getElementById('quickActionsMenu');
+  
+  if (quickActionsBtn && quickActionsMenu) {
+    quickActionsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = quickActionsMenu.style.display !== 'none';
+      
+      if (!isVisible) {
+        // Calculate position relative to button
+        const btnRect = quickActionsBtn.getBoundingClientRect();
+        const menuRect = quickActionsMenu.getBoundingClientRect();
+        const headerActions = quickActionsBtn.closest('.header-actions');
+        
+        // Position menu below button, aligned to right
+        quickActionsMenu.style.display = 'block';
+        quickActionsMenu.style.position = 'absolute';
+        quickActionsMenu.style.top = 'calc(100% + 8px)';
+        quickActionsMenu.style.right = '0';
+        quickActionsMenu.style.left = 'auto';
+      } else {
+        quickActionsMenu.style.display = 'none';
+      }
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!quickActionsMenu.contains(e.target) && e.target !== quickActionsBtn && !quickActionsBtn.contains(e.target)) {
+        quickActionsMenu.style.display = 'none';
+      }
+    });
+    
+    // Handle quick action clicks
+    quickActionsMenu.querySelectorAll('.quick-action-item').forEach(item => {
+      item.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const action = item.dataset.action;
+        await handleQuickAction(action);
+        quickActionsMenu.style.display = 'none';
+      });
+    });
+  }
+
 
   // Client selector is now handled by setupSearchableDropdown()
   // The hidden input will be updated when a client is selected from the dropdown
@@ -105,6 +177,14 @@ function setupEventListeners() {
   document.getElementById('saveClientBtn').addEventListener('click', saveClient);
   document.getElementById('saveTrackingBtn').addEventListener('click', saveTracking);
   document.getElementById('saveWhiteLabelBtn').addEventListener('click', saveWhiteLabel);
+
+  // Timer buttons
+  document.getElementById('timerStartStopBtn').addEventListener('click', toggleTimer);
+  document.getElementById('timerResetBtn').addEventListener('click', resetTimer);
+
+  // Task timer buttons
+  document.getElementById('taskTimerStartStopBtn').addEventListener('click', toggleTaskTimer);
+  document.getElementById('taskTimerResetBtn').addEventListener('click', resetTaskTimer);
 
   // Tracking increment buttons - use event delegation since buttons are in tab content
   document.addEventListener('click', (e) => {
@@ -323,13 +403,14 @@ async function loadClients() {
     const allClients = await response.json();
     
     // Filter to only Vanessa's clients (exclude Vishal and others)
-    // Include clients with null/undefined implementation_manager (defaults to Vanessa)
+    // Only include clients explicitly assigned to Vanessa
     clients = allClients.filter(client => {
       const manager = client.implementation_manager?.toLowerCase();
-      // Include if null/undefined (defaults to Vanessa) or explicitly 'vanessa'
-      // Exclude if explicitly 'vishal' or any other value
-      return !manager || manager === 'vanessa';
+      // Only include if explicitly 'vanessa', exclude everything else (null, undefined, 'vishal', etc.)
+      return manager === 'vanessa';
     });
+    
+    console.log(`[Chrome Extension] Loaded ${clients.length} clients assigned to Vanessa (out of ${allClients.length} total)`);
     
     // Render dropdown list
     renderClientDropdown(clients);
@@ -958,6 +1039,429 @@ function populateClientForms() {
   updateNotesQuickView();
 }
 
+// Timer Functions
+function initializeTimer() {
+  // Restore timer state from storage
+  chrome.storage.local.get(['timerState'], (result) => {
+    if (result.timerState) {
+      const savedState = result.timerState;
+      const now = Date.now();
+      
+      // If timer was running, calculate elapsed time
+      if (savedState.isRunning && savedState.startTime) {
+        const elapsedSinceStart = Math.floor((now - savedState.startTime) / 1000);
+        timerState.elapsedSeconds = savedState.elapsedSeconds + elapsedSinceStart;
+        timerState.startTime = savedState.startTime;
+        timerState.isRunning = true;
+        
+        // Resume timer
+        startTimer();
+      } else {
+        timerState.elapsedSeconds = savedState.elapsedSeconds || 0;
+        timerState.isRunning = false;
+        updateTimerDisplay();
+        updateDurationFromTimer();
+      }
+    } else {
+      updateTimerDisplay();
+    }
+  });
+}
+
+function toggleTimer() {
+  if (timerState.isRunning) {
+    stopTimer();
+  } else {
+    startTimer();
+  }
+}
+
+function startTimer() {
+  if (!timerState.isRunning) {
+    timerState.isRunning = true;
+    timerState.startTime = Date.now() - (timerState.elapsedSeconds * 1000);
+    
+    // Update display every second
+    timerState.intervalId = setInterval(() => {
+      const now = Date.now();
+      timerState.elapsedSeconds = Math.floor((now - timerState.startTime) / 1000);
+      updateTimerDisplay();
+      updateDurationFromTimer();
+      persistTimerState();
+      updateTimerBadge(); // Update badge every second when running
+    }, 1000);
+    
+    // Update UI
+    const btn = document.getElementById('timerStartStopBtn');
+    btn.className = 'btn btn-timer btn-stop';
+    btn.innerHTML = '<span>⏸</span> Stop Timer';
+    
+    document.getElementById('timerResetBtn').style.display = 'none';
+    document.getElementById('timerInfo').style.display = 'block';
+    
+    updateTimerDisplay();
+    updateTimerBadge();
+    persistTimerState();
+  }
+}
+
+function stopTimer() {
+  if (timerState.isRunning) {
+    timerState.isRunning = false;
+    
+    if (timerState.intervalId) {
+      clearInterval(timerState.intervalId);
+      timerState.intervalId = null;
+    }
+    
+    // Update UI
+    const btn = document.getElementById('timerStartStopBtn');
+    btn.className = 'btn btn-timer btn-start';
+    btn.innerHTML = '<span>▶</span> Start Timer';
+    
+    document.getElementById('timerResetBtn').style.display = 'inline-flex';
+    document.getElementById('timerInfo').style.display = 'none';
+    
+    // Update badge icon
+    updateTimerBadge();
+    
+    persistTimerState();
+    
+    // Auto-logging: Prompt user to save if timer has significant time
+    if (timerState.elapsedSeconds >= 60) { // At least 1 minute
+      promptAutoLogTime();
+    }
+  }
+}
+
+function resetTimer() {
+  stopTimer();
+  timerState.elapsedSeconds = 0;
+  timerState.startTime = null;
+  updateTimerDisplay();
+  
+  // Reset duration field to default
+  const durationInput = document.getElementById('duration');
+  if (durationInput) {
+    durationInput.value = '30';
+  }
+  
+  updateTimerBadge();
+  persistTimerState();
+  
+  // Clear from storage
+  chrome.storage.local.remove(['timerState']);
+}
+
+function updateTimerDisplay() {
+  const hours = Math.floor(timerState.elapsedSeconds / 3600);
+  const minutes = Math.floor((timerState.elapsedSeconds % 3600) / 60);
+  const seconds = timerState.elapsedSeconds % 60;
+  
+  const display = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  document.getElementById('timerDisplay').textContent = display;
+}
+
+function updateDurationFromTimer() {
+  // Update duration field with minutes (rounded up)
+  const minutes = Math.ceil(timerState.elapsedSeconds / 60);
+  const durationInput = document.getElementById('duration');
+  if (durationInput && timerState.elapsedSeconds > 0) {
+    durationInput.value = minutes;
+  }
+}
+
+function persistTimerState() {
+  chrome.storage.local.set({
+    timerState: {
+      isRunning: timerState.isRunning,
+      startTime: timerState.startTime,
+      elapsedSeconds: timerState.elapsedSeconds
+    }
+  });
+}
+
+// Task Timer Functions
+function toggleTaskTimer() {
+  if (taskTimerState.isRunning) {
+    stopTaskTimer();
+  } else {
+    startTaskTimer();
+  }
+}
+
+function startTaskTimer() {
+  if (!taskTimerState.isRunning && taskTimerState.taskId) {
+    taskTimerState.isRunning = true;
+    taskTimerState.startTime = Date.now() - (taskTimerState.elapsedSeconds * 1000);
+    
+    // Update display every second
+    taskTimerState.intervalId = setInterval(() => {
+      const now = Date.now();
+      taskTimerState.elapsedSeconds = Math.floor((now - taskTimerState.startTime) / 1000);
+      updateTaskTimerDisplay();
+      updateTaskDurationFromTimer();
+      persistTaskTimerState();
+    }, 1000);
+    
+    // Update UI
+    const btn = document.getElementById('taskTimerStartStopBtn');
+    btn.className = 'btn btn-timer btn-stop';
+    btn.innerHTML = '<span>⏸</span> Stop Timer';
+    
+    document.getElementById('taskTimerResetBtn').style.display = 'inline-flex';
+    document.getElementById('taskTimerInfo').style.display = 'block';
+    
+    updateTaskTimerDisplay();
+    persistTaskTimerState();
+  }
+}
+
+function stopTaskTimer() {
+  if (taskTimerState.isRunning) {
+    taskTimerState.isRunning = false;
+    
+    if (taskTimerState.intervalId) {
+      clearInterval(taskTimerState.intervalId);
+      taskTimerState.intervalId = null;
+    }
+    
+    // Update UI
+    const btn = document.getElementById('taskTimerStartStopBtn');
+    btn.className = 'btn btn-timer btn-start';
+    btn.innerHTML = '<span>▶</span> Start Timer';
+    
+    document.getElementById('taskTimerResetBtn').style.display = 'inline-flex';
+    document.getElementById('taskTimerInfo').style.display = 'none';
+    
+    persistTaskTimerState();
+  }
+}
+
+function resetTaskTimer() {
+  stopTaskTimer();
+  taskTimerState.elapsedSeconds = 0;
+  taskTimerState.startTime = null;
+  updateTaskTimerDisplay();
+  
+  // Reset duration field
+  const durationInput = document.getElementById('taskDuration');
+  if (durationInput) {
+    durationInput.value = '';
+  }
+  
+  // Clear persisted state
+  if (taskTimerState.taskId) {
+    chrome.storage.local.remove([`taskTimer_${taskTimerState.taskId}`]);
+  }
+}
+
+function persistTaskTimerState() {
+  if (taskTimerState.taskId) {
+    chrome.storage.local.set({
+      [`taskTimer_${taskTimerState.taskId}`]: {
+        taskId: taskTimerState.taskId,
+        isRunning: taskTimerState.isRunning,
+        startTime: taskTimerState.startTime,
+        elapsedSeconds: taskTimerState.elapsedSeconds
+      }
+    });
+  }
+}
+
+function loadTaskTimerState(taskId) {
+  if (!taskId) {
+    resetTaskTimer();
+    return;
+  }
+  
+  // Check if task is already completed - if so, don't load timer
+  const task = tasks.find(t => t.id === taskId);
+  if (task && task.completed) {
+    // Task is completed, clear any existing timer state
+    clearTaskTimerState(taskId);
+    resetTaskTimer();
+    return;
+  }
+  
+  chrome.storage.local.get([`taskTimer_${taskId}`], (result) => {
+    const key = `taskTimer_${taskId}`;
+    if (result[key]) {
+      const savedState = result[key];
+      const now = Date.now();
+      
+      taskTimerState.taskId = taskId;
+      
+      // If timer was running, calculate elapsed time
+      if (savedState.isRunning && savedState.startTime) {
+        const elapsedSinceStart = Math.floor((now - savedState.startTime) / 1000);
+        taskTimerState.elapsedSeconds = savedState.elapsedSeconds + elapsedSinceStart;
+        taskTimerState.startTime = savedState.startTime;
+        taskTimerState.isRunning = true;
+        
+        // Resume timer
+        startTaskTimer();
+      } else {
+        taskTimerState.elapsedSeconds = savedState.elapsedSeconds || 0;
+        taskTimerState.isRunning = false;
+        updateTaskTimerDisplay();
+        updateTaskDurationFromTimer();
+      }
+    } else {
+      // No saved state, initialize fresh
+      taskTimerState.taskId = taskId;
+      taskTimerState.elapsedSeconds = 0;
+      taskTimerState.isRunning = false;
+      taskTimerState.startTime = null;
+      updateTaskTimerDisplay();
+    }
+  });
+}
+
+function clearTaskTimerState(taskId) {
+  if (taskId) {
+    chrome.storage.local.remove([`taskTimer_${taskId}`]);
+  }
+  // Also clear current state if it matches
+  if (taskTimerState.taskId === taskId) {
+    stopTaskTimer();
+    taskTimerState.taskId = null;
+    taskTimerState.elapsedSeconds = 0;
+    taskTimerState.startTime = null;
+  }
+}
+
+function updateTaskTimerDisplay() {
+  const hours = Math.floor(taskTimerState.elapsedSeconds / 3600);
+  const minutes = Math.floor((taskTimerState.elapsedSeconds % 3600) / 60);
+  const seconds = taskTimerState.elapsedSeconds % 60;
+  
+  const display = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  const displayElement = document.getElementById('taskTimerDisplay');
+  if (displayElement) {
+    displayElement.textContent = display;
+  }
+}
+
+function updateTaskDurationFromTimer() {
+  // Update task duration field with minutes (rounded up)
+  const minutes = Math.ceil(taskTimerState.elapsedSeconds / 60);
+  const durationInput = document.getElementById('taskDuration');
+  if (durationInput && taskTimerState.elapsedSeconds > 0) {
+    durationInput.value = minutes;
+  }
+}
+
+// Update extension badge icon with timer status
+function updateTimerBadge() {
+  if (timerState.isRunning && timerState.elapsedSeconds > 0) {
+    const minutes = Math.floor(timerState.elapsedSeconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const displayMinutes = minutes % 60;
+    
+    // Show timer in badge (e.g., "1:30" for 1 hour 30 minutes)
+    let badgeText = '';
+    if (hours > 0) {
+      badgeText = `${hours}:${String(displayMinutes).padStart(2, '0')}`;
+    } else {
+      badgeText = String(displayMinutes);
+    }
+    
+    // Limit badge text length
+    if (badgeText.length > 4) {
+      badgeText = badgeText.substring(0, 4);
+    }
+    
+    chrome.action.setBadgeText({ text: badgeText });
+    chrome.action.setBadgeBackgroundColor({ color: '#F2C94C' });
+  } else {
+    // Clear badge when timer is not running
+    chrome.action.setBadgeText({ text: '' });
+  }
+}
+
+// Prompt user to auto-log time when timer stops
+function promptAutoLogTime() {
+  const minutes = Math.ceil(timerState.elapsedSeconds / 60);
+  const clientId = currentClient?.id || 
+                   document.getElementById('clientSelectMain').value || 
+                   document.getElementById('clientSearchInput').dataset.clientId;
+  
+  if (!clientId) {
+    // No client selected, just show notification
+    showNotification('Timer stopped', `Tracked ${minutes} minutes. Select a client to log time.`);
+    return;
+  }
+  
+  // Check if form already has description (user may have filled it)
+  const description = document.getElementById('description').value;
+  const entryType = document.getElementById('entryType').value;
+  
+  // Show notification and prompt
+  const message = `Timer stopped: ${minutes} minutes tracked. Save this time entry?`;
+  
+  // Show notification
+  showNotification('Timer Stopped', `Tracked ${minutes} minutes for ${currentClient?.name || 'client'}`);
+  
+  // Auto-populate if description is empty
+  if (!description) {
+    const activityTypeNames = {
+      'meeting': 'Meeting',
+      'email': 'Email',
+      'initial_setup': 'Initial Setup',
+      'automation_workflow': 'Automation/Workflow',
+      'api_integration': 'API Integration',
+      'testing_debugging': 'Testing/Debugging',
+      'training_handoff': 'Training/Handoff',
+      'revisions_rework': 'Revisions/Rework',
+      'implementation': 'Implementation'
+    };
+    
+    const defaultDescription = `${activityTypeNames[entryType] || 'Work'} - Timer tracked`;
+    document.getElementById('description').value = defaultDescription;
+  }
+  
+  // Ensure date is set to today if not set
+  if (!document.getElementById('date').value) {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date').value = today;
+  }
+  
+  // Show a visual prompt in the UI
+  showStatus('info', `⏱️ Timer tracked ${minutes} minutes. Click "Save Time Entry" to log it.`, 'timeStatus');
+  
+  // Scroll to save button to make it visible
+  setTimeout(() => {
+    const saveBtn = document.getElementById('saveTimeBtn');
+    if (saveBtn) {
+      saveBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      saveBtn.style.animation = 'pulse 2s ease-in-out';
+      setTimeout(() => {
+        saveBtn.style.animation = '';
+      }, 2000);
+    }
+  }, 100);
+}
+
+// Show browser notification
+function showNotification(title, message) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, {
+      body: message,
+      icon: chrome.runtime.getURL('icons/icon48.png') || undefined
+    });
+  } else if ('Notification' in window && Notification.permission !== 'denied') {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        new Notification(title, {
+          body: message,
+          icon: chrome.runtime.getURL('icons/icon48.png') || undefined
+        });
+      }
+    });
+  }
+}
+
 // Save time entry
 async function saveTimeEntry() {
   // Try multiple sources for client ID (in order of reliability)
@@ -1011,6 +1515,12 @@ async function saveTimeEntry() {
       throw new Error(error.error || 'Failed to save time entry');
     }
 
+    // Stop and reset timer if it was running
+    if (timerState.isRunning) {
+      stopTimer();
+      resetTimer();
+    }
+    
     // Reset form
     document.getElementById('description').value = '';
     document.getElementById('notes').value = '';
@@ -1039,6 +1549,141 @@ async function saveTimeEntry() {
   } finally {
     saveBtn.disabled = false;
     saveBtn.innerHTML = '<span>💾</span> Save Time Entry';
+  }
+}
+
+// Handle Quick Actions
+async function handleQuickAction(action) {
+  const clientId = currentClient?.id || 
+                   document.getElementById('clientSelectMain').value || 
+                   document.getElementById('clientSearchInput').dataset.clientId;
+  
+  switch (action) {
+    case 'log-15min-meeting':
+      if (!clientId) {
+        showStatus('error', 'Please select a client first', 'timeStatus');
+        document.querySelector('.tab[data-tab="time"]').click();
+        return;
+      }
+      document.querySelector('.tab[data-tab="time"]').click();
+      document.getElementById('entryType').value = 'meeting';
+      document.getElementById('duration').value = '15';
+      document.getElementById('date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('description').value = 'Quick meeting';
+      setTimeout(() => document.getElementById('description').focus(), 100);
+      showStatus('info', 'Form filled! Edit description and click Save.', 'timeStatus');
+      break;
+      
+    case 'log-30min-meeting':
+      if (!clientId) {
+        showStatus('error', 'Please select a client first', 'timeStatus');
+        document.querySelector('.tab[data-tab="time"]').click();
+        return;
+      }
+      document.querySelector('.tab[data-tab="time"]').click();
+      document.getElementById('entryType').value = 'meeting';
+      document.getElementById('duration').value = '30';
+      document.getElementById('date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('description').value = 'Meeting';
+      setTimeout(() => document.getElementById('description').focus(), 100);
+      showStatus('info', 'Form filled! Edit description and click Save.', 'timeStatus');
+      break;
+      
+    case 'log-45min-meeting':
+      if (!clientId) {
+        showStatus('error', 'Please select a client first', 'timeStatus');
+        document.querySelector('.tab[data-tab="time"]').click();
+        return;
+      }
+      document.querySelector('.tab[data-tab="time"]').click();
+      document.getElementById('entryType').value = 'meeting';
+      document.getElementById('duration').value = '45';
+      document.getElementById('date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('description').value = 'Meeting';
+      setTimeout(() => document.getElementById('description').focus(), 100);
+      showStatus('info', 'Form filled! Edit description and click Save.', 'timeStatus');
+      break;
+      
+    case 'log-15min-email':
+      if (!clientId) {
+        showStatus('error', 'Please select a client first', 'timeStatus');
+        document.querySelector('.tab[data-tab="time"]').click();
+        return;
+      }
+      document.querySelector('.tab[data-tab="time"]').click();
+      document.getElementById('entryType').value = 'email';
+      document.getElementById('duration').value = '15';
+      document.getElementById('date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('description').value = 'Email correspondence';
+      setTimeout(() => document.getElementById('description').focus(), 100);
+      showStatus('info', 'Form filled! Edit description and click Save.', 'timeStatus');
+      break;
+      
+    case 'log-1hr-implementation':
+      if (!clientId) {
+        showStatus('error', 'Please select a client first', 'timeStatus');
+        document.querySelector('.tab[data-tab="time"]').click();
+        return;
+      }
+      document.querySelector('.tab[data-tab="time"]').click();
+      document.getElementById('entryType').value = 'implementation';
+      document.getElementById('duration').value = '60';
+      document.getElementById('date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('description').value = 'Implementation work';
+      setTimeout(() => document.getElementById('description').focus(), 100);
+      showStatus('info', 'Form filled! Edit description and click Save.', 'timeStatus');
+      break;
+      
+    case 'create-followup-task':
+      if (!clientId) {
+        showStatus('error', 'Please select a client first', 'timeStatus');
+        return;
+      }
+      document.querySelector('.tab[data-tab="tasks"]').click();
+      setTimeout(() => {
+        document.getElementById('addTaskBtn').click();
+        const taskClientInput = document.getElementById('taskClientSearch');
+        if (taskClientInput && currentClient) {
+          taskClientInput.value = currentClient.name;
+          taskClientInput.dataset.clientId = currentClient.id;
+          document.getElementById('taskClient').value = currentClient.id;
+        }
+        setTimeout(() => document.getElementById('taskTitle').focus(), 100);
+      }, 100);
+      break;
+      
+    case 'mark-client-active':
+      if (!currentClient) {
+        showStatus('error', 'Please select a client first', 'editStatus');
+        return;
+      }
+      await updateClientStatus('active');
+      showStatus('success', 'Client marked as active', 'editStatus');
+      setTimeout(() => hideStatus('editStatus'), 2000);
+      break;
+      
+    case 'mark-client-pending':
+      if (!currentClient) {
+        showStatus('error', 'Please select a client first', 'editStatus');
+        return;
+      }
+      await updateClientStatus('pending');
+      showStatus('success', 'Client marked as pending', 'editStatus');
+      setTimeout(() => hideStatus('editStatus'), 2000);
+      break;
+      
+    case 'mark-client-completed':
+      if (!currentClient) {
+        showStatus('error', 'Please select a client first', 'editStatus');
+        return;
+      }
+      await updateClientStatus('completed');
+      showStatus('success', 'Client marked as completed', 'editStatus');
+      setTimeout(() => hideStatus('editStatus'), 2000);
+      break;
+      
+    default:
+      console.log('Unknown quick action:', action);
   }
 }
 
@@ -1889,9 +2534,11 @@ function hideROIMetrics() {
 }
 
 // Get package cost
+// Note: Light package is bundled/free (included in what clients pay for, not a separate charge)
+// So it returns 0, which means package comparison metrics won't show for light packages
 function getPackageCost(packageType) {
   const packageCosts = {
-    light: 0,
+    light: 0, // Bundled/free package - not charged separately
     premium: 599,
     gold: 990,
     elite: 1600,
@@ -2671,6 +3318,9 @@ function openTaskModal(taskId = null) {
   const taskClientHidden = document.getElementById('taskClient');
   const taskClientDropdown = document.getElementById('taskClientDropdown');
 
+  // Load task timer state (will reset if no saved state or new task)
+  loadTaskTimerState(taskId);
+
   // Setup searchable dropdown for clients
   setupTaskClientDropdown();
 
@@ -2842,6 +3492,11 @@ function setupTaskClientDropdown() {
 }
 
 function closeTaskModal() {
+  // Persist timer state before closing
+  if (taskTimerState.taskId) {
+    persistTaskTimerState();
+  }
+  
   const modal = document.getElementById('taskModal');
   modal.style.display = 'none';
   editingTaskId = null;
@@ -2897,8 +3552,15 @@ function saveTask() {
     tasks.push(task);
   }
 
+  // Persist timer state (don't reset - user may come back to edit)
+  if (taskTimerState.taskId === editingTaskId) {
+    persistTaskTimerState();
+  }
+  
   saveTasks();
   closeTaskModal();
+  displayTasks();
+  updateTaskStats();
   updateTaskClientFilter();
 }
 
@@ -2922,6 +3584,11 @@ function toggleTaskComplete(taskId) {
     task.completed = !task.completed;
     task.updated_at = new Date().toISOString();
     
+    // If marking as completed, clear the timer state
+    if (!wasCompleted && task.completed) {
+      clearTaskTimerState(taskId);
+    }
+    
     // If marking as completed and has duration + client, offer to log time
     if (!wasCompleted && task.completed && task.duration_minutes && task.client_id && !task.time_logged) {
       if (confirm(`Log ${task.duration_minutes} minutes to time tracking for this task?`)) {
@@ -2930,6 +3597,8 @@ function toggleTaskComplete(taskId) {
     }
     
     saveTasks();
+    displayTasks();
+    updateTaskStats();
   }
 }
 

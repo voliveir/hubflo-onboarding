@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hubflo Manager</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Hubflo Manager</h1>
+      <div class="header-actions">
+        <select id="quickStatusSelect" class="quick-status-select" style="display: none;" title="Quick status update">
+          <option value="">Status</option>
+          <option value="active">Active</option>
+          <option value="draft">Draft</option>
+          <option value="pending">Pending</option>
+          <option value="completed">Completed</option>
+        </select>
+        <button id="quickActionsBtn" class="icon-btn" title="Quick Actions">⚡</button>
+        <button id="themeToggleBtn" class="icon-btn" title="Toggle theme">🌓</button>
+        <button id="settingsBtn" class="icon-btn" title="Settings">⚙️</button>
+      </div>
+      
+      <!-- Quick Actions Menu -->
+      <div id="quickActionsMenu" class="quick-actions-menu" style="display: none;">
+        <div class="quick-actions-header">⚡ Quick Actions</div>
+        <div class="quick-actions-list">
+          <button class="quick-action-item" data-action="log-15min-meeting">
+            <span class="quick-action-icon">📞</span>
+            <span class="quick-action-label">Log 15min Meeting</span>
+          </button>
+          <button class="quick-action-item" data-action="log-30min-meeting">
+            <span class="quick-action-icon">📞</span>
+            <span class="quick-action-label">Log 30min Meeting</span>
+          </button>
+          <button class="quick-action-item" data-action="log-45min-meeting">
+            <span class="quick-action-icon">📞</span>
+            <span class="quick-action-label">Log 45min Meeting</span>
+          </button>
+          <button class="quick-action-item" data-action="log-15min-email">
+            <span class="quick-action-icon">📧</span>
+            <span class="quick-action-label">Log 15min Email</span>
+          </button>
+          <button class="quick-action-item" data-action="log-1hr-implementation">
+            <span class="quick-action-icon">⚙️</span>
+            <span class="quick-action-label">Log 1hr Implementation</span>
+          </button>
+          <button class="quick-action-item" data-action="create-followup-task">
+            <span class="quick-action-icon">✅</span>
+            <span class="quick-action-label">Create Follow-up Task</span>
+          </button>
+          <button class="quick-action-item" data-action="mark-client-active">
+            <span class="quick-action-icon">✓</span>
+            <span class="quick-action-label">Mark Client as Active</span>
+          </button>
+          <button class="quick-action-item" data-action="mark-client-pending">
+            <span class="quick-action-icon">⏳</span>
+            <span class="quick-action-label">Mark Client as Pending</span>
+          </button>
+          <button class="quick-action-item" data-action="mark-client-completed">
+            <span class="quick-action-icon">✓</span>
+            <span class="quick-action-label">Mark Client as Completed</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Clients Quick Access -->
+    <div id="recentClientsSection" class="recent-clients-section" style="display: none;">
+      <label>Recent Clients</label>
+      <div id="recentClientsList" class="recent-clients-list"></div>
+    </div>
+
+    <!-- Client Selector (Always Visible) -->
+    <div class="client-selector-section">
+      <div class="client-selector-header">
+        <label for="clientSearchInput">Client</label>
+        <button id="clientFiltersBtn" class="filter-btn" title="Filter clients">🔍</button>
+      </div>
+      
+      <!-- Client Filters (Hidden by default) -->
+      <div id="clientFiltersPanel" class="filters-panel" style="display: none;">
+        <div class="filter-group">
+          <label>Status</label>
+          <select id="filterStatus" class="filter-select">
+            <option value="">All</option>
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Package</label>
+          <select id="filterPackage" class="filter-select">
+            <option value="">All</option>
+            <option value="light">Light</option>
+            <option value="premium">Premium</option>
+            <option value="gold">Gold</option>
+            <option value="elite">Elite</option>
+          </select>
+        </div>
+        <button id="clearFiltersBtn" class="btn-small">Clear</button>
+      </div>
+      
+      <div class="searchable-dropdown">
+        <input 
+          type="text" 
+          id="clientSearchInput" 
+          class="select-input" 
+          placeholder="Type to search clients..."
+          autocomplete="off"
+        >
+        <div id="clientDropdown" class="dropdown-list" style="display: none;">
+          <div class="dropdown-loading">Loading clients...</div>
+        </div>
+      </div>
+      <div id="clientLoading" class="loading-indicator" style="display: none;">Loading client data...</div>
+      <input type="hidden" id="clientSelectMain" value="">
+      
+      <!-- Client Health Indicators -->
+      <div id="clientHealthIndicators" class="health-indicators" style="display: none;"></div>
+      
+      <!-- Quick Links -->
+      <div id="quickLinksSection" class="quick-links-section" style="display: none;">
+        <div class="quick-links-header">
+          <span>🔗 Quick Links</span>
+        </div>
+        <div class="quick-links-list">
+          <a id="clientPortalLink" class="quick-link" target="_blank" title="Open client portal">🌐 Portal</a>
+          <a id="adminClientLink" class="quick-link" target="_blank" title="Open admin page">⚙️ Admin</a>
+          <a id="clientFeaturesLink" class="quick-link" target="_blank" title="Client features">🚀 Features</a>
+        </div>
+      </div>
+      
+      <!-- Client Notes Quick View -->
+      <div id="clientNotesQuickView" class="client-notes-quick-view" style="display: none;">
+        <div class="notes-header">
+          <span>📝 Notes</span>
+          <button id="toggleNotesBtn" class="notes-toggle-btn">▼</button>
+        </div>
+        <div id="notesContent" class="notes-content" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="time">⏱️ Time</button>
+      <button class="tab" data-tab="activity">📅 Activity</button>
+      <button class="tab" data-tab="tasks">✅ Tasks</button>
+      <button class="tab" data-tab="edit">✏️ Edit</button>
+      <button class="tab" data-tab="tracking">📊 Tracking</button>
+      <button class="tab" data-tab="whitelabel">📱 White Label</button>
+    </div>
+
+    <!-- Time Tracking Tab -->
+    <div id="timeTab" class="tab-content active">
+      <div class="scrollable-content">
+        <!-- Today's Time Summary -->
+        <div id="timeSummary" class="time-summary-card" style="display: none;">
+          <div class="summary-header">
+            <h3>Today's Summary</h3>
+            <span id="summaryDate" class="summary-date"></span>
+          </div>
+          <div class="summary-stats">
+            <div class="stat-item">
+              <span class="stat-label">Total Time</span>
+              <span id="summaryTotalTime" class="stat-value">0 min</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Entries</span>
+              <span id="summaryEntriesCount" class="stat-value">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROI Metrics Card -->
+        <div id="roiMetricsCard" class="roi-metrics-card" style="display: none;">
+          <div class="roi-header">
+            <h3>📊 ROI Metrics</h3>
+          </div>
+          <div class="roi-content">
+            <!-- Time Tracking Section -->
+            <div class="roi-section">
+              <div class="roi-metric-large">
+                <div class="roi-label">Total Time</div>
+                <div id="roiTotalTime" class="roi-value-large">0h 0m</div>
+                <div id="roiTotalHours" class="roi-subtext">0.0 hours</div>
+              </div>
+              <div id="roiEfficiency" class="roi-metric" style="display: none;">
+                <div class="roi-label">Efficiency</div>
+                <div id="roiEfficiencyValue" class="roi-value-yellow">0.00 hrs per $1k ACV</div>
+              </div>
+            </div>
+
+            <!-- Financial Metrics Section -->
+            <div class="roi-divider"></div>
+            <div class="roi-section">
+              <div class="roi-metric">
+                <div class="roi-label">Implementation Cost</div>
+                <div id="roiImplementationCost" class="roi-value">$0</div>
+              </div>
+              <div id="roiBreakeven" class="roi-metric" style="display: none;">
+                <div class="roi-label">Breakeven (ACV)</div>
+                <div id="roiBreakevenValue" class="roi-value-blue">0.0 months</div>
+              </div>
+              <div id="roiScore" class="roi-metric" style="display: none;">
+                <div class="roi-label">ROI Score (ACV)</div>
+                <div id="roiScoreValue" class="roi-value-green">0.00x</div>
+              </div>
+            </div>
+
+            <!-- Package Details Section -->
+            <div id="roiPackageSection" class="roi-section" style="display: none;">
+              <div class="roi-divider"></div>
+              <div class="roi-metric">
+                <div class="roi-label">Package Cost</div>
+                <div id="roiPackageCost" class="roi-value">$0</div>
+              </div>
+              <div id="roiCostVsPackage" class="roi-metric" style="display: none;">
+                <div class="roi-label">Cost vs Package</div>
+                <div id="roiCostVsPackageValue" class="roi-value-green">$0 under</div>
+              </div>
+              <div id="roiCostRatio" class="roi-metric" style="display: none;">
+                <div class="roi-label">Cost Ratio</div>
+                <div id="roiCostRatioValue" class="roi-value-green">0.00x (under budget)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Time Entry Filters -->
+        <div id="timeFiltersSection" class="time-filters-section" style="display: none;">
+          <div class="filters-header">
+            <span>🔍 Filters</span>
+            <button id="toggleFiltersBtn" class="icon-btn-small">▼</button>
+          </div>
+          <div id="timeFiltersPanel" class="filters-panel" style="display: none;">
+            <div class="filter-row">
+              <div class="filter-group">
+                <label>Date Range</label>
+                <select id="filterDateRange" class="filter-select">
+                  <option value="all">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="custom">Custom Range</option>
+                </select>
+              </div>
+              <div class="filter-group" id="customDateRange" style="display: none;">
+                <label>From</label>
+                <input type="date" id="filterDateFrom" class="input-small">
+              </div>
+              <div class="filter-group" id="customDateRangeTo" style="display: none;">
+                <label>To</label>
+                <input type="date" id="filterDateTo" class="input-small">
+              </div>
+            </div>
+            <div class="filter-row">
+              <div class="filter-group">
+                <label>Activity Type</label>
+                <select id="filterActivityType" class="filter-select">
+                  <option value="all">All Types</option>
+                  <option value="meeting">Meeting</option>
+                  <option value="email">Email</option>
+                  <option value="initial_setup">Initial Setup</option>
+                  <option value="automation_workflow">Automation/Workflow</option>
+                  <option value="api_integration">API Integration</option>
+                  <option value="testing_debugging">Testing/Debugging</option>
+                  <option value="training_handoff">Training/Handoff</option>
+                  <option value="revisions_rework">Revisions/Rework</option>
+                  <option value="implementation">Implementation</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Client</label>
+                <select id="filterClient" class="filter-select">
+                  <option value="all">All Clients</option>
+                </select>
+              </div>
+            </div>
+            <button id="applyFiltersBtn" class="btn-small btn-primary-small">Apply Filters</button>
+            <button id="clearTimeFiltersBtn" class="btn-small">Clear</button>
+          </div>
+        </div>
+
+        <!-- Time Entry Templates -->
+        <div id="timeTemplatesSection" class="templates-section" style="display: none;">
+          <div class="section-header">
+            <h3>📋 Templates</h3>
+            <button id="addTemplateBtn" class="icon-btn-small" title="Save current as template">➕</button>
+          </div>
+          <div id="templatesList" class="templates-list"></div>
+        </div>
+
+        <!-- Recent Time Entries -->
+        <div id="recentEntriesSection" class="recent-entries-section" style="display: none;">
+          <div class="section-header">
+            <h3>Recent Entries</h3>
+            <button id="refreshEntriesBtn" class="icon-btn-small" title="Refresh">🔄</button>
+          </div>
+          <div id="recentEntriesList" class="recent-entries-list"></div>
+        </div>
+
+        <!-- New Time Entry Form -->
+        <div class="form-divider">
+          <span>New Time Entry</span>
+        </div>
+
+        <div class="form-section">
+          <label for="entryType">Activity Type</label>
+          <select id="entryType" class="select-input">
+            <option value="meeting">Meeting</option>
+            <option value="email">Email</option>
+            <option value="initial_setup">Initial Setup</option>
+            <option value="automation_workflow">Automation/Workflow</option>
+            <option value="api_integration">API Integration</option>
+            <option value="testing_debugging">Testing/Debugging</option>
+            <option value="training_handoff">Training/Handoff</option>
+            <option value="revisions_rework">Revisions/Rework</option>
+            <option value="implementation">Implementation</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-section">
+            <label for="date">Date</label>
+            <input type="date" id="date" class="input" value="">
+          </div>
+          <div class="form-section">
+            <label for="duration">Duration (min)</label>
+            <input type="number" id="duration" class="input" min="1" value="30" placeholder="30">
+          </div>
+        </div>
+
+        <!-- Timer Section -->
+        <div class="timer-section">
+          <div class="timer-display">
+            <div class="timer-time" id="timerDisplay">00:00:00</div>
+            <div class="timer-label">Elapsed Time</div>
+          </div>
+          <div class="timer-controls">
+            <button id="timerStartStopBtn" class="btn btn-timer btn-start">
+              <span>▶</span> Start Timer
+            </button>
+            <button id="timerResetBtn" class="btn btn-timer-secondary" style="display: none;">
+              <span>↺</span> Reset
+            </button>
+          </div>
+          <div class="timer-info" id="timerInfo" style="display: none;">
+            <small>Timer running... Duration will update automatically</small>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label for="description">Description</label>
+          <input type="text" id="description" class="input" placeholder="Brief description">
+        </div>
+
+        <div class="form-section">
+          <label for="notes">Notes (optional)</label>
+          <textarea id="notes" class="textarea" rows="2" placeholder="Additional notes..."></textarea>
+        </div>
+
+        <button id="saveTimeBtn" class="btn btn-primary">
+          <span>💾</span> Save Time Entry
+        </button>
+
+        <div id="timeStatus" class="status-message"></div>
+      </div>
+    </div>
+
+    <!-- Activity Timeline Tab -->
+    <div id="activityTab" class="tab-content">
+      <div class="scrollable-content">
+        <div id="activityTimeline" class="activity-timeline">
+          <div class="empty-state">Select a client to view activity timeline</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tasks Tab -->
+    <div id="tasksTab" class="tab-content">
+      <div class="scrollable-content">
+        <!-- Task Filters -->
+        <div class="task-filters-section">
+          <div class="filters-header">
+            <span>🔍 Filter</span>
+            <select id="taskFilter" class="filter-select-small">
+              <option value="all">All Tasks</option>
+              <option value="pending">Pending</option>
+              <option value="overdue">Overdue</option>
+              <option value="today">Due Today</option>
+              <option value="week">Due This Week</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <div class="filters-header" style="margin-top: 8px;">
+            <span>👤 Client</span>
+            <select id="taskClientFilter" class="filter-select-small">
+              <option value="all">All Clients</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Task Stats -->
+        <div id="taskStats" class="task-stats">
+          <div class="task-stat-item">
+            <span class="task-stat-label">Total</span>
+            <span id="taskTotalCount" class="task-stat-value">0</span>
+          </div>
+          <div class="task-stat-item">
+            <span class="task-stat-label">Pending</span>
+            <span id="taskPendingCount" class="task-stat-value">0</span>
+          </div>
+          <div class="task-stat-item">
+            <span class="task-stat-label">Overdue</span>
+            <span id="taskOverdueCount" class="task-stat-value overdue">0</span>
+          </div>
+        </div>
+
+        <!-- Tasks List -->
+        <div id="tasksList" class="tasks-list"></div>
+
+        <!-- Empty State -->
+        <div id="tasksEmptyState" class="empty-state" style="display: none;">
+          No tasks yet. Click "Add Task" to get started!
+        </div>
+
+        <!-- Add Task Button -->
+        <button id="addTaskBtn" class="btn btn-primary" style="margin-top: 20px;">
+          <span>➕</span> Add Task
+        </button>
+      </div>
+    </div>
+
+    <!-- Edit Client Tab -->
+    <div id="editTab" class="tab-content">
+      <div class="scrollable-content">
+        <div class="form-section">
+          <label for="clientName">Client Name</label>
+          <input type="text" id="clientName" class="input" placeholder="Client name">
+        </div>
+
+        <div class="form-section">
+          <label for="clientEmail">Email</label>
+          <input type="email" id="clientEmail" class="input" placeholder="client@example.com">
+        </div>
+
+        <div class="form-row">
+          <div class="form-section">
+            <label for="successPackage">Success Package</label>
+            <select id="successPackage" class="select-input">
+              <option value="light">Light</option>
+              <option value="premium">Premium</option>
+              <option value="gold">Gold</option>
+              <option value="elite">Elite</option>
+              <option value="starter">Starter</option>
+              <option value="professional">Professional</option>
+              <option value="enterprise">Enterprise</option>
+              <option value="no_success">No Success</option>
+            </select>
+          </div>
+          <div class="form-section">
+            <label for="clientStatus">Status</label>
+            <select id="clientStatus" class="select-input">
+              <option value="active">Active</option>
+              <option value="draft">Draft</option>
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-section">
+            <label for="planType">Plan Type</label>
+            <select id="planType" class="select-input">
+              <option value="pro">Pro</option>
+              <option value="business">Business</option>
+              <option value="unlimited">Unlimited</option>
+            </select>
+          </div>
+          <div class="form-section">
+            <label for="billingType">Billing Type</label>
+            <select id="billingType" class="select-input">
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="annually">Annually</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label for="revenueAmount">Revenue Amount ($)</label>
+          <input type="number" id="revenueAmount" class="input" placeholder="0" step="0.01">
+        </div>
+
+        <div class="form-section">
+          <label for="clientNotes">Notes</label>
+          <textarea id="clientNotes" class="textarea" rows="3" placeholder="Client notes..."></textarea>
+        </div>
+
+        <button id="saveClientBtn" class="btn btn-primary">
+          <span>💾</span> Save Client
+        </button>
+
+        <div id="editStatus" class="status-message"></div>
+      </div>
+    </div>
+
+    <!-- Project Tracking Tab -->
+    <div id="trackingTab" class="tab-content">
+      <div class="scrollable-content">
+        <div class="tracking-section">
+          <div class="tracking-header">
+            <h3>Forms Setup</h3>
+            <div class="tracking-controls">
+              <button class="btn-increment" data-field="forms_setup" data-delta="-1">−</button>
+              <span id="formsSetupValue" class="tracking-value">0</span>
+              <button class="btn-increment" data-field="forms_setup" data-delta="1">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tracking-section">
+          <div class="tracking-header">
+            <h3>SmartDocs Setup</h3>
+            <div class="tracking-controls">
+              <button class="btn-increment" data-field="smartdocs_setup" data-delta="-1">−</button>
+              <span id="smartdocsSetupValue" class="tracking-value">0</span>
+              <button class="btn-increment" data-field="smartdocs_setup" data-delta="1">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tracking-section">
+          <div class="tracking-header">
+            <h3>Zapier Integrations</h3>
+            <div class="tracking-controls">
+              <button class="btn-increment" data-field="zapier_integrations_setup" data-delta="-1">−</button>
+              <span id="zapierIntegrationsValue" class="tracking-value">0</span>
+              <button class="btn-increment" data-field="zapier_integrations_setup" data-delta="1">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tracking-section">
+          <div class="tracking-header">
+            <h3>Migration Completed</h3>
+            <label class="toggle-switch">
+              <input type="checkbox" id="migrationCompleted">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="tracking-section">
+          <div class="tracking-header">
+            <h3>Slack Access Granted</h3>
+            <label class="toggle-switch">
+              <input type="checkbox" id="slackAccessGranted">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="call-dates-section">
+          <h3>Call Dates</h3>
+          <div class="form-section">
+            <label for="lightCallDate">Light Onboarding Call</label>
+            <input type="date" id="lightCallDate" class="input">
+          </div>
+          <div class="form-section">
+            <label for="premiumFirstCall">Premium First Call</label>
+            <input type="date" id="premiumFirstCall" class="input">
+          </div>
+          <div class="form-section">
+            <label for="premiumSecondCall">Premium Second Call</label>
+            <input type="date" id="premiumSecondCall" class="input">
+          </div>
+          <div class="form-section">
+            <label for="goldFirstCall">Gold First Call</label>
+            <input type="date" id="goldFirstCall" class="input">
+          </div>
+          <div class="form-section">
+            <label for="goldSecondCall">Gold Second Call</label>
+            <input type="date" id="goldSecondCall" class="input">
+          </div>
+          <div class="form-section">
+            <label for="goldThirdCall">Gold Third Call</label>
+            <input type="date" id="goldThirdCall" class="input">
+          </div>
+        </div>
+
+        <button id="saveTrackingBtn" class="btn btn-primary">
+          <span>💾</span> Save Tracking
+        </button>
+
+        <div id="trackingStatus" class="status-message"></div>
+      </div>
+    </div>
+
+    <!-- White Label Tab -->
+    <div id="whitelabelTab" class="tab-content">
+      <div class="scrollable-content">
+        <div class="form-section">
+          <label for="whiteLabelStatus">Status</label>
+          <select id="whiteLabelStatus" class="select-input">
+            <option value="not_started">Not Started</option>
+            <option value="in_progress">In Progress</option>
+            <option value="waiting_for_approval">Waiting for Approval</option>
+            <option value="complete">Complete</option>
+          </select>
+        </div>
+
+        <div class="checklist-section">
+          <h3>Checklist</h3>
+          <div class="checklist-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="checklist_create_assets">
+              <span>Create Assets</span>
+            </label>
+          </div>
+          <div class="checklist-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="checklist_create_native_app">
+              <span>Create Native App</span>
+            </label>
+          </div>
+          <div class="checklist-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="checklist_create_test_user">
+              <span>Create Test User</span>
+            </label>
+          </div>
+          <div class="checklist-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="checklist_test_login">
+              <span>Test Login</span>
+            </label>
+          </div>
+          <div class="checklist-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="checklist_download_ios">
+              <span>Download & Create iOS App</span>
+            </label>
+          </div>
+          <div class="checklist-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="checklist_submit">
+              <span>Submit</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label for="whiteLabelAppName">App Name</label>
+          <input type="text" id="whiteLabelAppName" class="input" placeholder="App name">
+        </div>
+
+        <div class="form-section">
+          <label for="whiteLabelAppDescription">App Description</label>
+          <textarea id="whiteLabelAppDescription" class="textarea" rows="2" placeholder="App description"></textarea>
+        </div>
+
+        <div class="form-section">
+          <label for="whiteLabelAndroidUrl">Android URL</label>
+          <input type="url" id="whiteLabelAndroidUrl" class="input" placeholder="https://play.google.com/...">
+        </div>
+
+        <div class="form-section">
+          <label for="whiteLabelIosUrl">iOS URL</label>
+          <input type="url" id="whiteLabelIosUrl" class="input" placeholder="https://apps.apple.com/...">
+        </div>
+
+        <button id="saveWhiteLabelBtn" class="btn btn-primary">
+          <span>💾</span> Save White Label
+        </button>
+
+        <div id="whitelabelStatus" class="status-message"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Task Modal -->
+  <div id="taskModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="taskModalTitle">Add Task</h3>
+        <button id="closeTaskModalBtn" class="modal-close-btn">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-section">
+          <label for="taskTitle">Task Title *</label>
+          <input type="text" id="taskTitle" class="input" placeholder="What needs to be done?">
+        </div>
+        <div class="form-section">
+          <label for="taskDescription">Description</label>
+          <textarea id="taskDescription" class="textarea" rows="3" placeholder="Additional details..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-section">
+            <label for="taskDueDate">Due Date</label>
+            <input type="date" id="taskDueDate" class="input">
+          </div>
+          <div class="form-section">
+            <label for="taskPriority">Priority</label>
+            <select id="taskPriority" class="select-input">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-section">
+            <label for="taskDuration">Duration (minutes)</label>
+            <input type="number" id="taskDuration" class="input" min="1" placeholder="Optional - for time tracking">
+          </div>
+          <div class="form-section">
+            <label for="taskActivityType">Activity Type</label>
+            <select id="taskActivityType" class="select-input">
+              <option value="implementation">Implementation</option>
+              <option value="meeting">Meeting</option>
+              <option value="email">Email</option>
+              <option value="initial_setup">Initial Setup</option>
+              <option value="automation_workflow">Automation/Workflow</option>
+              <option value="api_integration">API Integration</option>
+              <option value="testing_debugging">Testing/Debugging</option>
+              <option value="training_handoff">Training/Handoff</option>
+              <option value="revisions_rework">Revisions/Rework</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Task Timer Section -->
+        <div class="timer-section task-timer-section">
+          <div class="timer-display">
+            <div class="timer-time" id="taskTimerDisplay">00:00:00</div>
+            <div class="timer-label">Elapsed Time</div>
+          </div>
+          <div class="timer-controls">
+            <button id="taskTimerStartStopBtn" class="btn btn-timer btn-start">
+              <span>▶</span> Start Timer
+            </button>
+            <button id="taskTimerResetBtn" class="btn btn-timer-secondary" style="display: none;">
+              <span>↺</span> Reset
+            </button>
+          </div>
+          <div class="timer-info" id="taskTimerInfo" style="display: none;">
+            <small>Timer running... Duration will update automatically</small>
+          </div>
+        </div>
+        <div class="form-section">
+          <label for="taskClientSearch">Related Client (optional)</label>
+          <div class="searchable-dropdown">
+            <input 
+              type="text" 
+              id="taskClientSearch" 
+              class="select-input" 
+              placeholder="Type to search clients..."
+              autocomplete="off"
+            >
+            <div id="taskClientDropdown" class="dropdown-list" style="display: none;">
+              <div class="dropdown-loading">Loading clients...</div>
+            </div>
+          </div>
+          <input type="hidden" id="taskClient" value="">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancelTaskBtn" class="btn btn-secondary">Cancel</button>
+        <button id="deleteTaskBtn" class="btn btn-danger" style="display: none;">Delete</button>
+        <button id="saveTaskBtn" class="btn btn-primary">Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Template Modal -->
+  <div id="saveTemplateModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Save Time Entry Template</h3>
+        <button id="closeTemplateModalBtn" class="modal-close-btn">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-section">
+          <label for="templateName">Template Name</label>
+          <input type="text" id="templateName" class="input" placeholder="e.g., Weekly Check-in">
+        </div>
+        <div class="form-section">
+          <label>Preview</label>
+          <div class="template-preview">
+            <div><strong>Activity:</strong> <span id="templatePreviewType"></span></div>
+            <div><strong>Duration:</strong> <span id="templatePreviewDuration"></span> min</div>
+            <div><strong>Description:</strong> <span id="templatePreviewDescription"></span></div>
+            <div><strong>Notes:</strong> <span id="templatePreviewNotes"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancelTemplateBtn" class="btn btn-secondary">Cancel</button>
+        <button id="saveTemplateBtn" class="btn btn-primary">Save Template</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Time Entry Modal -->
+  <div id="editEntryModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit Time Entry</h3>
+        <button id="closeModalBtn" class="modal-close-btn">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-section">
+          <label for="editEntryType">Activity Type</label>
+          <select id="editEntryType" class="select-input">
+            <option value="meeting">Meeting</option>
+            <option value="email">Email</option>
+            <option value="initial_setup">Initial Setup</option>
+            <option value="automation_workflow">Automation/Workflow</option>
+            <option value="api_integration">API Integration</option>
+            <option value="testing_debugging">Testing/Debugging</option>
+            <option value="training_handoff">Training/Handoff</option>
+            <option value="revisions_rework">Revisions/Rework</option>
+            <option value="implementation">Implementation</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-section">
+            <label for="editEntryDate">Date</label>
+            <input type="date" id="editEntryDate" class="input">
+          </div>
+          <div class="form-section">
+            <label for="editEntryDuration">Duration (min)</label>
+            <input type="number" id="editEntryDuration" class="input" min="1">
+          </div>
+        </div>
+        <div class="form-section">
+          <label for="editEntryDescription">Description</label>
+          <input type="text" id="editEntryDescription" class="input" placeholder="Brief description">
+        </div>
+        <div class="form-section">
+          <label for="editEntryNotes">Notes (optional)</label>
+          <textarea id="editEntryNotes" class="textarea" rows="2" placeholder="Additional notes..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="deleteEntryBtn" class="btn btn-danger">Delete</button>
+        <button id="saveEditEntryBtn" class="btn btn-primary">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
