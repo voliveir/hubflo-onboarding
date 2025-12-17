@@ -510,17 +510,29 @@ export default async function ClientPage({ params }: ClientPageProps) {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-4">Hubflo Chrome Extension</h3>
               </div>
-              <div className="text-white/80 mb-2">Create contacts and capture information from anywhere on the web.</div>
-              <div className="text-sm text-white/80 mb-6">
-                <div className="mb-2">With the Chrome extension, you can:</div>
-                <ul className="text-left ml-4">
-                  <li className="mb-1">• Create contacts from LinkedIn, Gmail, or Outlook</li>
-                  <li className="mb-1">• Quickly add contacts with a right-click on any email address</li>
-                  <li className="mb-1">• Instantly pull people into your Hubflo workspace from across the web</li>
-                </ul>
+              <div className="text-white/80 mb-4 text-left">
+                <p className="mb-3 font-semibold">Access your Hubflo data from anywhere with a convenient sidebar</p>
+                <p className="mb-3 text-sm">Hubflo gives you instant access to your account from anywhere in your browser.</p>
+                <p className="mb-3 text-sm">Click the icon to open a sidebar where you can browse workspaces, view contacts, manage tasks, upload files, assign forms and SmartDocs, all without leaving the page you're on.</p>
+                <p className="mb-3 text-sm">Create tasks from any selected text with a right-click. Your Hubflo data is always one click away.</p>
+                <p className="text-sm">For Gmail and Outlook, we've built dedicated widgets that take it further.</p>
               </div>
+              
+              {/* YouTube Video Embed */}
+              <div className="mb-6 w-full">
+                <div className="aspect-video rounded-xl overflow-hidden border border-white/10">
+                  <iframe
+                    src="https://www.youtube.com/embed/Wav2_SjYGfY"
+                    title="Hubflo Chrome Extension Demo"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+              </div>
+              
               <a
-                href="https://chrome.google.com/webstore/detail/hubflo-clipper/miionnbpcoinccnhekjjjloiknalhhfh/related?hl=fr"
+                href="https://chromewebstore.google.com/detail/Hubflo/miionnbpcoinccnhekjjjloiknalhhfh"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full mt-auto bg-brand-gold hover:bg-brand-gold-hover text-brand-DEFAULT font-semibold rounded-2xl px-6 py-3 text-center block transition-all duration-200 hover:scale-105 active:scale-95"
