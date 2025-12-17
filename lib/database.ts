@@ -381,6 +381,18 @@ export async function getClientBySlug(slug: string): Promise<Client | null> {
 
 export async function getClientById(id: string): Promise<Client | null> {
   try {
+    // Validate UUID format before querying
+    if (!id || id === "undefined" || typeof id !== "string") {
+      console.error("Invalid client ID provided:", id)
+      return null
+    }
+
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(id)) {
+      console.error("Client ID is not a valid UUID:", id)
+      return null
+    }
+
     const { data, error } = await supabase.from("clients").select("*").eq("id", id).single()
 
     if (error) {
