@@ -11,7 +11,23 @@ interface ClientIntegrationsPageProps {
 }
 
 export default async function ClientIntegrationsPage({ params }: ClientIntegrationsPageProps) {
-  const client = await getClientById(params.id)
+  const resolvedParams = await params
+  const clientId = resolvedParams.id
+
+  // Validate that we have a valid client ID
+  if (!clientId || clientId === "undefined" || typeof clientId !== "string") {
+    console.error("Invalid client ID:", clientId)
+    notFound()
+  }
+
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(clientId)) {
+    console.error("Client ID is not a valid UUID:", clientId)
+    notFound()
+  }
+
+  const client = await getClientById(clientId)
 
   if (!client) {
     notFound()

@@ -2,6 +2,7 @@ import { ClientFeaturesManager } from "@/components/client-features-manager"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { PasswordProtection } from "@/components/password-protection"
 import { getClientFeatures, getAllFeatures, getClientById } from "@/lib/database"
+import { notFound } from "next/navigation"
 import type { ClientFeature, Feature, Client } from "@/lib/types"
 
 interface PageProps {
@@ -11,11 +12,27 @@ interface PageProps {
 }
 
 export default async function ClientFeaturesPage({ params }: PageProps) {
+  const resolvedParams = await params
+  const clientId = resolvedParams.id
+
+  // Validate that we have a valid client ID
+  if (!clientId || clientId === "undefined" || typeof clientId !== "string") {
+    console.error("Invalid client ID:", clientId)
+    notFound()
+  }
+
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(clientId)) {
+    console.error("Client ID is not a valid UUID:", clientId)
+    notFound()
+  }
+
   // Fetch all data server-side
   const [clientFeatures, availableFeatures, client] = await Promise.all([
-    getClientFeatures(params.id),
+    getClientFeatures(clientId),
     getAllFeatures(),
-    getClientById(params.id),
+    getClientById(clientId),
   ])
 
   return (
