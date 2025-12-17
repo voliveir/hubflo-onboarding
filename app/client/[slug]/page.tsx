@@ -47,6 +47,7 @@ import { ActionCards } from "@/components/portal/ActionCards"
 import { WhiteLabelProgress } from "@/components/WhiteLabelProgress"
 import { getImplementationManagerById } from '@/lib/implementationManagers'
 import { clsx } from "clsx"
+import { PinnedNoteDisplay } from "@/components/pinned-note-display"
 
 interface ClientPageProps {
   params: {
@@ -218,6 +219,13 @@ export default async function ClientPage({ params }: ClientPageProps) {
               Schedule Call <ArrowRight className="ml-2 h-5 w-5" />
             </a>
           </Button>
+        </div>
+      </PortalSection>
+
+      {/* Pinned Note Display */}
+      <PortalSection gradient={false} className="bg-transparent">
+        <div className="max-w-4xl mx-auto">
+          <PinnedNoteDisplay client={client} />
         </div>
       </PortalSection>
 

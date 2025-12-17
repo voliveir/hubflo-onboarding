@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { User, Package, ExternalLink, Edit, Settings, BarChart3, Zap, Calendar, DollarSign, Users, Building, Phone, Mail, Globe, CheckCircle, Clock, XCircle, Flag } from "lucide-react"
 import Link from "next/link"
 import { ClientTimeTracking } from "@/components/client-time-tracking"
+import { PinnedNoteEditor } from "@/components/pinned-note-editor"
 
 interface PageProps {
   params: {
@@ -110,6 +111,9 @@ export default async function ClientDetailPage({ params }: PageProps) {
               <div className="grid grid-cols-12 gap-6">
                 {/* Main Content - 8 cols on xl, 12 on <lg */}
                 <div className="col-span-12 xl:col-span-8 space-y-6">
+                  {/* Pinned Note Editor */}
+                  <PinnedNoteEditor client={client} />
+
                   {/* Basic Information */}
                   <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6 md:p-8 shadow-[#F2C94C]/5">
                     <CardHeader className="pb-4">

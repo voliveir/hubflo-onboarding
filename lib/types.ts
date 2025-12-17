@@ -78,6 +78,18 @@ export interface Client {
   // Milestone management fields
   milestones_enabled?: boolean
   milestone_road_theme?: 'default' | 'mountain' | 'ocean' | 'forest' | 'city'
+  // Pinned note for project scope and go-live date
+  pinned_note?: {
+    initial_scope?: string
+    scope_changes?: Array<{
+      description: string
+      extra_time?: string
+      added_at: string
+    }>
+    go_live_date?: string | null
+    new_estimated_go_live_date?: string | null
+    updated_at?: string
+  }
 }
 
 export interface Integration {

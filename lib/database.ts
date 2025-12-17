@@ -141,6 +141,8 @@ function transformClientFromDb(data: any): Client {
     white_label_approval_feedback: data.white_label_approval_feedback || null,
     white_label_approval_feedback_at: data.white_label_approval_feedback_at || null,
     white_label_implementation_manager_notified_at: data.white_label_implementation_manager_notified_at || null,
+    // Pinned note for project scope and go-live date
+    pinned_note: data.pinned_note && typeof data.pinned_note === 'object' ? data.pinned_note : undefined,
   }
 }
 
