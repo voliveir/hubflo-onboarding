@@ -270,43 +270,31 @@ export default async function ClientDetailPage({ params }: PageProps) {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                      <Link href={`/admin/clients/${client.id}/edit`} className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
                         <Edit className="text-[#F2C94C]" />
-                        <Link href={`/admin/clients/${client.id}/edit`} className="flex-1 text-left">
-                          Edit Client
-                        </Link>
-                      </button>
-                      <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                        <span className="flex-1 text-left">Edit Client</span>
+                      </Link>
+                      <Link href={`/admin/clients/${client.id}/integrations`} className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
                         <Zap className="text-[#F2C94C]" />
-                        <Link href={`/admin/clients/${client.id}/integrations`} className="flex-1 text-left">
-                          Manage Integrations
-                        </Link>
-                      </button>
-                      <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                        <span className="flex-1 text-left">Manage Integrations</span>
+                      </Link>
+                      <Link href={`/admin/clients/${client.id}/tracking`} className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
                         <BarChart3 className="text-[#F2C94C]" />
-                        <Link href={`/admin/clients/${client.id}/tracking`} className="flex-1 text-left">
-                          Project Tracking
-                        </Link>
-                      </button>
-                      <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                        <span className="flex-1 text-left">Project Tracking</span>
+                      </Link>
+                      <Link href={`/admin/clients/${client.id}/milestones`} className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
                         <Flag className="text-[#F2C94C]" />
-                        <Link href={`/admin/clients/${client.id}/milestones`} className="flex-1 text-left">
-                          Implementation Milestones
-                        </Link>
-                      </button>
-                      <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                        <span className="flex-1 text-left">Implementation Milestones</span>
+                      </Link>
+                      <Link href={`/admin/clients/${client.id}/features`} className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
                         <Settings className="text-[#F2C94C]" />
-                        <Link href={`/admin/clients/${client.id}/features`} className="flex-1 text-left">
-                          Manage Features
-                        </Link>
-                      </button>
+                        <span className="flex-1 text-left">Manage Features</span>
+                      </Link>
                       {client.slug && client.slug.trim() !== '' ? (
-                        <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                        <Link href={`/client/${client.slug}`} target="_blank" className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
                           <ExternalLink className="text-[#F2C94C]" />
-                          <Link href={`/client/${client.slug}`} target="_blank" className="flex-1 text-left">
-                            View Client Portal
-                          </Link>
-                        </button>
+                          <span className="flex-1 text-left">View Client Portal</span>
+                        </Link>
                       ) : (
                         <button className="w-full flex items-center gap-3 bg-[#10152b] text-slate-500 py-2.5 px-4 rounded-lg cursor-not-allowed" disabled title="Client needs a slug to view portal. Please edit the client to add a slug.">
                           <ExternalLink className="text-slate-500" />
