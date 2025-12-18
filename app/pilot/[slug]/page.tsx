@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Users, Rocket, Settings, MessageCircle, Monitor, Zap, Smartphone, Video, Workflow, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
+import { use } from "react";
 
 const PILOT_TASKS = [
   {
@@ -67,7 +68,8 @@ const PILOT_TASKS = [
   },
 ];
 
-export default function PilotProgramPage({ params }: { params: { slug: string } }) {
+export default function PilotProgramPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const [tasks, setTasks] = React.useState(PILOT_TASKS);
   const completedCount = tasks.filter((t) => t.completed).length;
   const percent = Math.round((completedCount / tasks.length) * 100);

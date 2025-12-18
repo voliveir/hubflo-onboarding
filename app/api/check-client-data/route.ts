@@ -10,10 +10,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Slug parameter is required' }, { status: 400 });
     }
 
-    // Get client data using admin client
+    // Get client data using admin client - include status for debugging
     const { data, error } = await supabaseAdmin
       .from("clients")
-      .select("id, name, slug, white_label_app_assets")
+      .select("id, name, slug, status, white_label_app_assets")
       .eq("slug", slug)
       .single();
 

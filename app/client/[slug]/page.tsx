@@ -50,21 +50,29 @@ import { clsx } from "clsx"
 import { PinnedNoteDisplay } from "@/components/pinned-note-display"
 
 interface ClientPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export default async function ClientPage({ params }: ClientPageProps) {
-  // Force fresh data by adding a timestamp
-  const client = await getClientBySlug(await params.slug)
+  // Await the params Promise first (Next.js 15 requirement)
+  const resolvedParams = await params
+  const slug = resolvedParams.slug
+  console.log('Looking up client with slug:', slug)
+  
+  const client = await getClientBySlug(slug)
 
   if (!client) {
+    console.error('Client not found for slug:', slug)
     notFound()
   }
 
+  console.log('Client found:', { id: client.id, name: client.name, status: client.status, slug: client.slug })
+
   // Only show active or pending clients to the public
   if (!["active", "pending"].includes(client.status)) {
+    console.error('Client found but status is not active/pending:', { slug, status: client.status })
     notFound()
   }
 
@@ -149,7 +157,14 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
   // Fetch implementation manager from DB
   const managerId = client.implementation_manager || 'vanessa'
-  const mgr = (await getImplementationManagerById(managerId)) as Partial<import('@/lib/types').ImplementationManager> || {}
+  let mgr: Partial<import('@/lib/types').ImplementationManager> = {}
+  try {
+    const managerData = await getImplementationManagerById(managerId)
+    mgr = (managerData || {}) as Partial<import('@/lib/types').ImplementationManager>
+  } catch (error) {
+    console.error("Error fetching implementation manager:", error)
+    // Continue with empty manager object
+  }
 
   // Compute effective calendar links
   const calendar_contact_success = client.calendar_contact_success || mgr?.calendar_contact_success || '';

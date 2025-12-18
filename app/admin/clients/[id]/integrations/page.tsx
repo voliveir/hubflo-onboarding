@@ -5,9 +5,9 @@ import { getClientById } from "@/lib/database"
 import { notFound } from "next/navigation"
 
 interface ClientIntegrationsPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function ClientIntegrationsPage({ params }: ClientIntegrationsPageProps) {

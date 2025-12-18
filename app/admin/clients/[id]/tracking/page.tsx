@@ -5,13 +5,14 @@ import { getClientById } from "@/lib/database"
 import { notFound } from "next/navigation"
 
 interface ClientTrackingPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function ClientTrackingPage({ params }: ClientTrackingPageProps) {
-  const client = await getClientById(await params.id)
+  const resolvedParams = await params
+  const client = await getClientById(resolvedParams.id)
 
   if (!client) {
     notFound()

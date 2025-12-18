@@ -11,9 +11,9 @@ import { ClientTimeTracking } from "@/components/client-time-tracking"
 import { PinnedNoteEditor } from "@/components/pinned-note-editor"
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function ClientDetailPage({ params }: PageProps) {
@@ -109,12 +109,19 @@ export default async function ClientDetailPage({ params }: PageProps) {
                   <p className="text-white/80">Client Details & Management</p>
                 </div>
                 <div className="flex space-x-3">
-                  <Button variant="outline" asChild className="bg-[#181a2f] border border-slate-600 text-[#F2C94C] hover:bg-[#23244a]">
-                    <Link href={`/client/${client.slug}`} target="_blank">
+                  {client.slug && client.slug.trim() !== '' ? (
+                    <Button variant="outline" asChild className="bg-[#181a2f] border border-slate-600 text-[#F2C94C] hover:bg-[#23244a]">
+                      <Link href={`/client/${client.slug}`} target="_blank">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        View Portal
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button variant="outline" disabled className="bg-[#181a2f] border border-slate-600 text-slate-500 cursor-not-allowed" title="Client needs a slug to view portal. Please edit the client to add a slug.">
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View Portal
-                    </Link>
-                  </Button>
+                    </Button>
+                  )}
                   <Button asChild className="bg-gradient-to-r from-[#F2C94C] via-[#F2994A] to-[#F2994A] text-white font-semibold hover:brightness-110 border border-[#F2C94C]/70">
                     <Link href={`/admin/clients/${client.id}/edit`}>
                       <Edit className="h-4 w-4 mr-2" />
@@ -293,12 +300,19 @@ export default async function ClientDetailPage({ params }: PageProps) {
                           Manage Features
                         </Link>
                       </button>
-                      <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
-                        <ExternalLink className="text-[#F2C94C]" />
-                        <Link href={`/client/${client.slug}`} target="_blank" className="flex-1 text-left">
-                          View Client Portal
-                        </Link>
-                      </button>
+                      {client.slug && client.slug.trim() !== '' ? (
+                        <button className="w-full flex items-center gap-3 bg-[#10152b] hover:bg-[#161c36] text-white py-2.5 px-4 rounded-lg transition-colors">
+                          <ExternalLink className="text-[#F2C94C]" />
+                          <Link href={`/client/${client.slug}`} target="_blank" className="flex-1 text-left">
+                            View Client Portal
+                          </Link>
+                        </button>
+                      ) : (
+                        <button className="w-full flex items-center gap-3 bg-[#10152b] text-slate-500 py-2.5 px-4 rounded-lg cursor-not-allowed" disabled title="Client needs a slug to view portal. Please edit the client to add a slug.">
+                          <ExternalLink className="text-slate-500" />
+                          <span className="flex-1 text-left">View Client Portal</span>
+                        </button>
+                      )}
                     </CardContent>
                   </Card>
 

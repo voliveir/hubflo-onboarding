@@ -6,9 +6,9 @@ import { notFound } from "next/navigation"
 import type { ClientFeature, Feature, Client } from "@/lib/types"
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function ClientFeaturesPage({ params }: PageProps) {

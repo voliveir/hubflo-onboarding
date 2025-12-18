@@ -128,11 +128,20 @@ function transformClientFromDb(data: any): Client {
     // NEW: white label app details
     white_label_app_name: data.white_label_app_name || null,
     white_label_app_description: data.white_label_app_description || null,
-    white_label_app_assets: Array.isArray(data.white_label_app_assets)
-      ? data.white_label_app_assets
-      : (typeof data.white_label_app_assets === 'string' && data.white_label_app_assets
-          ? JSON.parse(data.white_label_app_assets)
-          : []),
+    white_label_app_assets: (() => {
+      if (Array.isArray(data.white_label_app_assets)) {
+        return data.white_label_app_assets
+      }
+      if (typeof data.white_label_app_assets === 'string' && data.white_label_app_assets) {
+        try {
+          return JSON.parse(data.white_label_app_assets)
+        } catch (error) {
+          console.error('Error parsing white_label_app_assets JSON:', error)
+          return []
+        }
+      }
+      return []
+    })(),
     // NEW: white label approval workflow fields
     white_label_client_approval_status: data.white_label_client_approval_status || null,
     white_label_client_approval_at: data.white_label_client_approval_at || null,
@@ -351,24 +360,62 @@ export async function getClient(identifier: string): Promise<Client | null> {
 
 export async function getClientBySlug(slug: string): Promise<Client | null> {
   try {
-    // Force fresh data by adding a cache-busting parameter
+    // Trim whitespace from slug
+    const trimmedSlug = slug.trim()
+    console.log('getClientBySlug - searching for slug:', trimmedSlug)
+    
+    // Try exact match first (case-sensitive)
     const { data, error } = await supabase
       .from("clients")
       .select(`*, white_label_app_name, white_label_app_description, white_label_app_assets`)
-      .eq("slug", slug)
+      .eq("slug", trimmedSlug)
       .single()
 
-    if (error) {
-      if (error.code === "PGRST116") {
-        return null // No rows returned
+    // If not found, try lowercase version
+    if (error && error.code === "PGRST116") {
+      console.log('No client found with exact slug match, trying lowercase:', trimmedSlug.toLowerCase())
+      const lowerSlug = trimmedSlug.toLowerCase()
+      const { data: lowerData, error: lowerError } = await supabase
+        .from("clients")
+        .select(`*, white_label_app_name, white_label_app_description, white_label_app_assets`)
+        .eq("slug", lowerSlug)
+        .single()
+      
+      if (!lowerError && lowerData) {
+        console.log('Found client with lowercase slug:', lowerData.name)
+        console.log('Fresh client data from DB:', {
+          id: lowerData.id,
+          name: lowerData.name,
+          slug: lowerData.slug,
+          status: lowerData.status,
+          assets: lowerData.white_label_app_assets
+        });
+        return transformClientFromDb(lowerData)
+      } else {
+        // Client not found with either case
+        console.error('Client not found. Searched for:', trimmedSlug, 'and', lowerSlug)
+        if (lowerError) {
+          console.error('Lowercase search error:', lowerError)
+        }
+        return null
       }
+    }
+
+    if (error) {
       console.error("Error fetching client:", error)
+      return null
+    }
+
+    if (!data) {
+      console.error('No data returned from database')
       return null
     }
 
     console.log('Fresh client data from DB:', {
       id: data.id,
       name: data.name,
+      slug: data.slug,
+      status: data.status,
       assets: data.white_label_app_assets
     });
 
