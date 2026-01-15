@@ -400,12 +400,19 @@ export default function GanttChartPage() {
 
   return (
     <PasswordProtection>
-      <div className="flex h-screen bg-gradient-to-br from-[#10122b] to-[#181a2f]">
+      <div className="flex h-screen bg-white">
         <AdminSidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-8">
-            <h1 className="text-3xl font-bold text-white mb-8">Project Management</h1>
-            <div className="w-full rounded-2xl ring-1 ring-[#F2C94C] bg-gradient-to-br from-[#10122b] to-[#181a2f] shadow-lg p-6">
+            <div className="mb-8">
+              <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
+                <span className="text-brand-gold font-medium text-sm">Project Management</span>
+              </div>
+              <h1 className="text-5xl lg:text-6xl font-bold mb-4" style={{color: '#060520'}}>
+                Project Management
+              </h1>
+            </div>
+            <div className="w-full rounded-2xl border border-gray-200 bg-white shadow-sm p-6">
               {/* Tab navigation for Kanban/Gantt */}
               <div className="mb-4">
                 <div className="flex space-x-2 border-b border-gray-200">

@@ -109,10 +109,10 @@ export function AdminSidebar() {
   }
 
   return (
-    <div className="flex h-full w-64 flex-col bg-gradient-to-b from-[#010124] via-[#0a0a2a] to-[#1a1a40] border-r border-[#F2C94C] shadow-xl backdrop-blur-md">
-      <div className="flex h-16 items-center px-6 border-b border-[#F2C94C]">
-        <Building2 className="h-8 w-8 stroke-[1.5] text-[#F2C94C]" />
-        <span className="ml-2 text-xl font-bold text-white">Hubflo Admin</span>
+    <div className="flex h-full w-64 flex-col bg-white border-r border-gray-200 shadow-lg">
+      <div className="flex h-16 items-center px-6 border-b border-gray-200 bg-white">
+        <Building2 className="h-8 w-8 stroke-[1.5] text-brand-gold" />
+        <span className="ml-2 text-xl font-bold" style={{color: '#060520'}}>Hubflo Admin</span>
       </div>
 
       <ScrollArea className="flex-1 px-3 py-4">
@@ -127,17 +127,18 @@ export function AdminSidebar() {
                   <Button
                     variant="ghost"
                     className={cn(
-                      "w-full justify-start px-3 py-2 text-left font-normal text-white",
-                      "hover:bg-[#F2C94C] hover:text-[#010124]",
+                      "w-full justify-start px-3 py-2 text-left font-normal",
+                      "hover:bg-brand-gold/10 hover:text-brand-gold",
+                      "text-gray-700"
                     )}
                     onClick={() => toggleExpanded(item.name)}
                   >
-                    <item.icon className="mr-3 h-4 w-4 stroke-[1.5] text-[#F2C94C]" />
+                    <item.icon className="mr-3 h-4 w-4 stroke-[1.5] text-brand-gold" />
                     {item.name}
                     {isExpanded ? (
-                      <ChevronDown className="ml-auto h-4 w-4 stroke-[1.5] text-[#F2C94C]" />
+                      <ChevronDown className="ml-auto h-4 w-4 stroke-[1.5] text-gray-500" />
                     ) : (
-                      <ChevronRight className="ml-auto h-4 w-4 stroke-[1.5] text-[#F2C94C]" />
+                      <ChevronRight className="ml-auto h-4 w-4 stroke-[1.5] text-gray-500" />
                     )}
                   </Button>
 
@@ -151,8 +152,8 @@ export function AdminSidebar() {
                             className={cn(
                               "w-full justify-start px-3 py-2 text-left font-normal text-sm",
                               pathname === child.href
-                                ? "bg-[#F2C94C] text-[#010124]"
-                                : "text-gray-300 hover:bg-[#F2C94C] hover:text-[#010124]",
+                                ? "bg-brand-gold text-[#010124] font-semibold"
+                                : "text-gray-600 hover:bg-brand-gold/10 hover:text-brand-gold",
                             )}
                             asChild
                           >
@@ -173,13 +174,13 @@ export function AdminSidebar() {
                 className={cn(
                   "w-full justify-start px-3 py-2 text-left font-normal",
                   pathname === item.href
-                    ? "border-l-4 border-[#F2C94C] bg-transparent text-[#F2C94C]"
-                    : "text-white hover:bg-[#F2C94C]/10 hover:text-[#F2C94C]",
+                    ? "border-l-4 border-brand-gold bg-brand-gold/10 text-brand-gold font-semibold"
+                    : "text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold",
                 )}
                 asChild
               >
                 <Link href={item.href || "#"}>
-                  <item.icon className="mr-3 h-4 w-4 stroke-[1.5] text-[#F2C94C]" />
+                  <item.icon className="mr-3 h-4 w-4 stroke-[1.5] text-brand-gold" />
                   {item.name}
                 </Link>
               </Button>
@@ -188,14 +189,14 @@ export function AdminSidebar() {
         </nav>
       </ScrollArea>
 
-      <div className="border-t border-[#F2C94C] p-4">
+      <div className="border-t border-gray-200 p-4 bg-white">
         <div className="flex items-center">
-          <div className="h-8 w-8 rounded-full bg-[#F2C94C] flex items-center justify-center">
+          <div className="h-8 w-8 rounded-full bg-brand-gold flex items-center justify-center">
             <span className="text-sm font-medium text-[#010124]">A</span>
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium text-white">Admin User</p>
-            <p className="text-xs text-gray-300">admin@hubflo.com</p>
+            <p className="text-sm font-medium" style={{color: '#060520'}}>Admin User</p>
+            <p className="text-xs text-gray-500">admin@hubflo.com</p>
           </div>
         </div>
       </div>

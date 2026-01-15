@@ -102,12 +102,12 @@ export function ClientIntegrationsSection({
 
   if (loading) {
     return (
-      <section className="py-16 px-4">
+      <section className="py-0 px-4">
         <div className="container mx-auto">
           <div className="text-center">
             <div className="animate-pulse">
-              <div className="h-8 bg-white/20 rounded w-1/2 mx-auto mb-4"></div>
-              <div className="h-4 bg-white/20 rounded w-1/3 mx-auto"></div>
+              <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/3 mx-auto"></div>
             </div>
           </div>
         </div>
@@ -118,17 +118,17 @@ export function ClientIntegrationsSection({
   // If no integrations are selected, show a message
   if (integrations.length === 0) {
     return (
-      <section ref={ref} className={cn("py-16 px-4", isVisible && "animate-fade-in-up")}>
+      <section ref={ref} className={cn("py-0 px-4", isVisible && "animate-fade-in-up")}>
         <div className="container mx-auto">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">Integrations for {clientName}</h2>
+            <h2 className="text-3xl font-bold mb-4" style={{ color: '#060520' }}>Integrations for {clientName}</h2>
             <div className="max-w-2xl mx-auto">
-              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/20 p-8 text-center">
-                <div className="w-16 h-16 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20 mx-auto mb-4">
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
                   <Settings className="h-8 w-8 text-brand-gold" />
                 </div>
-                <h3 className="text-lg font-medium text-white mb-2">No Integrations Selected</h3>
-                <p className="text-white/80 mb-6">
+                <h3 className="text-lg font-medium mb-2" style={{ color: '#060520' }}>No Integrations Selected</h3>
+                <p className="mb-6 leading-relaxed" style={{ color: '#64748b' }}>
                   Your Implementation Manager will customize and select the most relevant integrations for your
                   workflow during your onboarding process.
                 </p>
@@ -216,11 +216,11 @@ export function ClientIntegrationsSection({
   }
 
   return (
-    <section ref={ref} className={cn("py-16 px-4", isVisible && "animate-fade-in-up")}>
+    <section ref={ref} className={cn("py-0 px-4", isVisible && "animate-fade-in-up")}>
       <div className="container mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-white mb-4">Recommended Integrations for {clientName}</h2>
-          <p className="text-white/80 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4" style={{ color: '#060520' }}>Recommended Integrations for {clientName}</h2>
+          <p className="max-w-2xl mx-auto leading-relaxed" style={{ color: '#64748b' }}>
             Based on your onboarding discussion, we've curated these integrations to help streamline your workflow and
             automate your processes.
           </p>
@@ -230,30 +230,30 @@ export function ClientIntegrationsSection({
           {/* Priority Integrations */}
           {featuredIntegrations.length > 0 && (
             <div>
-              <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
-                <div className="w-6 h-6 bg-brand-gold/20 rounded-lg flex items-center justify-center border border-brand-gold/40 mr-2">
+              <h3 className="text-xl font-semibold mb-6 flex items-center" style={{ color: '#060520' }}>
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center mr-2 transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
                   <Star className="text-brand-gold h-4 w-4" />
                 </div>
                 Priority Integrations
               </h3>
               <div className="grid gap-6">
                 {featuredIntegrations.map((integration) => (
-                  <div key={integration.id} className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/40 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
+                  <div key={integration.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
-                        <div className="w-10 h-10 bg-brand-gold/20 rounded-xl flex items-center justify-center border border-brand-gold/40">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
                           {getIntegrationIcon(integration.integration_type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-lg font-semibold text-white break-words mb-2">
+                          <h4 className="text-lg font-semibold break-words mb-2" style={{ color: '#060520' }}>
                             {integration.title}
                           </h4>
                           <div className="flex items-center space-x-2">
-                            <Badge variant="secondary" className="bg-brand-gold/20 text-brand-gold text-xs border border-brand-gold/40">
+                            <Badge variant="secondary" className="bg-brand-gold/10 text-brand-gold text-xs border border-brand-gold/20">
                               <Star className="h-3 w-3 mr-1" />
                               Featured
                             </Badge>
-                            <Badge variant="outline" className="text-xs text-white/80 border-white/20">
+                            <Badge variant="outline" className="text-xs border-gray-200" style={{ color: '#64748b' }}>
                               Priority {integration.sort_order || 1}
                             </Badge>
                           </div>
@@ -261,7 +261,7 @@ export function ClientIntegrationsSection({
                       </div>
                       <div className="ml-4 flex-shrink-0">{getIntegrationBadge(integration.integration_type)}</div>
                     </div>
-                    <p className="text-white/80 mb-4">{integration.description}</p>
+                    <p className="mb-4 text-sm" style={{ color: '#64748b' }}>{integration.description}</p>
                     <Button className="w-full bg-brand-gold hover:bg-brand-gold/90 text-brand-DEFAULT transition-all duration-200 hover:scale-105" asChild>
                       <a href={integration.external_url || "#"} target="_blank" rel="noopener noreferrer">
                         {getButtonText(integration.integration_type)}
@@ -277,28 +277,28 @@ export function ClientIntegrationsSection({
           {/* Additional Integrations */}
           {additionalIntegrations.length > 0 && (
             <div>
-              <h3 className="text-xl font-semibold text-white mb-6">Additional Integrations</h3>
+              <h3 className="text-xl font-semibold mb-6" style={{ color: '#060520' }}>Additional Integrations</h3>
               <div className="grid md:grid-cols-2 gap-6">
                 {additionalIntegrations.map((integration) => (
-                  <div key={integration.id} className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
+                  <div key={integration.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
-                        <div className="w-10 h-10 bg-brand-gold/20 rounded-xl flex items-center justify-center border border-brand-gold/40">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
                           {getIntegrationIcon(integration.integration_type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-lg font-semibold text-white break-words mb-2">
+                          <h4 className="text-lg font-semibold break-words mb-2" style={{ color: '#060520' }}>
                             {integration.title}
                           </h4>
-                          <Badge variant="outline" className="text-xs text-white/80 border-white/20">
+                          <Badge variant="outline" className="text-xs border-gray-200" style={{ color: '#64748b' }}>
                             Priority {integration.sort_order || 1}
                           </Badge>
                         </div>
                       </div>
                       <div className="ml-4 flex-shrink-0">{getIntegrationBadge(integration.integration_type)}</div>
                     </div>
-                    <p className="text-white/80 mb-4">{integration.description}</p>
-                    <Button variant="outline" className="w-full bg-transparent border-white/20 text-white hover:bg-white/10 transition-all duration-200 hover:scale-105" asChild>
+                    <p className="mb-4 text-sm" style={{ color: '#64748b' }}>{integration.description}</p>
+                    <Button variant="outline" className="w-full border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-200 hover:scale-105" asChild>
                       <a href={integration.external_url || "#"} target="_blank" rel="noopener noreferrer">
                         {getButtonText(integration.integration_type)}
                         <ExternalLink className="ml-2 h-4 w-4" />
@@ -312,22 +312,22 @@ export function ClientIntegrationsSection({
 
           {/* Help Section */}
           {successPackage.toLowerCase() === "light" ? (
-            <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/40 p-8 text-center transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
-              <h3 className="text-xl font-semibold text-white mb-4">Need More Help?</h3>
-              <p className="text-white/80 mb-6">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center transition-all duration-300 hover:shadow-lg hover:border-gray-300">
+              <h3 className="text-xl font-semibold mb-4" style={{ color: '#060520' }}>Need More Help?</h3>
+              <p className="mb-6 leading-relaxed" style={{ color: '#64748b' }}>
                 If you need hands-on help setting up integrations, you'll need to upgrade your success package to <strong>Premium</strong>, <strong>Gold</strong>, or <strong>Elite</strong>.
               </p>
-              <p className="text-sm text-white/60 mb-6">
+              <p className="text-sm mb-6" style={{ color: '#64748b' }}>
                 <strong>Contact support</strong> to discuss upgrading and unlocking advanced onboarding support.
               </p>
             </div>
           ) : (
-            <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/40 p-8 text-center transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
-              <h3 className="text-xl font-semibold text-white mb-4">Need Help Setting These Up?</h3>
-              <p className="text-white/80 mb-6">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center transition-all duration-300 hover:shadow-lg hover:border-gray-300">
+              <h3 className="text-xl font-semibold mb-4" style={{ color: '#060520' }}>Need Help Setting These Up?</h3>
+              <p className="mb-6 leading-relaxed" style={{ color: '#64748b' }}>
                 Our implementation team can help configure these integrations during your onboarding calls.
               </p>
-              <p className="text-sm text-white/60 mb-6">
+              <p className="text-sm mb-6" style={{ color: '#64748b' }}>
                 <strong>Note:</strong> Advanced integration setup is included with Premium, Gold, and Elite packages.
               </p>
               <Button className="bg-brand-gold hover:bg-brand-gold/90 text-brand-DEFAULT transition-all duration-200 hover:scale-105" asChild>

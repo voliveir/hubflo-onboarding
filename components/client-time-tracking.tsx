@@ -253,11 +253,11 @@ export function ClientTimeTracking({
   }
 
   return (
-    <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6 md:p-8 shadow-[#F2C94C]/5">
+    <Card className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-white pl-3 border-l-4 border-[#F2C94C] flex items-center gap-2">
-            <Clock className="h-5 w-5 text-[#F2C94C]" />
+          <CardTitle className="text-lg font-semibold pl-3 border-l-4 border-brand-gold flex items-center gap-2" style={{color: '#060520'}}>
+            <Clock className="h-5 w-5 text-brand-gold" />
             Time Tracking
           </CardTitle>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -280,19 +280,19 @@ export function ClientTimeTracking({
                 Add Entry
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-[#181a2f] border border-[#F2C94C]/20 text-white max-w-2xl">
+            <DialogContent className="bg-white border border-gray-200 text-gray-900 max-w-2xl">
               <DialogHeader>
-                <DialogTitle className="text-white">
+                <DialogTitle style={{color: '#060520'}}>
                   {editingEntry ? "Edit Time Entry" : "Add Time Entry"}
                 </DialogTitle>
-                <DialogDescription className="text-white/70">
+                <DialogDescription className="text-gray-600">
                   Track time spent on meetings, emails, or implementation work
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="entry_type" className="text-white">
+                    <Label htmlFor="entry_type" style={{color: '#060520'}}>
                       Activity Type *
                     </Label>
                     <Select
@@ -302,42 +302,42 @@ export function ClientTimeTracking({
                       }
                       required
                     >
-                      <SelectTrigger className="bg-[#0d1120] border-slate-600 text-white">
+                      <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#0d1120] border-slate-600">
-                        <SelectItem value="meeting" className="text-white">
+                      <SelectContent className="bg-white border-gray-300">
+                        <SelectItem value="meeting" className="text-gray-900">
                           Meeting
                         </SelectItem>
-                        <SelectItem value="email" className="text-white">
+                        <SelectItem value="email" className="text-gray-900">
                           Email
                         </SelectItem>
-                        <SelectItem value="initial_setup" className="text-white">
+                        <SelectItem value="initial_setup" className="text-gray-900">
                           Initial Setup/Discovery
                         </SelectItem>
-                        <SelectItem value="automation_workflow" className="text-white">
+                        <SelectItem value="automation_workflow" className="text-gray-900">
                           Building Automations/Zapier Workflows
                         </SelectItem>
-                        <SelectItem value="api_integration" className="text-white">
+                        <SelectItem value="api_integration" className="text-gray-900">
                           API Integration Work
                         </SelectItem>
-                        <SelectItem value="testing_debugging" className="text-white">
+                        <SelectItem value="testing_debugging" className="text-gray-900">
                           Testing/Debugging
                         </SelectItem>
-                        <SelectItem value="training_handoff" className="text-white">
+                        <SelectItem value="training_handoff" className="text-gray-900">
                           Training/Handoff
                         </SelectItem>
-                        <SelectItem value="revisions_rework" className="text-white">
+                        <SelectItem value="revisions_rework" className="text-gray-900">
                           Revisions/Rework
                         </SelectItem>
-                        <SelectItem value="implementation" className="text-white">
+                        <SelectItem value="implementation" className="text-gray-900">
                           General Implementation
                         </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="date" className="text-white">
+                    <Label htmlFor="date" style={{color: '#060520'}}>
                       Date *
                     </Label>
                     <Input
@@ -345,13 +345,13 @@ export function ClientTimeTracking({
                       type="date"
                       value={formData.date}
                       onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                      className="bg-[#0d1120] border-slate-600 text-white"
+                      className="bg-white border-gray-300 text-gray-900"
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="duration_minutes" className="text-white">
+                  <Label htmlFor="duration_minutes" style={{color: '#060520'}}>
                     Duration (minutes) *
                   </Label>
                   <Input
@@ -362,31 +362,31 @@ export function ClientTimeTracking({
                     onChange={(e) =>
                       setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })
                     }
-                    className="bg-[#0d1120] border-slate-600 text-white"
+                    className="bg-white border-gray-300 text-gray-900"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="description" className="text-white">
+                  <Label htmlFor="description" style={{color: '#060520'}}>
                     Description
                   </Label>
                   <Input
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="bg-[#0d1120] border-slate-600 text-white"
+                    className="bg-white border-gray-300 text-gray-900"
                     placeholder="Brief description of the work"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="notes" className="text-white">
+                  <Label htmlFor="notes" style={{color: '#060520'}}>
                     Notes
                   </Label>
                   <Textarea
                     id="notes"
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="bg-[#0d1120] border-slate-600 text-white"
+                    className="bg-white border-gray-300 text-gray-900"
                     placeholder="Additional notes or details"
                     rows={3}
                   />
@@ -396,13 +396,13 @@ export function ClientTimeTracking({
                     type="button"
                     variant="outline"
                     onClick={() => setIsDialogOpen(false)}
-                    className="border-slate-600 text-white hover:bg-[#23244a]"
+                    className="border-gray-300 text-gray-700 hover:bg-gray-100"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-[#10122b] font-semibold"
+                    className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-[#010124] font-semibold"
                   >
                     {editingEntry ? "Update" : "Create"} Entry
                   </Button>
@@ -416,30 +416,30 @@ export function ClientTimeTracking({
         {/* Summary Cards */}
         {summary && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="bg-[#0d1120] border-slate-700 p-4">
-              <div className="text-sm text-white/70 mb-1">Total Time</div>
-              <div className="text-2xl font-bold text-white">
+            <Card className="bg-gray-50 border-gray-200 p-4">
+              <div className="text-sm text-gray-600 mb-1">Total Time</div>
+              <div className="text-2xl font-bold" style={{color: '#060520'}}>
                 {formatDuration(summary.total_minutes || 0)}
               </div>
-              <div className="text-xs text-white/60 mt-1">
+              <div className="text-xs text-gray-600 mt-1">
                 {summary.total_hours?.toFixed(1) || 0} hours
               </div>
             </Card>
-            <Card className="bg-[#0d1120] border-slate-700 p-4">
-              <div className="text-sm text-white/70 mb-1">Meetings</div>
-              <div className="text-2xl font-bold text-blue-400">
+            <Card className="bg-gray-50 border-gray-200 p-4">
+              <div className="text-sm text-gray-600 mb-1">Meetings</div>
+              <div className="text-2xl font-bold text-blue-600">
                 {formatDuration(summary.meeting_minutes || 0)}
               </div>
             </Card>
-            <Card className="bg-[#0d1120] border-slate-700 p-4">
-              <div className="text-sm text-white/70 mb-1">Emails</div>
-              <div className="text-2xl font-bold text-purple-400">
+            <Card className="bg-gray-50 border-gray-200 p-4">
+              <div className="text-sm text-gray-600 mb-1">Emails</div>
+              <div className="text-2xl font-bold text-purple-600">
                 {formatDuration(summary.email_minutes || 0)}
               </div>
             </Card>
-            <Card className="bg-[#0d1120] border-slate-700 p-4">
-              <div className="text-sm text-white/70 mb-1">Implementation</div>
-              <div className="text-2xl font-bold text-orange-400">
+            <Card className="bg-gray-50 border-gray-200 p-4">
+              <div className="text-sm text-gray-600 mb-1">Implementation</div>
+              <div className="text-2xl font-bold text-orange-600">
                 {formatDuration(summary.implementation_minutes || 0)}
               </div>
             </Card>
@@ -450,96 +450,96 @@ export function ClientTimeTracking({
         {summary && (clientACV > 0 || getPackageCost(clientPackage) > 0) && (
           <div className="mb-6 space-y-4">
             {clientACV > 0 && (
-              <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <div className="text-sm text-white/70">Time to ACV Ratio</div>
-                    <div className="text-lg font-bold text-white mt-1">
+                    <div className="text-sm text-gray-600">Time to ACV Ratio</div>
+                    <div className="text-lg font-bold mt-1" style={{color: '#060520'}}>
                       {calculateTimeToACVRatio(summary.total_hours || 0, clientACV)?.toFixed(2) || "0.00"}{" "}
                       hrs per $1k ACV
                     </div>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-[#F2C94C]" />
+                  <TrendingUp className="h-8 w-8 text-brand-gold" />
                 </div>
               </div>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
-                <div className="text-sm text-white/70 mb-1">Implementation Cost</div>
-                <div className="text-xl font-bold text-white">
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="text-sm text-gray-600 mb-1">Implementation Cost</div>
+                <div className="text-xl font-bold" style={{color: '#060520'}}>
                   ${((summary.total_hours || 0) * HOURLY_RATE).toLocaleString()}
                 </div>
-                <div className="text-xs text-white/60 mt-1">
+                <div className="text-xs text-gray-600 mt-1">
                   {summary.total_hours?.toFixed(1) || 0} hours × ${HOURLY_RATE}/hr
                 </div>
               </div>
               {clientACV > 0 && calculateBreakevenTimeline(summary.total_hours || 0, clientACV) !== null && (
-                <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
-                  <div className="text-sm text-white/70 mb-1">Breakeven Timeline (ACV)</div>
-                  <div className="text-xl font-bold text-blue-400">
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="text-sm text-gray-600 mb-1">Breakeven Timeline (ACV)</div>
+                  <div className="text-xl font-bold text-blue-600">
                     {calculateBreakevenTimeline(summary.total_hours || 0, clientACV)?.toFixed(1)} months
                   </div>
-                  <div className="text-xs text-white/60 mt-1">
+                  <div className="text-xs text-gray-600 mt-1">
                     (Cost / ACV) × 12 months
                   </div>
                 </div>
               )}
               {clientACV > 0 && calculateROIEfficiencyScore(summary.total_hours || 0, clientACV) !== null && (
-                <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
-                  <div className="text-sm text-white/70 mb-1">ROI Efficiency Score (ACV)</div>
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="text-sm text-gray-600 mb-1">ROI Efficiency Score (ACV)</div>
                   <div className={`text-xl font-bold ${
                     (calculateROIEfficiencyScore(summary.total_hours || 0, clientACV) || 0) >= 10 
-                      ? 'text-green-400' 
+                      ? 'text-green-600' 
                       : (calculateROIEfficiencyScore(summary.total_hours || 0, clientACV) || 0) >= 5 
-                        ? 'text-yellow-400' 
-                        : 'text-red-400'
+                        ? 'text-yellow-600' 
+                        : 'text-red-600'
                   }`}>
                     {calculateROIEfficiencyScore(summary.total_hours || 0, clientACV)?.toFixed(2)}x
                   </div>
-                  <div className="text-xs text-white/60 mt-1">
+                  <div className="text-xs text-gray-600 mt-1">
                     ACV / Implementation Cost (higher is better)
                   </div>
                 </div>
               )}
               {getPackageCost(clientPackage) > 0 && (
                 <>
-                  <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
-                    <div className="text-sm text-white/70 mb-1">Package Cost</div>
-                    <div className="text-xl font-bold text-white">
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-600 mb-1">Package Cost</div>
+                    <div className="text-xl font-bold" style={{color: '#060520'}}>
                       ${getPackageCost(clientPackage).toLocaleString()}
                     </div>
-                    <div className="text-xs text-white/60 mt-1 capitalize">
+                    <div className="text-xs text-gray-600 mt-1 capitalize">
                       {clientPackage} Package
                     </div>
                   </div>
                   {calculatePackageCostSavings(summary.total_hours || 0, getPackageCost(clientPackage)) !== null && (
-                    <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
-                      <div className="text-sm text-white/70 mb-1">Cost vs Package</div>
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="text-sm text-gray-600 mb-1">Cost vs Package</div>
                       <div className={`text-xl font-bold ${
                         (calculatePackageCostSavings(summary.total_hours || 0, getPackageCost(clientPackage)) || 0) <= 0
-                          ? 'text-green-400'
-                          : 'text-red-400'
+                          ? 'text-green-600'
+                          : 'text-red-600'
                       }`}>
                         {calculatePackageCostSavings(summary.total_hours || 0, getPackageCost(clientPackage))! < 0
                           ? `$${Math.abs(calculatePackageCostSavings(summary.total_hours || 0, getPackageCost(clientPackage))!).toLocaleString()} under`
                           : `$${calculatePackageCostSavings(summary.total_hours || 0, getPackageCost(clientPackage))!.toLocaleString()} over`}
                       </div>
-                      <div className="text-xs text-white/60 mt-1">
+                      <div className="text-xs text-gray-600 mt-1">
                         Actual cost vs package price
                       </div>
                     </div>
                   )}
                   {calculatePackageROI(summary.total_hours || 0, getPackageCost(clientPackage)) !== null && (
-                    <div className="p-4 bg-[#0d1120] rounded-lg border border-slate-700">
-                      <div className="text-sm text-white/70 mb-1">Cost Ratio</div>
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="text-sm text-gray-600 mb-1">Cost Ratio</div>
                       <div className={`text-xl font-bold ${
                         (calculatePackageROI(summary.total_hours || 0, getPackageCost(clientPackage)) || 0) <= 1
-                          ? 'text-green-400'
-                          : 'text-red-400'
+                          ? 'text-green-600'
+                          : 'text-red-600'
                       }`}>
                         {calculatePackageROI(summary.total_hours || 0, getPackageCost(clientPackage))?.toFixed(2)}x
                       </div>
-                      <div className="text-xs text-white/60 mt-1">
+                      <div className="text-xs text-gray-600 mt-1">
                         Actual Cost / Package Cost {calculatePackageROI(summary.total_hours || 0, getPackageCost(clientPackage))! <= 1 ? '(under budget)' : '(over budget)'}
                       </div>
                     </div>
@@ -553,41 +553,41 @@ export function ClientTimeTracking({
         {/* Time Entries Table */}
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="text-center py-8 text-white/70">Loading...</div>
+            <div className="text-center py-8 text-gray-600">Loading...</div>
           ) : entries.length === 0 ? (
-            <div className="text-center py-8 text-white/70">
+            <div className="text-center py-8 text-gray-600">
               No time entries found. Click "Add Entry" to get started.
             </div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="border-slate-700 hover:bg-[#0d1120]">
-                  <TableHead className="text-white">Date</TableHead>
-                  <TableHead className="text-white">Type</TableHead>
-                  <TableHead className="text-white">Description</TableHead>
-                  <TableHead className="text-white">Duration</TableHead>
-                  <TableHead className="text-white">Actions</TableHead>
+                <TableRow className="border-gray-200 hover:bg-gray-50 bg-gray-50">
+                  <TableHead style={{color: '#060520'}}>Date</TableHead>
+                  <TableHead style={{color: '#060520'}}>Type</TableHead>
+                  <TableHead style={{color: '#060520'}}>Description</TableHead>
+                  <TableHead style={{color: '#060520'}}>Duration</TableHead>
+                  <TableHead style={{color: '#060520'}}>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {entries.map((entry) => (
                   <TableRow
                     key={entry.id}
-                    className="border-slate-700 hover:bg-[#0d1120]"
+                    className="border-gray-200 hover:bg-gray-50"
                   >
-                    <TableCell className="text-white">
+                    <TableCell style={{color: '#060520'}}>
                       {formatDateString(entry.date)}
                     </TableCell>
-                    <TableCell className="text-white">
+                    <TableCell style={{color: '#060520'}}>
                       <div className="flex items-center gap-2">
                         {getEntryTypeIcon(entry.entry_type)}
                         <span>{getEntryTypeLabel(entry.entry_type)}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-white">
+                    <TableCell style={{color: '#060520'}}>
                       {entry.description || "-"}
                     </TableCell>
-                    <TableCell className="text-white">
+                    <TableCell style={{color: '#060520'}}>
                       {formatDuration(entry.duration_minutes)}
                     </TableCell>
                     <TableCell>
@@ -596,7 +596,7 @@ export function ClientTimeTracking({
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEdit(entry)}
-                          className="text-[#F2C94C] hover:text-[#F2994A]"
+                          className="text-brand-gold hover:text-[#F2994A]"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -604,7 +604,7 @@ export function ClientTimeTracking({
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDelete(entry.id)}
-                          className="text-red-400 hover:text-red-300"
+                          className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

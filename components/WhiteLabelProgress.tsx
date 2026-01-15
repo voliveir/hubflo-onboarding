@@ -81,15 +81,15 @@ const STATE_VARIANTS = {
     content: (
       <div className="space-y-6">
         <div className="text-center">
-          <h3 className="text-xl font-semibold text-white mb-3">Development Timeline</h3>
-          <div className="inline-flex items-center bg-brand-gold/20 rounded-full px-6 py-3 border border-brand-gold/40">
+          <h3 className="text-xl font-semibold mb-3" style={{ color: '#060520' }}>Development Timeline</h3>
+          <div className="inline-flex items-center bg-brand-gold/10 rounded-full px-6 py-3 border border-brand-gold/20">
             <Clock className="h-5 w-5 text-brand-gold mr-2" />
-            <span className="font-semibold text-white">4-6 Weeks</span>
+            <span className="font-semibold" style={{ color: '#060520' }}>4-6 Weeks</span>
           </div>
         </div>
-        <div className="bg-[#181a2f] text-white rounded-lg p-6 border border-brand-gold/30">
-          <h4 className="font-semibold text-white mb-3">What to Expect:</h4>
-          <ul className="space-y-2 text-white/80">
+        <div className="bg-white rounded-lg p-6 border border-gray-200">
+          <h4 className="font-semibold mb-3" style={{ color: '#060520' }}>What to Expect:</h4>
+          <ul className="space-y-2 leading-relaxed" style={{ color: '#64748b' }}>
             <li className="flex items-start">
               <span className="text-brand-gold mr-2">•</span>
               Custom branding with your logo, colors, and company identity
@@ -108,9 +108,9 @@ const STATE_VARIANTS = {
             </li>
           </ul>
         </div>
-        <div className="text-center bg-[#10122b]/80 text-white rounded-lg p-6 border border-brand-gold/30">
-          <h4 className="font-semibold mb-2 text-white">Next Steps</h4>
-          <p className="text-white/80 mb-4">
+        <div className="text-center bg-white rounded-lg p-6 border border-gray-200">
+          <h4 className="font-semibold mb-2" style={{ color: '#060520' }}>Next Steps</h4>
+          <p className="mb-4 leading-relaxed" style={{ color: '#64748b' }}>
             Your Implementation Manager will reach out to you within 1-2 business days to discuss your app
             requirements, branding guidelines, and development timeline.
           </p>
@@ -217,21 +217,24 @@ function StepIndicator({ step, isCompleted, isCurrent, isWaiting, completedAt }:
         <div className="flex items-center justify-between mb-2">
           <h4 className={cn(
             "font-semibold",
-            isCompleted ? "text-green-400" : isCurrent ? "text-brand-gold" : isWaiting ? "text-orange-400" : "text-gray-400"
-          )}>
+            isCompleted ? "text-green-600" : isCurrent ? "text-brand-gold" : isWaiting ? "text-orange-600" : ""
+          )}
+          style={!isCompleted && !isCurrent && !isWaiting ? { color: '#060520' } : undefined}
+          >
             {step.title}
           </h4>
           <span className={cn(
             "text-xs px-2 py-1 rounded-full",
-            isCompleted ? "bg-green-500/20 text-green-300" : isCurrent ? "bg-brand-gold/20 text-brand-gold" : isWaiting ? "bg-orange-500/20 text-orange-300" : "bg-gray-500/20 text-gray-300"
+            isCompleted ? "bg-green-500/10 text-green-700 border border-green-200" : isCurrent ? "bg-brand-gold/10 text-brand-gold border border-brand-gold/20" : isWaiting ? "bg-orange-500/10 text-orange-700 border border-orange-200" : "bg-gray-500/10 text-gray-700 border border-gray-200"
           )}>
             {step.estimatedTime}
           </span>
         </div>
         <p className={cn(
-          "text-sm",
-          isCompleted ? "text-green-300/80" : isCurrent ? "text-brand-gold/80" : isWaiting ? "text-orange-300/80" : "text-gray-400/80"
-        )}>
+          "text-sm leading-relaxed"
+        )}
+        style={{ color: '#64748b' }}
+        >
           {step.clientDescription}
         </p>
         {isCurrent && (
@@ -241,13 +244,13 @@ function StepIndicator({ step, isCompleted, isCurrent, isWaiting, completedAt }:
           </div>
         )}
                  {isWaiting && (
-           <div className="mt-3 flex items-center gap-2 text-orange-400 text-xs">
+           <div className="mt-3 flex items-center gap-2 text-orange-600 text-xs">
              <Clock className="h-3 w-3" />
              <span>Waiting for approval</span>
            </div>
          )}
          {isCompleted && completedAt && (
-           <div className="mt-3 flex items-center gap-2 text-green-400 text-xs">
+           <div className="mt-3 flex items-center gap-2 text-green-600 text-xs">
              <CheckCircle className="h-3 w-3" />
              <span>Completed: {new Date(completedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
            </div>
@@ -326,28 +329,28 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
       }
     }
     return (
-      <div className="rounded-2xl border border-brand-gold/40 bg-[#10122b]/90 text-white shadow-[inset_0_1px_6px_rgba(0,0,0,.25)] overflow-hidden transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
-        <div className="bg-[#181a2f] px-8 py-6 flex justify-between items-center border-b border-brand-gold/20">
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-gray-300">
+        <div className="bg-white px-8 py-6 flex justify-between items-center border-b border-gray-200">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-brand-gold rounded-full flex items-center justify-center">
               <Settings className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Review & Approve Your App Details</h2>
-              <p className="text-white/80 text-sm">Please review your app's assets, name, and description. Approve or request changes before we submit to the app stores.</p>
+              <h2 className="text-xl font-bold" style={{ color: '#060520' }}>Review & Approve Your App Details</h2>
+              <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>Please review your app's assets, name, and description. Approve or request changes before we submit to the app stores.</p>
             </div>
           </div>
           <StatusPill variant={status} />
         </div>
-        <div className="p-8 bg-transparent">
+        <div className="p-8 bg-white">
           
           <div className="mb-8">
             <h3 className="text-lg font-semibold mb-2 text-brand-gold">App Details</h3>
-            <ul className="space-y-2 text-white/90">
-              <li><span className="font-semibold">App Name:</span> {appName || "[App Name Here]"}</li>
+            <ul className="space-y-2" style={{ color: '#64748b' }}>
+              <li><span className="font-semibold" style={{ color: '#060520' }}>App Name:</span> {appName || "[App Name Here]"}</li>
               <li>
-                <span className="font-semibold">Description:</span>
-                <div className="mt-2 text-white/90 leading-relaxed">
+                <span className="font-semibold" style={{ color: '#060520' }}>Description:</span>
+                <div className="mt-2 leading-relaxed" style={{ color: '#64748b' }}>
                   {appDescription ? (
                     <div className="whitespace-pre-wrap">
                       {appDescription.split('\n').map((line, index) => {
@@ -406,7 +409,7 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
                         key={i} 
                         src={url} 
                         alt={`Asset ${i + 1}`} 
-                        className="h-16 rounded shadow border border-white/10 bg-[#181a2f] cursor-pointer hover:border-brand-gold/50 hover:scale-105 transition-all duration-200" 
+                        className="h-16 rounded shadow border border-gray-200 bg-white cursor-pointer hover:border-brand-gold/50 hover:scale-105 transition-all duration-200" 
                         onClick={() => {
                           console.log('Image clicked:', url);
                           setSelectedImage(url);
@@ -445,15 +448,15 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
           </div>
           {/* Approval buttons and confirmation logic */}
           {hasDecision ? (
-            <div className="mt-6 text-center text-green-400 font-semibold">
+            <div className="mt-6 text-center text-green-600 font-semibold">
               Thank you! Your decision ({approvalStatus === "approved" ? "Approved" : "Changes Requested"}) has been recorded.
             </div>
           ) : (
             <div className="space-y-4">
               {/* Feedback Box */}
               {showFeedbackBox && (
-                <div className="bg-gray-800/50 rounded-lg p-4 border border-orange-500/30">
-                  <label className="block text-sm font-medium text-white mb-2">
+                <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                  <label className="block text-sm font-medium mb-2" style={{ color: '#060520' }}>
                     Please provide details about what changes you'd like:
                   </label>
                   <textarea
@@ -461,7 +464,8 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
                     onChange={(e) => setFeedback(e.target.value)}
                     placeholder="Describe the changes you'd like to see..."
                     rows={4}
-                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-md p-3 resize-y"
+                    className="w-full bg-white border border-gray-200 rounded-md p-3 resize-y"
+                    style={{ color: '#060520' }}
                   />
                 </div>
               )}
@@ -528,16 +532,16 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
         document.body
       )}
       
-      <div className="rounded-2xl border border-brand-gold/40 bg-[#10122b]/90 text-white shadow-[inset_0_1px_6px_rgba(0,0,0,.25)] overflow-hidden transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-gray-300">
       {/* Header */}
-      <div className="bg-[#181a2f] px-8 py-6 flex justify-between items-center border-b border-brand-gold/20">
+      <div className="bg-white px-8 py-6 flex justify-between items-center border-b border-gray-200">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-brand-gold rounded-full flex items-center justify-center">
             <Settings className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">{variant.title}</h2>
-            <p className="text-white/80 text-sm">{variant.subtitle}</p>
+            <h2 className="text-xl font-bold" style={{ color: '#060520' }}>{variant.title}</h2>
+            <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>{variant.subtitle}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -549,20 +553,20 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
       </div>
 
       {/* Content */}
-      <div className="p-8 bg-transparent">
+      <div className="p-8 bg-white">
         {status === "not_started" && variant.content}
 
         {(status === "in_progress" || status === "waiting_for_approval") && (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h3 className="text-xl font-semibold text-white mb-4">Development Progress</h3>
-              <div className="h-3 rounded-full bg-brand-foreground/10 overflow-hidden mb-2">
+              <h3 className="text-xl font-semibold mb-4" style={{ color: '#060520' }}>Development Progress</h3>
+              <div className="h-3 rounded-full bg-gray-100 overflow-hidden mb-2">
                 <div
                   className="h-full bg-brand-gold transition-all duration-800 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <div className="text-sm text-brand-foreground/60 text-center">
+              <div className="text-sm text-center" style={{ color: '#64748b' }}>
                 {progress}% Complete • Step {currentStepIndex + 1} of {CLIENT_STEPS.length}
               </div>
             </div>
@@ -588,17 +592,17 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
                })}
              </div>
 
-            <div className="text-white/60 text-sm text-center mt-8">
+            <div className="text-sm text-center mt-8" style={{ color: '#64748b' }}>
               Last updated: {new Date(updatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}, {new Date(updatedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}
             </div>
 
             {status === "waiting_for_approval" && (
-              <div className="text-center bg-orange-500/10 border border-orange-500/30 rounded-lg p-4">
-                <div className="text-orange-400 font-medium flex items-center justify-center gap-2 mb-2">
+              <div className="text-center bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div className="text-orange-600 font-medium flex items-center justify-center gap-2 mb-2">
                   <AlertCircle className="h-4 w-4" />
                   App Store Review in Progress
                 </div>
-                <p className="text-orange-300/80 text-sm">
+                <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>
                   Your app is currently being reviewed by the app stores. This process typically takes 2-3 weeks.
                 </p>
               </div>
@@ -609,7 +613,7 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
         {status === "complete" && (
           <div className="space-y-6 text-center">
             <div className="mb-4">
-              <h3 className="text-xl font-semibold text-white mb-4">Download Links</h3>
+              <h3 className="text-xl font-semibold mb-4" style={{ color: '#060520' }}>Download Links</h3>
               <div className="flex flex-row flex-wrap justify-center items-center gap-6">
                 {androidUrl ? (
                   <a href={androidUrl} target="_blank" rel="noopener noreferrer">
@@ -622,7 +626,7 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
                     />
                   </a>
                 ) : (
-                  <div className="text-white/60 font-semibold">Google Play coming soon!</div>
+                  <div className="font-semibold" style={{ color: '#64748b' }}>Google Play coming soon!</div>
                 )}
                 {iosUrl ? (
                   <a href={iosUrl} target="_blank" rel="noopener noreferrer">
@@ -635,7 +639,7 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
                     />
                   </a>
                 ) : (
-                  <div className="text-white/60 font-semibold">Apple App Store coming soon!</div>
+                  <div className="font-semibold" style={{ color: '#64748b' }}>Apple App Store coming soon!</div>
                 )}
               </div>
             </div>
@@ -644,7 +648,7 @@ export function WhiteLabelProgress({ status, checklist, androidUrl, iosUrl, upda
               Marked complete: {new Date(updatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}, {new Date(updatedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}
             </div>
 
-            <div className="text-white font-semibold mt-6">
+            <div className="font-semibold mt-6" style={{ color: '#64748b' }}>
               Share these links with your clients so they can download your app directly from the app stores.
             </div>
 

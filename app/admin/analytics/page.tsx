@@ -267,11 +267,11 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     if (!metric) return null;
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-        <div className="bg-[#181a2f] rounded-2xl shadow-2xl p-8 w-full max-w-lg relative">
-          <button onClick={onClose} className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-gold-400">×</button>
-          <h3 className="text-xl font-bold text-white mb-2">{metric.name}</h3>
-          <p className="text-white mb-2">{metric.description}</p>
-          <div className="text-white font-mono text-sm whitespace-pre-line">{metric.logic}</div>
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg relative border border-gray-200">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
+          <h3 className="text-xl font-bold mb-2" style={{color: '#060520'}}>{metric.name}</h3>
+          <p className="text-gray-700 mb-2">{metric.description}</p>
+          <div className="text-gray-600 font-mono text-sm whitespace-pre-line">{metric.logic}</div>
         </div>
       </div>
     );
@@ -283,25 +283,25 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     const safeClients = Array.isArray(clients) ? clients : [];
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-        <div className="bg-[#181a2f] rounded-2xl shadow-2xl p-8 w-full max-w-lg relative">
-          <button onClick={onClose} className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-gold-400">×</button>
-          <h3 className="text-xl font-bold text-white mb-4">Churn Risk Clients</h3>
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg relative border border-gray-200">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
+          <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Churn Risk Clients</h3>
           <div className="overflow-y-auto max-h-[60vh]">
-            <table className="min-w-full text-white">
+            <table className="min-w-full">
               <thead>
-                <tr className="border-b border-[#23244a]">
-                  <th className="py-2 px-3 text-left">Name</th>
-                  <th className="py-2 px-3 text-left">Implementation Manager</th>
+                <tr className="border-b border-gray-200">
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Name</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Implementation Manager</th>
                 </tr>
               </thead>
               <tbody>
                 {safeClients.length === 0 ? (
-                  <tr><td colSpan={2} className="py-4 text-center text-slate-400">No clients at risk of churn.</td></tr>
+                  <tr><td colSpan={2} className="py-4 text-center text-gray-600">No clients at risk of churn.</td></tr>
                 ) : (
                   safeClients.map((client, idx) => (
-                    <tr key={client.id} className="border-b border-[#23244a] hover:bg-[#23244a]/40">
-                      <td className="py-2 px-3">{client.name}</td>
-                      <td className="py-2 px-3">{client.implementation_manager ?? '-'}</td>
+                    <tr key={client.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="py-2 px-3" style={{color: '#060520'}}>{client.name}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.implementation_manager ?? '-'}</td>
                     </tr>
                   ))
                 )}
@@ -319,25 +319,25 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     const safeClients = Array.isArray(clients) ? clients : [];
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-        <div className="bg-[#181a2f] rounded-2xl shadow-2xl p-8 w-full max-w-lg relative">
-          <button onClick={onClose} className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-gold-400">×</button>
-          <h3 className="text-xl font-bold text-white mb-4">Churned Clients</h3>
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg relative border border-gray-200">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
+          <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Churned Clients</h3>
           <div className="overflow-y-auto max-h-[60vh]">
-            <table className="min-w-full text-white">
+            <table className="min-w-full">
               <thead>
-                <tr className="border-b border-[#23244a]">
-                  <th className="py-2 px-3 text-left">Name</th>
-                  <th className="py-2 px-3 text-left">Implementation Manager</th>
+                <tr className="border-b border-gray-200">
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Name</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Implementation Manager</th>
                 </tr>
               </thead>
               <tbody>
                 {safeClients.length === 0 ? (
-                  <tr><td colSpan={2} className="py-4 text-center text-slate-400">No churned clients.</td></tr>
+                  <tr><td colSpan={2} className="py-4 text-center text-gray-600">No churned clients.</td></tr>
                 ) : (
                   safeClients.map((client, idx) => (
-                    <tr key={client.id} className="border-b border-[#23244a] hover:bg-[#23244a]/40">
-                      <td className="py-2 px-3">{client.name}</td>
-                      <td className="py-2 px-3">{client.implementation_manager ?? '-'}</td>
+                    <tr key={client.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="py-2 px-3" style={{color: '#060520'}}>{client.name}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.implementation_manager ?? '-'}</td>
                     </tr>
                   ))
                 )}
@@ -355,27 +355,27 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     const safeClients = Array.isArray(clients) ? clients : [];
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-        <div className="bg-[#181a2f] rounded-2xl shadow-2xl p-8 w-full max-w-2xl relative">
-          <button onClick={onClose} className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-gold-400">×</button>
-          <h3 className="text-xl font-bold text-white mb-4">Expiring Contracts (90d)</h3>
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl relative border border-gray-200">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
+          <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Expiring Contracts (90d)</h3>
           <div className="overflow-y-auto max-h-[60vh]">
-            <table className="min-w-full text-white">
+            <table className="min-w-full">
               <thead>
-                <tr className="border-b border-[#23244a]">
-                  <th className="py-2 px-3 text-left">Name</th>
-                  <th className="py-2 px-3 text-left">Contract End Date</th>
-                  <th className="py-2 px-3 text-left">Revenue</th>
+                <tr className="border-b border-gray-200">
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Name</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Contract End Date</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Revenue</th>
                 </tr>
               </thead>
               <tbody>
                 {safeClients.length === 0 ? (
-                  <tr><td colSpan={3} className="py-4 text-center text-slate-400">No contracts expiring in the next 90 days.</td></tr>
+                  <tr><td colSpan={3} className="py-4 text-center text-gray-600">No contracts expiring in the next 90 days.</td></tr>
                 ) : (
                   safeClients.map((client, idx) => (
-                    <tr key={client.id} className="border-b border-[#23244a] hover:bg-[#23244a]/40">
-                      <td className="py-2 px-3">{client.name}</td>
-                      <td className="py-2 px-3">{client.end ? new Date(client.end).toLocaleDateString() : '-'}</td>
-                      <td className="py-2 px-3">${typeof client.revenue === 'number' ? client.revenue.toLocaleString() : (client.revenue || '-')}</td>
+                    <tr key={client.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="py-2 px-3" style={{color: '#060520'}}>{client.name}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.end ? new Date(client.end).toLocaleDateString() : '-'}</td>
+                      <td className="py-2 px-3" style={{color: '#060520'}}>${typeof client.revenue === 'number' ? client.revenue.toLocaleString() : (client.revenue || '-')}</td>
                     </tr>
                   ))
                 )}
@@ -390,12 +390,12 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="animate-spin w-8 h-8 text-gold-400" />
+        <Loader2 className="animate-spin w-8 h-8 text-brand-gold" />
       </div>
     );
   }
   if (error || !data) {
-    return <div className="text-red-500 p-8">{error || "No data available."}</div>;
+    return <div className="text-red-600 p-8">{error || "No data available."}</div>;
   }
 
   // Prepare bar chart data
@@ -488,29 +488,29 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     if (!open) return null;
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-        <div className="bg-[#181a2f] rounded-2xl shadow-2xl p-8 w-full max-w-2xl relative">
-          <button onClick={onClose} className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-gold-400">×</button>
-          <h3 className="text-xl font-bold text-white mb-4">Clients: {stage}</h3>
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl relative border border-gray-200">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
+          <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Clients: {stage}</h3>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-white">
+            <table className="min-w-full">
               <thead>
-                <tr className="border-b border-[#23244a]">
-                  <th className="py-2 px-3 text-left">Name</th>
-                  <th className="py-2 px-3 text-left">Package</th>
-                  <th className="py-2 px-3 text-left">Created Date</th>
-                  <th className="py-2 px-3 text-left">Implementation Manager</th>
+                <tr className="border-b border-gray-200">
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Name</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Package</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Created Date</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Implementation Manager</th>
                 </tr>
               </thead>
               <tbody>
                 {clients.length === 0 ? (
-                  <tr><td colSpan={4} className="py-4 text-center text-slate-400">No clients in this stage.</td></tr>
+                  <tr><td colSpan={4} className="py-4 text-center text-gray-600">No clients in this stage.</td></tr>
                 ) : (
                   clients.map((client, idx) => (
-                    <tr key={idx} className="border-b border-[#23244a] hover:bg-[#23244a]/40">
-                      <td className="py-2 px-3">{client.name}</td>
-                      <td className="py-2 px-3 capitalize">{client.package}</td>
-                      <td className="py-2 px-3">{client.date_created ? new Date(client.date_created).toLocaleDateString() : '-'}</td>
-                      <td className="py-2 px-3">{client.implementation_manager ?? '-'}</td>
+                    <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="py-2 px-3" style={{color: '#060520'}}>{client.name}</td>
+                      <td className="py-2 px-3 capitalize" style={{color: '#64748b'}}>{client.package}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.date_created ? new Date(client.date_created).toLocaleDateString() : '-'}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.implementation_manager ?? '-'}</td>
                     </tr>
                   ))
                 )}
@@ -525,12 +525,21 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
   return (
     <div className="w-full font-sans">
       {/* Header */}
+      <div className="mb-8">
+        <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
+          <span className="text-brand-gold font-medium text-sm">Analytics</span>
+        </div>
+        <h1 className="text-5xl lg:text-6xl font-bold mb-4" style={{color: '#060520'}}>
+          Analytics Dashboard
+        </h1>
+        <p className="text-xl max-w-4xl leading-relaxed mb-8" style={{color: '#64748b'}}>Track key metrics and business performance</p>
+      </div>
       <div className="flex flex-wrap gap-4 mb-8 items-end">
         {filterOptions.map((filter) => (
           <div key={filter.key} className="flex flex-col">
-            <label className="text-xs text-white mb-1 font-medium">{filter.label}</label>
+            <label className="text-xs mb-1 font-medium" style={{color: '#060520'}}>{filter.label}</label>
             <select
-              className="bg-[#181a2f] text-white rounded-lg px-3 py-2 border border-[#23244a] focus:outline-none focus:ring-2 focus:ring-gold-400"
+              className="bg-white text-gray-900 rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-gold"
               value={filters[filter.key as keyof typeof filters]}
               onChange={e => handleFilterChange(filter.key, e.target.value)}
             >
@@ -540,858 +549,260 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
             </select>
           </div>
         ))}
-      </div>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-4">
-        <div>
-          <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tight drop-shadow-lg">Analytics Dashboard</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-[#10122b] font-semibold shadow-lg hover:scale-105 transition-transform"
-            title="Export analytics as CSV"
-          >
-            <Download className="w-5 h-5" /> Export
-          </button>
-          <div className="flex items-center gap-2 text-sm text-white bg-[#10122b] px-3 py-1.5 rounded-lg shadow">
-            <RefreshCw className="w-4 h-4 text-gold-400" />
-            Last updated: <span className="ml-1 font-medium text-white">{lastUpdated}</span>
-          </div>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-[#010124] font-semibold shadow-lg hover:scale-105 transition-transform h-[42px]"
+          title="Export analytics as CSV"
+        >
+          <Download className="w-5 h-5" /> Export
+        </button>
+        <div className="flex items-center gap-2 text-sm bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">
+          <RefreshCw className="w-4 h-4 text-brand-gold" />
+          Last updated: <span className="ml-1 font-medium" style={{color: '#060520'}}>{lastUpdated}</span>
         </div>
       </div>
 
       {/* SECTION A: Business Overview */}
       <div className="py-10">
-        <h2 className="text-2xl font-bold text-white mb-4">💼 Business Overview</h2>
+        <h2 className="text-2xl font-bold mb-4" style={{color: '#060520'}}>💼 Business Overview</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
+          <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border border-gray-200 rounded-2xl">
+            <div className="text-base mb-1 font-medium" style={{color: '#060520'}}>
               <div className="flex items-center gap-1">
                 <span>Total Clients</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        className="w-4 h-4 text-brand-gold cursor-pointer"
                         onClick={() => setOpenMetricModal('totalClients')}
                       />
                     </TooltipTrigger>
-                    <TooltipContent side="top">Number of all clients in the system.</TooltipContent>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Number of all clients in the system.</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-white">{data.totalClients}</div>
+            <div className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.totalClients}</div>
           </Card>
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
+          <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border border-gray-200 rounded-2xl">
+            <div className="text-base mb-1 font-medium" style={{color: '#060520'}}>
               <div className="flex items-center gap-1">
                 <span>MRR</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        className="w-4 h-4 text-brand-gold cursor-pointer"
                         onClick={() => setOpenMetricModal('mrr')}
                       />
                     </TooltipTrigger>
-                    <TooltipContent side="top">Monthly Recurring Revenue from all active subscriptions.</TooltipContent>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Monthly Recurring Revenue from all active subscriptions.</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-white">${data.mrr?.toLocaleString()}</div>
+            <div className="text-3xl font-extrabold" style={{color: '#060520'}}>${data.mrr?.toLocaleString()}</div>
           </Card>
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
+          <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border border-gray-200 rounded-2xl">
+            <div className="text-base mb-1 font-medium" style={{color: '#060520'}}>
               <div className="flex items-center gap-1">
                 <span>ARR</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        className="w-4 h-4 text-brand-gold cursor-pointer"
                         onClick={() => setOpenMetricModal('arr')}
                       />
                     </TooltipTrigger>
-                    <TooltipContent side="top">Annual Recurring Revenue, calculated as MRR x 12.</TooltipContent>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Annual Recurring Revenue, calculated as MRR x 12.</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-white">${data.arr?.toLocaleString()}</div>
+            <div className="text-3xl font-extrabold" style={{color: '#060520'}}>${data.arr?.toLocaleString()}</div>
           </Card>
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
+          <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border border-gray-200 rounded-2xl">
+            <div className="text-base mb-1 font-medium" style={{color: '#060520'}}>
               <div className="flex items-center gap-1">
                 <span>Growth Rate (30d)</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        className="w-4 h-4 text-brand-gold cursor-pointer"
                         onClick={() => setOpenMetricModal('growthRate')}
                       />
                     </TooltipTrigger>
-                    <TooltipContent side="top">Percentage increase in total clients over the last 30 days.</TooltipContent>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Percentage increase in total clients over the last 30 days.</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-white">{data.growthRate}%</div>
+            <div className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.growthRate}%</div>
           </Card>
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
+          <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border border-gray-200 rounded-2xl">
+            <div className="text-base mb-1 font-medium" style={{color: '#060520'}}>
               <div className="flex items-center gap-1">
                 <span>Growth Rate (60d)</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        className="w-4 h-4 text-brand-gold cursor-pointer"
                         onClick={() => setOpenMetricModal('growthRate60')}
                       />
                     </TooltipTrigger>
-                    <TooltipContent side="top">Percentage increase in total clients over the last 60 days.</TooltipContent>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Percentage increase in total clients over the last 60 days.</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-white">{data.growthRate60}%</div>
+            <div className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.growthRate60}%</div>
           </Card>
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
+          <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border border-gray-200 rounded-2xl">
+            <div className="text-base mb-1 font-medium" style={{color: '#060520'}}>
               <div className="flex items-center gap-1">
                 <span>Growth Rate (90d)</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
+                        className="w-4 h-4 text-brand-gold cursor-pointer"
                         onClick={() => setOpenMetricModal('growthRate90')}
                       />
                     </TooltipTrigger>
-                    <TooltipContent side="top">Percentage increase in total clients over the last 90 days.</TooltipContent>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Percentage increase in total clients over the last 90 days.</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-white">{data.growthRate90}%</div>
+            <div className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.growthRate90}%</div>
           </Card>
         </div>
-        <div className="text-xs text-white mb-10">Last updated: {lastUpdated}</div>
       </div>
 
       {/* SECTION: Client Join Date Heatmap */}
       <div className="py-10">
-        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2" style={{color: '#060520'}}>
           <span>📅 Client Join Heatmap</span>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <HelpCircle className="w-5 h-5 text-gold-400 cursor-pointer" />
+                <HelpCircle className="w-5 h-5 text-brand-gold cursor-pointer" />
               </TooltipTrigger>
-              <TooltipContent side="top">Shows which months and years had the most client signups. Darker squares = more clients joined that month.</TooltipContent>
+              <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Shows which months and years had the most client signups. Darker squares = more clients joined that month.</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </h2>
-        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] w-full">
+        <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border border-gray-200 rounded-2xl w-full">
           {/* Heatmap grid */}
           {data.clients && data.clients.length > 0 ? (
             <ClientJoinHeatmap clients={data.clients} arrByMonth={data.arrByMonth} />
           ) : (
-            <div className="text-white/60">No client join data available.</div>
+            <div className="text-gray-600">No client join data available.</div>
           )}
         </Card>
       </div>
 
       {/* SECTION B: Churn */}
       <div className="py-10">
-        <h2 className="text-2xl font-bold text-white mb-4">❗ Churn</h2>
+        <h2 className="text-2xl font-bold mb-4" style={{color: '#060520'}}>❗ Churn</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
           {/* Revenue at Risk (Churn Risk) */}
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border-2 border-red-500">
-            <div className="flex items-center gap-1 text-base text-white mb-1 font-bold">
+          <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border-2 border-red-300 rounded-2xl">
+            <div className="flex items-center gap-1 text-base mb-1 font-bold" style={{color: '#060520'}}>
               <span>Revenue at Risk (Churn Risk)</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <HelpCircle
-                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      className="w-4 h-4 text-brand-gold cursor-pointer"
                       onClick={() => setOpenMetricModal('revenueAtRiskChurn')}
                     />
                   </TooltipTrigger>
-                  <TooltipContent side="top">Total revenue from clients currently marked as churn risk (excluding churned and demo clients).</TooltipContent>
+                  <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Total revenue from clients currently marked as churn risk (excluding churned and demo clients).</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <div className="text-3xl font-extrabold text-white">${data.revenueAtRiskChurn?.toLocaleString() ?? '-'}</div>
+            <div className="text-3xl font-extrabold text-red-600">${data.revenueAtRiskChurn?.toLocaleString() ?? '-'}</div>
           </Card>
           {/* Revenue Lost to Churned Clients */}
-          <Card className="bg-[#2d0a0a] glass shadow-xl p-6 flex flex-col items-center justify-center border-2 border-red-700">
-            <div className="flex items-center gap-1 text-base text-white mb-1 font-bold">
+          <Card className="bg-red-50 shadow-lg p-6 flex flex-col items-center justify-center border-2 border-red-500 rounded-2xl">
+            <div className="flex items-center gap-1 text-base mb-1 font-bold" style={{color: '#060520'}}>
               <span>Revenue Lost to Churned Clients</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <HelpCircle
-                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      className="w-4 h-4 text-brand-gold cursor-pointer"
                       onClick={() => setOpenMetricModal('revenueLostToChurnedClients')}
                     />
                   </TooltipTrigger>
-                  <TooltipContent side="top"><span className='text-white'>Total revenue lost from all churned (non-demo) clients. Sums the revenue_amount for all churned clients.</span></TooltipContent>
+                  <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Total revenue lost from all churned (non-demo) clients. Sums the revenue_amount for all churned clients.</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <div className="text-3xl font-extrabold text-red-300">${data.revenueLostToChurnedClients?.toLocaleString() ?? '-'}</div>
+            <div className="text-3xl font-extrabold text-red-700">${data.revenueLostToChurnedClients?.toLocaleString() ?? '-'}</div>
           </Card>
           {/* Churned Clients */}
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] cursor-pointer" onClick={() => setShowChurnedClientsModal(true)}>
-            <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
+          <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border border-gray-200 cursor-pointer rounded-2xl hover:bg-gray-50" onClick={() => setShowChurnedClientsModal(true)}>
+            <div className="flex items-center gap-1 text-base mb-1 font-medium" style={{color: '#060520'}}>
               <span>Churned Clients</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <HelpCircle
-                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      className="w-4 h-4 text-brand-gold cursor-pointer"
                       onClick={e => { e.stopPropagation(); setOpenMetricModal('churnedClients'); }}
                     />
                   </TooltipTrigger>
-                  <TooltipContent side="top">Number of clients marked as churned (no longer active customers).</TooltipContent>
+                  <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Number of clients marked as churned (no longer active customers).</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <div className="text-3xl font-extrabold text-white">{data.churnedClients ?? '-'}</div>
+            <div className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.churnedClients ?? '-'}</div>
           </Card>
           {/* Churn Rate */}
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
+          <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border border-gray-200 rounded-2xl">
+            <div className="flex items-center gap-1 text-base mb-1 font-medium" style={{color: '#060520'}}>
               <span>Churn Rate</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <HelpCircle
-                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      className="w-4 h-4 text-brand-gold cursor-pointer"
                       onClick={() => setOpenMetricModal('churnRate')}
                     />
                   </TooltipTrigger>
-                  <TooltipContent side="top">Percentage of all clients who have churned (no longer active customers).</TooltipContent>
+                  <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Percentage of all clients who have churned (no longer active customers).</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <div className="text-3xl font-extrabold text-white">{data.totalClients ? `${((data.churnedClients / data.totalClients) * 100).toFixed(1)}%` : '-'}</div>
+            <div className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.totalClients ? `${((data.churnedClients / data.totalClients) * 100).toFixed(1)}%` : '-'}</div>
           </Card>
           {/* Churn Risk Clients */}
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] cursor-pointer" onClick={() => setShowChurnRiskModal(true)}>
-            <div className="flex items-center gap-1 text-base text-white mb-1 font-medium">
+          <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border border-gray-200 cursor-pointer rounded-2xl hover:bg-gray-50" onClick={() => setShowChurnRiskModal(true)}>
+            <div className="flex items-center gap-1 text-base mb-1 font-medium" style={{color: '#060520'}}>
               <span>Churn Risk Clients</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <HelpCircle
-                      className="w-4 h-4 text-gold-400 cursor-pointer"
+                      className="w-4 h-4 text-brand-gold cursor-pointer"
                       onClick={e => { e.stopPropagation(); setOpenMetricModal('churnRiskClients'); }}
                     />
                   </TooltipTrigger>
-                  <TooltipContent side="top">Number of clients currently marked as at risk of churn by an implementation manager.</TooltipContent>
+                  <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Number of clients currently marked as at risk of churn by an implementation manager.</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <div className="text-3xl font-extrabold text-white">{data.churnRiskClients ?? '-'}</div>
+            <div className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.churnRiskClients ?? '-'}</div>
           </Card>
         </div>
       </div>
 
-      {/* SECTION B: Onboarding Progress & Health */}
-      <div className="py-10">
-        <h2 className="text-2xl font-bold text-white mb-4">🚀 Onboarding Progress & Health</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
-          <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
-              <div className="flex items-center gap-1">
-                <span>Time to First Value</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={() => setOpenMetricModal('timeToFirstValue')}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Average days from signup to first successful onboarding milestone.</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-white">{data.implementationHealth?.timeToFirstValue !== null ? `${data.implementationHealth?.timeToFirstValue} days` : '-'}</div>
-          </Card>
-          <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
-              <div className="flex items-center gap-1">
-                <span>Avg. Onboarding Duration</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={() => setOpenMetricModal('avgOnboardingDuration')}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Average time to complete onboarding for all clients.</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-white">{data.implementationHealth?.avgOnboardingDuration !== null ? `${data.implementationHealth?.avgOnboardingDuration} days` : '-'}</div>
-          </Card>
-          <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
-              <div className="flex items-center gap-1">
-                <span>Active Implementations</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={() => setOpenMetricModal('activeImplementations')}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Clients currently in the onboarding process.</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-white">{data.implementationHealth?.activeImplementations ?? '-'}</div>
-          </Card>
-          <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] border-yellow-400 bg-yellow-900/30">
-            <div className="text-base text-white mb-1 font-medium">
-              <div className="flex items-center gap-1">
-                <span>At-Risk Clients</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={() => setOpenMetricModal('atRiskClients')}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Clients flagged as at risk of churn or onboarding failure.</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-yellow-300">{data.implementationHealth?.atRiskClients ?? '-'}</div>
-          </Card>
-          <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a] cursor-pointer hover:border-gold-400 transition-colors" onClick={() => setShowExpiringContractsModal(true)}>
-            <div className="text-base text-white mb-1 font-medium">
-              <div className="flex items-center gap-1">
-                <span>Expiring Contracts (90d)</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={e => { e.stopPropagation(); setOpenMetricModal('expiringContracts'); }}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Clients with contracts ending in the next 90 days.</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-white">{data.contractRenewal?.expiring90?.length ?? '-'}</div>
-          </Card>
-          <Card className="bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
-              <div className="flex items-center gap-1">
-                <span>Revenue at Risk (90d)</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={() => setOpenMetricModal('revenueAtRisk')}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Total revenue from contracts expiring in the next 90 days.</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            <div className={`text-3xl font-extrabold ${data.contractRenewal?.revenueAtRisk ? 'text-red-400' : 'text-white'}`}>${data.contractRenewal?.revenueAtRisk?.toLocaleString() ?? '-'}</div>
-          </Card>
-        </div>
-        <div className="text-xs text-white mb-10">Last updated: {lastUpdated}</div>
-        {/* Gantt Chart Section */}
-        <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-12">
-          <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Onboarding Timeline (Gantt)</h2>
-          <div className="overflow-x-auto pb-4">
-            <div className="min-w-[700px]">
-              {/* Gantt chart mockup: each client as a row, bars for each stage */}
-              {ganttClients.map((client: any, idx: number) => {
-                // Build stages array for this client
-                let stages: { label: string; date: string | null }[] = [];
-                if (client.package === "light") {
-                  stages = [
-                    { label: "Onboarding Call", date: client.light_onboarding_call_date ?? null },
-                  ];
-                } else if (client.package === "premium") {
-                  stages = [
-                    { label: "First Call", date: client.premium_first_call_date ?? null },
-                    { label: "Second Call", date: client.premium_second_call_date ?? null },
-                  ];
-                } else if (client.package === "gold") {
-                  stages = [
-                    { label: "First Call", date: client.gold_first_call_date ?? null },
-                    { label: "Second Call", date: client.gold_second_call_date ?? null },
-                    { label: "Third Call", date: client.gold_third_call_date ?? null },
-                  ];
-                }
-                // Timeline: from date_created to completed_date or today
-                const start = new Date(client.date_created);
-                const end = client.graduation_date ? new Date(client.graduation_date) : new Date();
-                const totalDays = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
-                // For each stage, calculate offset and width
-                let prevDate = start;
-                return (
-                  <div key={client.name} className="flex items-center mb-4">
-                    <div className="w-40 text-sm text-white font-semibold truncate pr-2">{client.name}</div>
-                    <div className="flex-1 flex items-center relative h-8">
-                      {stages.map((stage, sIdx) => {
-                        const stageDate = stage.date ? new Date(stage.date) : null;
-                        const offsetDays = Math.round((stageDate ? (stageDate.getTime() - start.getTime()) : 0) / (1000 * 60 * 60 * 24));
-                        const widthDays = stageDate ? Math.max(1, Math.round((stageDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24))) : 0;
-                        const leftPercent = (offsetDays / totalDays) * 100;
-                        const widthPercent = (widthDays / totalDays) * 100;
-                        const isPending = !stage.date;
-                        const color = isPending ? 'bg-gray-700 border-dashed border-2 border-gray-400' : 'bg-gold-400';
-                        const tooltip = isPending ? 'Pending' : `${stage.label}: ${stage.date}`;
-                        if (stageDate) prevDate = stageDate;
-                        return (
-                          <div
-                            key={stage.label}
-                            className={`absolute top-1/2 -translate-y-1/2 h-5 rounded-full ${color} flex items-center justify-center transition-all`}
-                            style={{ left: `${leftPercent}%`, width: `${widthPercent}%`, minWidth: 24, zIndex: 2 }}
-                            title={tooltip}
-                          >
-                            <span className="text-xs font-bold text-[#10122b] px-2 select-none">{stage.label}</span>
-                          </div>
-                        );
-                      })}
-                      {/* End bar: from last stage to end */}
-                      {(() => {
-                        const lastStage = stages.filter(s => s.date).slice(-1)[0];
-                        const lastDate = lastStage && lastStage.date ? new Date(lastStage.date) : start;
-                        const widthDays = Math.max(1, Math.round((end.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)));
-                        const leftPercent = ((lastDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) / totalDays * 100;
-                        const widthPercent = (widthDays / totalDays) * 100;
-                        const isPending = !client.graduation_date;
-                        const color = isPending ? 'bg-gray-700 border-dashed border-2 border-gray-400' : 'bg-green-400';
-                        const tooltip = isPending ? 'Pending Completion' : `Completed: ${client.graduation_date}`;
-                        return (
-                          <div
-                            className={`absolute top-1/2 -translate-y-1/2 h-5 rounded-full ${color} flex items-center justify-center transition-all`}
-                            style={{ left: `${leftPercent}%`, width: `${widthPercent}%`, minWidth: 24, zIndex: 1 }}
-                            title={tooltip}
-                          >
-                            <span className="text-xs font-bold text-[#10122b] px-2 select-none">{isPending ? 'Pending' : 'Completed'}</span>
-                          </div>
-                        );
-                      })()}
-                      {/* Timeline axis */}
-                      <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-gray-800 rounded-full z-0" />
-                    </div>
-                    <div className="w-28 text-xs text-white pl-2 text-right">{client.date_created} → {client.graduation_date || 'Present'}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <div className="text-xs text-white mt-4">Last updated: {lastUpdated}</div>
-        </div>
-        {/* Funnel Chart Section */}
-        <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-12">
-          <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Onboarding Funnel</h2>
-          <div className="flex flex-col items-center">
-            <div className="flex flex-col items-center w-40">
-              {funnelStages.map((stage, idx) => (
-                <div key={stage.stage} className="flex flex-col items-center w-full mb-4">
-                  <button
-                    className={`w-full py-2 rounded-full text-center text-2xl font-bold mb-2 shadow-md focus:outline-none focus:ring-2 focus:ring-gold-400 transition ${idx === funnelStages.length - 1 ? 'bg-green-500 text-white' : 'bg-[#23244a] text-white'} hover:scale-105`}
-                    onClick={() => { setSelectedStage(idx); setShowModal(true); }}
-                    title={`View clients in ${stage.stage}`}
-                    type="button"
-                  >
-                    {stage.count}
-                  </button>
-                  <span className="px-3 py-1 rounded-full bg-[#23244a] text-white text-sm font-semibold shadow">{stage.stage}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="text-xs text-white mt-4">Last updated: {lastUpdated}</div>
-          {/* Modal for clients in selected stage */}
-          <FunnelClientsModal
-            open={showModal && selectedStage !== null}
-            onClose={() => setShowModal(false)}
-            clients={selectedStage !== null ? funnelStageClients[selectedStage] : []}
-            stage={selectedStage !== null ? funnelStages[selectedStage].stage : ''}
-          />
-        </div>
-      </div>
-
-      {/* SECTION C: Client Engagement */}
-      <div className="py-10">
-        <h2 className="text-2xl font-bold text-white mb-4">📈 Client Engagement</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
-              <div className="flex items-center gap-1">
-                <span>Avg. Engagement Score</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={() => setOpenMetricModal('avgEngagementScore')}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Average engagement score across all clients.</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-white">{data.engagement?.avgScore ?? '-'}</div>
-          </Card>
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
-              <div className="flex items-center gap-1">
-                <span>Low Engagement Clients</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={() => setOpenMetricModal('lowEngagementClients')}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Number of clients with low engagement scores.</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-white">{data.engagement?.lowEngagementClients?.length ?? '-'}</div>
-          </Card>
-        </div>
-        {/* Engagement Distribution Bar Chart */}
-        <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Engagement Distribution</h2>
-          <div className="w-full max-w-2xl mx-auto">
-            <ChartContainer config={{}}>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data.engagement?.distribution || []}>
-                  <XAxis dataKey="range" stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} />
-                  <YAxis stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} />
-                  <RechartsTooltip contentStyle={{ background: '#10122b', border: '1px solid #F2C94C', color: '#fff', borderRadius: 8 }} />
-                  <Bar dataKey="count" fill="#F2C94C" radius={[8, 8, 8, 8]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </div>
-        </div>
-        {/* Low Engagement Clients Table */}
-        <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Lowest Engagement Clients</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-left text-white">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2">Client</th>
-                  <th className="px-4 py-2">Score</th>
-                  <th className="px-4 py-2">Manager</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(data.engagement?.lowEngagementClients || []).map((c: any) => (
-                  <tr key={c.id} className="border-b border-[#23244a]">
-                    <td className="px-4 py-2">{c.name}</td>
-                    <td className="px-4 py-2">{c.score}</td>
-                    <td className="px-4 py-2">{c.implementation_manager}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div className="text-xs text-white mt-4">Last updated: {lastUpdated}</div>
-      </div>
-
-      {/* SECTION D: Revenue Breakdown */}
-      <div className="py-10">
-        <h2 className="text-2xl font-bold text-white mb-4">💰 Revenue Breakdown</h2>
-        {/* Revenue by Plan Type Bar Chart */}
-        <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Revenue by Plan Type</h2>
-          <div className="w-full max-w-2xl mx-auto">
-            <ChartContainer config={{}}>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={Object.entries(data.revenue?.byPlan || {}).map(([k, v]) => ({ name: k, value: v }))}>
-                  <XAxis dataKey="name" stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} />
-                  <YAxis stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} />
-                  <RechartsTooltip contentStyle={{ background: '#10122b', border: '1px solid #F2C94C', color: '#fff', borderRadius: 8 }} />
-                  <Bar dataKey="value" fill="#F2C94C" radius={[8, 8, 8, 8]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </div>
-        </div>
-        {/* Revenue by Billing Type Pie Chart */}
-        <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Revenue by Billing Type</h2>
-          <div className="w-full max-w-xl mx-auto">
-            <ChartContainer config={{}}>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={Object.entries(data.revenue?.byBilling || {}).map(([k, v]) => ({ name: k, value: v }))}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label
-                  >
-                    {Object.keys(data.revenue?.byBilling || {}).map((_, idx) => (
-                      <Cell key={`cell-${idx}`} fill={["#F2C94C", "#F2994A", "#0a0b1a", "#10122b", "#1a1c3a"][idx % 5]} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip />
-                  <RechartsLegend />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </div>
-        </div>
-        {/* Revenue by Success Package Bar Chart */}
-        <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Revenue by Success Package</h2>
-          <div className="w-full max-w-2xl mx-auto">
-            <ChartContainer config={{}}>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={Object.entries(data.revenue?.byPackage || {}).map(([k, v]) => ({ name: k, value: v }))}>
-                  <XAxis dataKey="name" stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} />
-                  <YAxis stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} />
-                  <RechartsTooltip contentStyle={{ background: '#10122b', border: '1px solid #F2C94C', color: '#fff', borderRadius: 8 }} />
-                  <Bar dataKey="value" fill="#F2994A" radius={[8, 8, 8, 8]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
-              <div className="flex items-center gap-1">
-                <span>Top Revenue Plan</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={() => setOpenMetricModal('topRevenuePlan')}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Plan type generating the most revenue.</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-white">{data.revenue?.topRevenuePlan ?? '-'}</div>
-          </Card>
-          <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-base text-white mb-1 font-medium">
-              <div className="flex items-center gap-1">
-                <span>Highest Revenue Package</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle
-                        className="w-4 h-4 text-gold-400 cursor-pointer"
-                        onClick={() => setOpenMetricModal('topRevenuePackage')}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Success package with the highest total revenue.</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-white">{data.revenue?.topRevenuePackage ?? '-'}</div>
-          </Card>
-        </div>
-        <div className="text-xs text-white mt-4">Last updated: {lastUpdated}</div>
-      </div>
-
-      {/* Contract Renewal Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-          <div className="text-base text-white mb-1 font-medium">
-            <div className="flex items-center gap-1">
-              <span>Contracts Expiring in 30 Days</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle
-                      className="w-4 h-4 text-gold-400 cursor-pointer"
-                      onClick={() => setOpenMetricModal('expiringContracts')}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">Clients with contracts expiring in the next 30 days.</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-          <div className="text-3xl font-extrabold text-yellow-300">{data.contractRenewal?.expiring30?.length ?? '-'}</div>
-        </Card>
-        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-          <div className="text-base text-white mb-1 font-medium">
-            <div className="flex items-center gap-1">
-              <span>Contracts Expiring in 60 Days</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle
-                      className="w-4 h-4 text-gold-400 cursor-pointer"
-                      onClick={() => setOpenMetricModal('expiringContracts')}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">Clients with contracts expiring in the next 60 days.</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-          <div className="text-3xl font-extrabold text-yellow-300">{data.contractRenewal?.expiring60?.length ?? '-'}</div>
-        </Card>
-        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-          <div className="text-base text-white mb-1 font-medium">
-            <div className="flex items-center gap-1">
-              <span>Contracts Expiring in 90 Days</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle
-                      className="w-4 h-4 text-gold-400 cursor-pointer"
-                      onClick={() => setOpenMetricModal('expiringContracts')}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">Clients with contracts expiring in the next 90 days.</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-          <div className="text-3xl font-extrabold text-yellow-300">{data.contractRenewal?.expiring90?.length ?? '-'}</div>
-        </Card>
-        <Card className="bg-[#10122b] glass shadow-xl p-6 flex flex-col items-center justify-center border border-[#23244a]">
-          <div className="text-base text-white mb-1 font-medium">
-            <div className="flex items-center gap-1">
-              <span>Revenue at Risk (90d)</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle
-                      className="w-4 h-4 text-gold-400 cursor-pointer"
-                      onClick={() => setOpenMetricModal('revenueAtRisk')}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">Total revenue from contracts expiring in the next 90 days.</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-          <div className="text-3xl font-extrabold text-red-400">${data.contractRenewal?.revenueAtRisk?.toLocaleString() ?? '-'}</div>
-        </Card>
-      </div>
-
-      {/* Expiring Contracts Table */}
-      <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl mb-8">
-        <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Expiring Contracts (Next 90 Days)</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm text-left text-white">
-            <thead>
-              <tr>
-                <th className="px-4 py-2">Client</th>
-                <th className="px-4 py-2">End Date</th>
-                <th className="px-4 py-2">Revenue</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...(data.contractRenewal?.expiring30 || []), ...(data.contractRenewal?.expiring60 || []), ...(data.contractRenewal?.expiring90 || [])].map((c: any) => (
-                <tr key={c.id} className="border-b border-[#23244a]">
-                  <td className="px-4 py-2">{c.name}</td>
-                  <td className="px-4 py-2">{c.end}</td>
-                  <td className="px-4 py-2">${c.revenue?.toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Implementation Health Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-        {implementationMetrics.map((metric, i) => (
-          <Card
-            key={metric.label}
-            className={`bg-[#181a2f] glass shadow-xl p-6 flex flex-col items-center justify-center rounded-xl border border-[#23244a] transition-transform duration-200 hover:scale-105 hover:shadow-2xl group ${metric.highlight ? 'border-yellow-400 bg-yellow-900/30' : ''}`}
-          >
-            <div className={`text-base mb-1 font-medium tracking-wide group-hover:text-gold-400 transition-colors ${metric.highlight ? 'text-yellow-300' : 'text-white'}`}>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle
-                      className="w-4 h-4 text-gold-400 cursor-pointer"
-                      onClick={() => setOpenMetricModal('timeToFirstValue')}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">Average days from signup to first successful onboarding milestone.</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              Time to First Value
-            </div>
-            <div className={`text-3xl font-extrabold group-hover:text-gold-400 transition-colors drop-shadow ${metric.highlight ? 'text-yellow-300' : 'text-white'}`}>{metric.value}</div>
-          </Card>
-        ))}
-      </div>
-      <div className="text-xs text-white mb-10">Last updated: {lastUpdated}</div>
-
-      {/* Bar Chart Section */}
-      <div className="bg-[#1a1c3a] glass rounded-2xl p-8 shadow-2xl">
-        <h2 className="text-2xl font-bold mb-6 text-white tracking-tight">Clients by Package</h2>
-        <div className="w-full max-w-2xl mx-auto">
-          <ChartContainer config={{}}>
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={barData} layout="vertical" margin={{ left: 40, right: 40, top: 10, bottom: 10 }}>
-                <XAxis type="number" stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="name" stroke="#F2C94C" tick={{ fill: '#fff', fontWeight: 600 }} axisLine={false} tickLine={false} width={120} />
-                <RechartsTooltip
-                  contentStyle={{ background: '#10122b', border: '1px solid #F2C94C', color: '#fff', borderRadius: 8 }}
-                  labelStyle={{ color: '#F2C94C', fontWeight: 700 }}
-                  cursor={{ fill: '#F2C94C', fillOpacity: 0.1 }}
-                />
-                <Legend
-                  wrapperStyle={{ color: '#fff', fontWeight: 600 }}
-                  iconType="rect"
-                  formatter={(value: string) => <span className="text-gold-400 font-semibold">{value}</span>}
-                />
-                <Bar dataKey="value" radius={[8, 8, 8, 8]}>
-                  {barData.map((entry, idx) => (
-                    <Cell key={`cell-${idx}`} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </div>
-      </div>
       {/* Modal for metric explanations */}
       <MetricExplanationModal
         open={!!openMetricModal}
@@ -1413,15 +824,6 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
         onClose={() => setShowExpiringContractsModal(false)}
         clients={data.contractRenewal?.expiring90 || []}
       />
-      {/* Success Package Breakdown */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-        {(Object.entries(data.clientsByPackage || {}) as [string, number][]).map(([pkg, count]) => (
-          <Card key={pkg} className="bg-[#181a2f] glass shadow p-4 flex flex-col items-center justify-center border border-[#23244a]">
-            <div className="text-xs text-white/70 mb-1 font-medium uppercase tracking-wide">{pkg.replace(/_/g, ' ')}</div>
-            <div className="text-2xl font-extrabold text-gold-400">{count}</div>
-          </Card>
-        ))}
-      </div>
     </div>
   );
 };
@@ -1433,9 +835,9 @@ export default function AnalyticsPage() {
   }, []);
   return (
     <PasswordProtection>
-      <div className="flex h-screen bg-gradient-to-br from-[#010124] via-[#0a0a2a] to-[#1a1a40]">
+      <div className="flex h-screen bg-white">
         <AdminSidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-8 max-w-7xl mx-auto">
             <AnalyticsDashboard lastUpdated={lastUpdated} />
           </div>
@@ -1468,15 +870,15 @@ function ClientJoinHeatmap({ clients, arrByMonth }: { clients: any[], arrByMonth
       if (count > maxCount) maxCount = count;
     });
   });
-  // Color scale: 0 = #23244a, max = #F2C94C
+  // Color scale: 0 = light gray, max = gold
   function getColor(count: number) {
-    if (!count) return "#23244a";
-    // Linear interpolate between #23244a and #F2C94C
+    if (!count) return "#f3f4f6";
+    // Linear interpolate between light gray and gold
     const t = Math.min(1, count / maxCount);
-    // Simple blend: dark blue to gold
-    const r = Math.round(35 + t * (242 - 35));
-    const g = Math.round(36 + t * (201 - 36));
-    const b = Math.round(74 + t * (76 - 74));
+    // Simple blend: light gray to gold
+    const r = Math.round(243 + t * (242 - 243));
+    const g = Math.round(244 + t * (201 - 244));
+    const b = Math.round(246 + t * (76 - 246));
     return `rgb(${r},${g},${b})`;
   }
   // Render grid
@@ -1485,16 +887,16 @@ function ClientJoinHeatmap({ clients, arrByMonth }: { clients: any[], arrByMonth
       <table className="border-collapse w-full min-w-0">
         <thead>
           <tr>
-            <th className="text-white/80 text-xs font-normal p-1 min-w-0"></th>
+            <th className="text-xs font-normal p-1 min-w-0" style={{color: '#060520'}}></th>
             {months.map(m => (
-              <th key={m} className="text-white/80 text-xs font-normal p-1 text-center min-w-0">{m}</th>
+              <th key={m} className="text-xs font-normal p-1 text-center min-w-0" style={{color: '#060520'}}>{m}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i).map(year => (
             <tr key={year}>
-              <td className="text-white/80 text-xs font-normal p-1 text-right pr-2 min-w-0">{year}</td>
+              <td className="text-xs font-normal p-1 text-right pr-2 min-w-0" style={{color: '#060520'}}>{year}</td>
               {months.map((_, mIdx) => {
                 const count = joinCounts[year]?.[mIdx] || 0;
                 const arr = arrByMonth?.[year]?.[mIdx] || 0;
@@ -1505,13 +907,13 @@ function ClientJoinHeatmap({ clients, arrByMonth }: { clients: any[], arrByMonth
                   <td
                     key={mIdx}
                     title={tooltip}
-                    className="rounded transition-all border border-[#23244a] text-center align-middle min-w-0 relative group"
-                    style={{ background: getColor(count), color: count > maxCount * 0.6 ? '#10122b' : '#fff', fontWeight: count > 0 ? 'bold' : 'normal', width: `${100 / 12}%` }}
+                    className="rounded transition-all border border-gray-200 text-center align-middle min-w-0 relative group"
+                    style={{ background: getColor(count), color: count > maxCount * 0.6 ? '#010124' : '#060520', fontWeight: count > 0 ? 'bold' : 'normal', width: `${100 / 12}%` }}
                   >
                     <div className="flex flex-col items-center justify-center">
                       <span>{count > 0 ? count : ''}</span>
                       {arr > 0 && (
-                        <span className="text-xs opacity-80" style={{ color: count > maxCount * 0.6 ? '#10122b' : '#fff' }}>
+                        <span className="text-xs opacity-80" style={{ color: count > maxCount * 0.6 ? '#010124' : '#64748b' }}>
                           ${(arr / 1000).toFixed(0)}k
                         </span>
                       )}

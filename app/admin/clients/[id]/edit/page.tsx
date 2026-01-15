@@ -35,18 +35,22 @@ export default async function EditClientPage({ params }: EditClientPageProps) {
 
   return (
     <PasswordProtection>
-      <div className="flex h-screen bg-gradient-to-b from-[#0a0b1a] via-[#10122b] to-[#1a1c3a]">
+      <div className="flex h-screen bg-white">
         <AdminSidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="max-w-6xl mx-auto px-8 pt-8 pb-24">
-            {/* Page Title Block */}
-            <div className="rounded-lg border border-[#e7b86833] p-8 mb-8 bg-[#02051b]/60">
-              <h1 className="text-3xl font-bold text-white mb-2">Edit Client</h1>
-              <p className="text-slate-400">Update {client.name}'s information and settings</p>
+            <div className="mb-8">
+              <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
+                <span className="text-brand-gold font-medium text-sm">Client Portal</span>
+              </div>
+              <h1 className="text-5xl lg:text-6xl font-bold mb-4" style={{color: '#060520'}}>
+                Edit Client
+              </h1>
+              <p className="text-xl max-w-4xl leading-relaxed" style={{color: '#64748b'}}>Update {client.name}'s information and settings</p>
             </div>
             
             {/* Form Panel */}
-            <div className="rounded-lg border border-[#e7b86833] p-8 bg-[#02051b]/60">
+            <div className="rounded-lg border border-gray-200 p-8 bg-white shadow-sm">
               <EditClientForm client={client} />
             </div>
           </div>

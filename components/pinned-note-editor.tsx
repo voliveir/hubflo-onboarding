@@ -103,17 +103,17 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
   }
 
   return (
-    <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6 md:p-8 shadow-[#F2C94C]/5">
+    <Card className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-sm">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold text-white pl-3 border-l-4 border-[#F2C94C] flex items-center gap-2">
-          <Pin className="h-5 w-5 text-[#F2C94C]" />
+        <CardTitle className="text-lg font-semibold pl-3 border-l-4 border-brand-gold flex items-center gap-2" style={{color: '#060520'}}>
+          <Pin className="h-5 w-5 text-brand-gold" />
           Pinned Note for Client Portal
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Initial Scope */}
         <div>
-          <Label htmlFor="initial-scope" className="text-white mb-2 block">
+          <Label htmlFor="initial-scope" className="mb-2 block" style={{color: '#060520'}}>
             Initial Scope of Project
           </Label>
           <Textarea
@@ -122,20 +122,20 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
             onChange={(e) => setInitialScope(e.target.value)}
             placeholder="Enter the initial scope of the project as agreed during the kickoff call..."
             rows={4}
-            className="bg-[#181a2f] border border-slate-600 text-white placeholder-white/60"
+            className="bg-white border border-gray-300 text-gray-900 placeholder:text-gray-500"
           />
         </div>
 
         {/* Scope Changes */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <Label className="text-white">Scope Changes & Additions</Label>
+            <Label style={{color: '#060520'}}>Scope Changes & Additions</Label>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowAddChange(!showAddChange)}
-              className="bg-[#181a2f] border border-slate-600 text-[#F2C94C] hover:bg-[#23244a]"
+              className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Change
@@ -143,24 +143,24 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
           </div>
 
           {showAddChange && (
-            <div className="bg-[#181a2f] border border-slate-600 rounded-lg p-4 mb-4 space-y-3">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 space-y-3">
               <div>
-                <Label className="text-white text-sm">Description of Change</Label>
+                <Label className="text-sm" style={{color: '#060520'}}>Description of Change</Label>
                 <Textarea
                   value={newScopeChange.description}
                   onChange={(e) => setNewScopeChange({ ...newScopeChange, description: e.target.value })}
                   placeholder="Describe the scope change or addition..."
                   rows={2}
-                  className="bg-[#0a0b1a] border border-slate-600 text-white placeholder-white/60 mt-1"
+                  className="bg-white border border-gray-300 text-gray-900 placeholder:text-gray-500 mt-1"
                 />
               </div>
               <div>
-                <Label className="text-white text-sm">Extra Time Required (optional)</Label>
+                <Label className="text-sm" style={{color: '#060520'}}>Extra Time Required (optional)</Label>
                 <Input
                   value={newScopeChange.extra_time}
                   onChange={(e) => setNewScopeChange({ ...newScopeChange, extra_time: e.target.value })}
                   placeholder="e.g., 2 hours, 1 day, 3 weeks"
-                  className="bg-[#0a0b1a] border border-slate-600 text-white placeholder-white/60 mt-1"
+                  className="bg-white border border-gray-300 text-gray-900 placeholder:text-gray-500 mt-1"
                 />
               </div>
               <div className="flex gap-2">
@@ -168,7 +168,7 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
                   type="button"
                   size="sm"
                   onClick={handleAddScopeChange}
-                  className="bg-[#F2C94C] text-[#010124] hover:bg-[#F2994A]"
+                  className="bg-brand-gold text-[#010124] hover:bg-[#F2994A]"
                 >
                   Add
                 </Button>
@@ -180,7 +180,7 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
                     setShowAddChange(false)
                     setNewScopeChange({ description: "", extra_time: "" })
                   }}
-                  className="bg-[#181a2f] border border-slate-600 text-white hover:bg-[#23244a]"
+                  className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
                 >
                   Cancel
                 </Button>
@@ -193,17 +193,17 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
               {scopeChanges.map((change, index) => (
                 <div
                   key={index}
-                  className="bg-[#181a2f] border border-slate-600 rounded-lg p-4 flex items-start justify-between gap-4"
+                  className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-start justify-between gap-4"
                 >
                   <div className="flex-1">
-                    <p className="text-white text-sm mb-1">{change.description}</p>
+                    <p className="text-sm mb-1" style={{color: '#060520'}}>{change.description}</p>
                     {change.extra_time && (
-                      <div className="flex items-center gap-1 text-[#F2C94C] text-xs mt-1">
+                      <div className="flex items-center gap-1 text-brand-gold text-xs mt-1">
                         <Clock className="h-3 w-3" />
                         <span>Extra time: {change.extra_time}</span>
                       </div>
                     )}
-                    <p className="text-slate-400 text-xs mt-2">
+                    <p className="text-gray-600 text-xs mt-2">
                       Added: {new Date(change.added_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -212,7 +212,7 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleRemoveScopeChange(index)}
-                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -224,8 +224,8 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
 
         {/* Go-Live Date */}
         <div>
-          <Label htmlFor="go-live-date" className="text-white mb-2 block flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-[#F2C94C]" />
+          <Label htmlFor="go-live-date" className="mb-2 block flex items-center gap-2" style={{color: '#060520'}}>
+            <Calendar className="h-4 w-4 text-brand-gold" />
             First Go-Live Date
           </Label>
           <Input
@@ -233,9 +233,9 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
             type="date"
             value={goLiveDate}
             onChange={(e) => setGoLiveDate(e.target.value)}
-            className="bg-[#181a2f] border border-slate-600 text-white max-w-xs"
+            className="bg-white border border-gray-300 text-gray-900 max-w-xs"
           />
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-gray-600 text-xs mt-1">
             The go-live date agreed upon during the kickoff call
           </p>
         </div>
@@ -243,18 +243,18 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
         {/* Estimated Go-Live Date (shown when there are scope changes) */}
         {scopeChanges.length > 0 && (
           <div>
-            <Label htmlFor="new-estimated-go-live-date" className="text-white mb-2 block flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-[#F2C94C]" />
+            <Label htmlFor="new-estimated-go-live-date" className="mb-2 block flex items-center gap-2" style={{color: '#060520'}}>
+              <Calendar className="h-4 w-4 text-brand-gold" />
               Estimated Go-Live Date
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button type="button" className="inline-flex items-center justify-center">
-                      <Info className="h-4 w-4 text-[#F2C94C] hover:text-[#F2994A] transition-colors" />
+                      <Info className="h-4 w-4 text-brand-gold hover:text-[#F2994A] transition-colors" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent 
-                    className="bg-[#181a2f] border border-[#F2C94C]/30 text-white max-w-xs p-3"
+                    className="bg-white border border-gray-200 text-gray-900 max-w-xs p-3 shadow-lg"
                     side="right"
                   >
                     <p className="text-sm leading-relaxed">
@@ -269,20 +269,20 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
               type="date"
               value={newEstimatedGoLiveDate}
               onChange={(e) => setNewEstimatedGoLiveDate(e.target.value)}
-              className="bg-[#181a2f] border border-slate-600 text-white max-w-xs"
+              className="bg-white border border-gray-300 text-gray-900 max-w-xs"
             />
-            <p className="text-slate-400 text-xs mt-1">
+            <p className="text-gray-600 text-xs mt-1">
               Updated go-live date accounting for scope changes and additional time required
             </p>
           </div>
         )}
 
         {/* Save Button */}
-        <div className="flex justify-end pt-4 border-t border-slate-700">
+        <div className="flex justify-end pt-4 border-t border-gray-200">
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="bg-gradient-to-r from-[#F2C94C] via-[#F2994A] to-[#F2994A] text-white font-semibold hover:brightness-110 border border-[#F2C94C]/70"
+            className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-[#010124] font-semibold hover:brightness-110 border border-brand-gold/70"
           >
             <Save className="h-4 w-4 mr-2" />
             {saving ? "Saving..." : "Save Pinned Note"}

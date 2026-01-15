@@ -391,23 +391,27 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
 
   if (loading) {
     return (
-      <section className="py-16 px-4 bg-transparent">
+      <div className="py-16 px-4">
         <div className="container mx-auto">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ECB22D] mx-auto"></div>
-            <p className="mt-2 text-white">Loading your onboarding checklist...</p>
+            <p className="mt-2" style={{ color: '#64748b' }}>Loading your onboarding checklist...</p>
           </div>
         </div>
-      </section>
+      </div>
     )
   }
 
   return (
-    <section className="py-16 px-4 bg-transparent">
+    <div className="py-16 px-4">
       <div className="container mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-white mb-4">Your Onboarding Checklist</h2>
-          <p className="text-white/80 max-w-2xl mx-auto">
+          <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
+            <CheckCircle className="h-4 w-4 text-brand-gold" />
+            <span className="text-brand-gold font-medium text-sm">Onboarding Tasks</span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-bold mb-4" style={{ color: '#060520' }}>Your Onboarding Checklist</h2>
+          <p className="text-xl max-w-2xl mx-auto leading-relaxed" style={{ color: '#64748b' }}>
             Complete these essential tasks to get the most out of Hubflo. Each section builds upon the previous one to
             ensure a smooth setup process.
           </p>
@@ -415,28 +419,28 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
 
         {/* Overall Progress */}
         <div className="max-w-4xl mx-auto mb-12">
-          <div className="bg-[#10122b]/90 text-white rounded-3xl border-2 border-brand-gold/30 p-8 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
             <div className="flex items-center space-x-4 mb-6">
               <div className="w-14 h-14 bg-[#ECB22D] rounded-2xl flex items-center justify-center">
                 <CheckCircle className="h-8 w-8 text-[#010124]" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-white mb-1">Overall Implementation Progress</div>
-                <p className="text-white/80 text-base">Your complete onboarding progress across all services</p>
+                <div className="text-2xl font-bold mb-1" style={{ color: '#060520' }}>Overall Implementation Progress</div>
+                <p className="text-base leading-relaxed" style={{ color: '#64748b' }}>Your complete onboarding progress across all services</p>
               </div>
             </div>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-base font-medium text-white/80">Completion Status</span>
-                <span className="text-base font-bold text-white">{overallProgress}% Complete</span>
+                <span className="text-base font-medium" style={{ color: '#64748b' }}>Completion Status</span>
+                <span className="text-base font-bold" style={{ color: '#060520' }}>{overallProgress}% Complete</span>
               </div>
-              <div className="w-full bg-white/10 rounded-full h-3">
+              <div className="w-full bg-gray-100 rounded-full h-3">
                 <div
                   className="bg-[#ECB22D] h-3 rounded-full transition-all duration-300"
                   style={{ width: `${overallProgress}%` }}
                 ></div>
               </div>
-              <div className="flex items-center space-x-2 text-base text-white">
+              <div className="flex items-center space-x-2 text-base" style={{ color: '#64748b' }}>
                 <Star className="h-5 w-5 text-[#ECB22D]" />
                 <span>Let's get started with your Hubflo onboarding journey.</span>
               </div>
@@ -452,25 +456,25 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
             const sectionProgress = sectionTotal > 0 ? Math.round((sectionCompleted / sectionTotal) * 100) : 0
 
             return (
-              <div key={sectionName} className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-8 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
+              <div key={sectionName} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-3">
-                    <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20">
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
                       {getSectionIcon(sectionName)}
                     </div>
                     <div>
-                      <div className="text-xl font-bold text-white mb-1">{sectionName}</div>
-                      <p className="text-white/80 text-sm">
+                      <div className="text-xl font-bold mb-1" style={{ color: '#060520' }}>{sectionName}</div>
+                      <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>
                         {sectionCompleted} of {sectionTotal} tasks completed
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-white">{sectionProgress}%</div>
-                    <div className="text-xs text-white/60">Complete</div>
+                    <div className="text-2xl font-bold" style={{ color: '#060520' }}>{sectionProgress}%</div>
+                    <div className="text-xs" style={{ color: '#64748b' }}>Complete</div>
                   </div>
                 </div>
-                <div className="mt-4 w-full bg-white/10 rounded-full h-2">
+                <div className="mt-4 w-full bg-gray-100 rounded-full h-2">
                   <div
                     className="bg-[#ECB22D] h-2 rounded-full transition-all duration-300"
                     style={{ width: `${sectionProgress}%` }}
@@ -478,7 +482,7 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
                 </div>
                 <div className="space-y-6 mt-8">
                   {sectionTasks.map((task) => (
-                    <div key={task.id} className="bg-[#181a2f] text-white rounded-2xl border border-brand-gold/30 p-6 flex flex-col gap-2 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
+                    <div key={task.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col gap-2 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
                       <div className="flex items-start space-x-3">
                         <button
                           onClick={() => toggleTask(task.id)}
@@ -498,7 +502,8 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
                             <h4
-                              className={`font-semibold ${task.completed ? "line-through text-white/60" : "text-white"}`}
+                              className={`font-semibold ${task.completed ? "line-through" : ""}`}
+                              style={{ color: task.completed ? '#64748b' : '#060520' }}
                             >
                               {task.title}
                             </h4>
@@ -507,18 +512,20 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
                             </Badge>
                           </div>
                           <p
-                            className={`text-sm mb-3 ${task.completed ? "line-through text-white/40" : "text-white/80"}`}
+                            className={`text-sm mb-3 leading-relaxed ${task.completed ? "line-through" : ""}`}
+                            style={{ color: task.completed ? '#94a3b8' : '#64748b' }}
                           >
                             {task.description}
                           </p>
                           {task.subtasks && task.subtasks.length > 0 && (
                             <div className="ml-4 mb-3">
-                              <p className="text-xs font-medium text-white mb-2">Includes:</p>
+                              <p className="text-xs font-medium mb-2" style={{ color: '#060520' }}>Includes:</p>
                               <ul className="space-y-1">
                                 {task.subtasks.map((subtask, index) => (
                                   <li
                                     key={index}
-                                    className={`text-xs flex items-center space-x-2 ${task.completed ? "line-through text-white/40" : "text-white/80"}`}
+                                    className={`text-xs flex items-center space-x-2 ${task.completed ? "line-through" : ""}`}
+                                    style={{ color: task.completed ? '#94a3b8' : '#64748b' }}
                                   >
                                     <span className="w-1 h-1 bg-[#ECB22D] rounded-full"></span>
                                     <span>{subtask}</span>
@@ -530,7 +537,7 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
 
                           {/* Resources Section */}
                           {(task.videoUrls?.length || task.supportLinks?.length) && (
-                            <div className="mt-4 border-t border-white/10 pt-4">
+                            <div className="mt-4 border-t border-gray-200 pt-4">
                               <div className="flex flex-wrap gap-2">
                                 {/* Video Tutorial Button */}
                                 {task.videoUrls && task.videoUrls.length > 0 && (
@@ -563,9 +570,9 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
                               {expandedVideos.has(task.id) && task.videoUrls && task.videoUrls.length > 0 && (
                                 <div className="mt-4 space-y-4">
                                   {task.videoUrls.map((videoUrl, index) => (
-                                    <div key={index} className="bg-[#10122b]/80 text-white rounded-lg p-4 border border-brand-gold/30">
+                                    <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                       {task.videoUrls!.length > 1 && (
-                                        <h5 className="text-sm font-medium text-white mb-2">
+                                        <h5 className="text-sm font-medium mb-2" style={{ color: '#060520' }}>
                                           Tutorial {index + 1}
                                           {task.id === "basic-setup" && index === 0 && ": Personal Profile"}
                                           {task.id === "basic-setup" && index === 1 && ": Organization & Branding"}
@@ -587,8 +594,8 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
 
                               {/* Support Documentation Section */}
                               {expandedSupport.has(task.id) && task.supportLinks && task.supportLinks.length > 0 && (
-                                <div className="mt-4 bg-[#10122b]/80 text-white rounded-lg p-4 border border-brand-gold/30">
-                                  <h5 className="text-sm font-medium text-white mb-3">
+                                <div className="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                  <h5 className="text-sm font-medium mb-3" style={{ color: '#060520' }}>
                                     📖 Support Documentation
                                   </h5>
                                   <div className="space-y-2">
@@ -598,12 +605,12 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
                                         href={link.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center justify-between p-3 bg-transparent rounded-lg border border-brand-gold/30 hover:border-brand-gold/60 hover:bg-[#181a2f] transition-colors group"
+                                        className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-brand-gold/60 hover:bg-gray-50 transition-colors group"
                                       >
-                                        <span className="text-sm font-medium text-white group-hover:text-[#ECB22D]">
+                                        <span className="text-sm font-medium group-hover:text-brand-gold" style={{ color: '#64748b' }}>
                                           {link.title}
                                         </span>
-                                        <ExternalLink className="h-4 w-4 text-[#ECB22D] group-hover:text-white" />
+                                        <ExternalLink className="h-4 w-4 text-brand-gold" />
                                       </a>
                                     ))}
                                   </div>
@@ -621,6 +628,6 @@ export function ClientChecklist({ clientId, clientName, client }: ClientChecklis
           })}
         </div>
       </div>
-    </section>
+    </div>
   )
 }

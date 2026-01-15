@@ -215,28 +215,28 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
   return (
     <div ref={ref} className={cn("space-y-6", isVisible && "animate-fade-in-up")}>
       {/* Overall Progress */}
-      <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-8 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
         <div className="flex items-center space-x-3 mb-6">
-          <div className="w-12 h-12 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
             <CheckCircle className="h-6 w-6 text-brand-gold" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">Overall Implementation Progress</h2>
-            <p className="text-white/80">Your complete onboarding progress across all services</p>
+            <h2 className="text-2xl font-bold" style={{ color: '#060520' }}>Overall Implementation Progress</h2>
+            <p className="leading-relaxed" style={{ color: '#64748b' }}>Your complete onboarding progress across all services</p>
           </div>
         </div>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-white/80">Completion Status</span>
-            <span className="text-3xl font-bold text-white">{progress.overall}% Complete</span>
+            <span className="text-sm font-medium" style={{ color: '#64748b' }}>Completion Status</span>
+            <span className="text-3xl font-bold" style={{ color: '#060520' }}>{progress.overall}% Complete</span>
           </div>
-          <div className="w-full bg-white/20 rounded-full h-4 overflow-hidden">
+          <div className="w-full bg-gray-100 rounded-full h-4 overflow-hidden">
             <div
               className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progress.overall}%` }}
             />
           </div>
-          <div className="flex items-center space-x-2 text-sm text-white/80">
+          <div className="flex items-center space-x-2 text-sm" style={{ color: '#64748b' }}>
             <span>🚀</span>
             <span>
               {progress.overall === 100
@@ -250,18 +250,18 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
       {/* Service Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Onboarding Calls */}
-        <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 transition-all duration-300 hover:shadow-lg hover:border-gray-300 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
                 <Users className="h-5 w-5 text-brand-gold" />
               </div>
-              <Badge variant="outline" className={`${callsStatus.color} border-brand-gold/40 bg-white/10`}>
+              <Badge variant="outline" className={`${callsStatus.color} border-gray-200`} style={{ color: '#64748b' }}>
                 {callsStatus.text}
               </Badge>
             </div>
-            <h3 className="font-semibold text-lg mb-2 text-white">Onboarding Calls</h3>
-            <div className="text-2xl font-bold mb-2 text-white">
+            <h3 className="font-semibold text-lg mb-2" style={{ color: '#060520' }}>Onboarding Calls</h3>
+            <div className="text-2xl font-bold mb-2" style={{ color: '#060520' }}>
               {completedCallsForDisplay}/
               {isUnlimited(packageLimits.calls) ||
               client.success_package === "elite" ||
@@ -269,14 +269,14 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
                 ? "∞"
                 : packageLimits.calls}
             </div>
-            <p className="text-sm text-white/80 mb-4">
+            <p className="text-sm mb-4 leading-relaxed" style={{ color: '#64748b' }}>
               {isUnlimited(packageLimits.calls) ||
               client.success_package === "elite" ||
               client.success_package === "enterprise"
                 ? `${completedCallsForDisplay} calls completed`
                 : `${completedCallsForDisplay}/${packageLimits.calls} calls completed`}
             </p>
-            <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden mb-2">
+            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden mb-2">
               <div
                 className="h-full bg-brand-gold rounded-full transition-all duration-500 ease-out"
                 style={{
@@ -308,8 +308,8 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
                 <div className="space-y-2">
                   {scheduledCallDates.length > 0 && (
                     <div>
-                      <div className="text-xs text-white/70 mb-1">Scheduled Call Dates:</div>
-                      <ul className="text-xs text-white/90 space-y-1">
+                      <div className="text-xs mb-1" style={{ color: '#64748b' }}>Scheduled Call Dates:</div>
+                      <ul className="text-xs space-y-1" style={{ color: '#060520' }}>
                         {scheduledCallDates.map((date: Date, idx: number) => (
                           <li key={"scheduled-" + idx}>• {date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</li>
                         ))}
@@ -318,8 +318,8 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
                   )}
                   {completedCallDates.length > 0 && (
                     <div>
-                      <div className="text-xs text-white/70 mb-1">Completed Call Dates:</div>
-                      <ul className="text-xs text-white/90 space-y-1">
+                      <div className="text-xs mb-1" style={{ color: '#64748b' }}>Completed Call Dates:</div>
+                      <ul className="text-xs space-y-1" style={{ color: '#060520' }}>
                         {completedCallDates.map((date: Date, idx: number) => (
                           <li key={"completed-" + idx}>• {date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</li>
                         ))}
@@ -328,95 +328,95 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
                   )}
                 </div>
               ) : (
-                <div className="text-xs text-white/60 mt-2">No calls scheduled yet.</div>
+                <div className="text-xs mt-2" style={{ color: '#64748b' }}>No calls scheduled yet.</div>
               )}
             </div>
           </div>
         </div>
 
         {/* Forms Setup */}
-        <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
               <FileText className="h-5 w-5 text-brand-gold" />
             </div>
-            <Badge variant="outline" className={`${formsStatus.color} border-brand-gold/40 bg-white/10`}>
+            <Badge variant="outline" className={`${formsStatus.color} border-gray-200`} style={{ color: '#64748b' }}>
               {formsStatus.text}
             </Badge>
           </div>
-          <h3 className="font-semibold text-lg mb-2 text-white">Forms Setup</h3>
-          <div className="text-2xl font-bold mb-2 text-white">
+          <h3 className="font-semibold text-lg mb-2" style={{ color: '#060520' }}>Forms Setup</h3>
+          <div className="text-2xl font-bold mb-2" style={{ color: '#060520' }}>
             {client.forms_setup}/{isUnlimited(packageLimits.forms) ? "∞" : packageLimits.forms}
           </div>
-          <p className="text-sm text-white/80 mb-4">
+          <p className="text-sm mb-4 leading-relaxed" style={{ color: '#64748b' }}>
             {packageLimits.forms === 0
               ? "Not included in your package"
               : isUnlimited(packageLimits.forms)
                 ? `${client.forms_setup} forms configured`
                 : `${client.forms_setup}/${packageLimits.forms} forms configured`}
           </p>
-          <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ease-out ${packageLimits.forms === 0 ? 'bg-white/30' : 'bg-brand-gold'}`}
+              className={`h-full rounded-full transition-all duration-500 ease-out ${packageLimits.forms === 0 ? 'bg-gray-300' : 'bg-brand-gold'}`}
               style={{ width: `${progress.forms}%` }}
             />
           </div>
         </div>
 
         {/* SmartDocs */}
-        <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
               <BookOpen className="h-5 w-5 text-brand-gold" />
             </div>
-            <Badge variant="outline" className={`${smartdocsStatus.color} border-brand-gold/40 bg-white/10`}>
+            <Badge variant="outline" className={`${smartdocsStatus.color} border-gray-200`} style={{ color: '#64748b' }}>
               {smartdocsStatus.text}
             </Badge>
           </div>
-          <h3 className="font-semibold text-lg mb-2 text-white">SmartDocs</h3>
-          <div className="text-2xl font-bold mb-2 text-white">
+          <h3 className="font-semibold text-lg mb-2" style={{ color: '#060520' }}>SmartDocs</h3>
+          <div className="text-2xl font-bold mb-2" style={{ color: '#060520' }}>
             {client.smartdocs_setup}/{isUnlimited(packageLimits.smartdocs) ? "∞" : packageLimits.smartdocs}
           </div>
-          <p className="text-sm text-white/80 mb-4">
+          <p className="text-sm mb-4 leading-relaxed" style={{ color: '#64748b' }}>
             {packageLimits.smartdocs === 0
               ? "Not included in your package"
               : isUnlimited(packageLimits.smartdocs)
                 ? `${client.smartdocs_setup} SmartDocs configured`
                 : `${client.smartdocs_setup}/${packageLimits.smartdocs} SmartDocs configured`}
           </p>
-          <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ease-out ${packageLimits.smartdocs === 0 ? 'bg-white/30' : 'bg-brand-gold'}`}
+              className={`h-full rounded-full transition-all duration-500 ease-out ${packageLimits.smartdocs === 0 ? 'bg-gray-300' : 'bg-brand-gold'}`}
               style={{ width: `${progress.smartdocs}%` }}
             />
           </div>
         </div>
 
         {/* Integrations */}
-        <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-6 transition-all duration-300 hover:border-brand-gold/60 hover:shadow-lg">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center border border-brand-gold/20">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
               <Zap className="h-5 w-5 text-brand-gold" />
             </div>
-            <Badge variant="outline" className={`${integrationsStatus.color} border-brand-gold/40 bg-white/10`}>
+            <Badge variant="outline" className={`${integrationsStatus.color} border-gray-200`} style={{ color: '#64748b' }}>
               {integrationsStatus.text}
             </Badge>
           </div>
-          <h3 className="font-semibold text-lg mb-2 text-white">Integrations</h3>
-          <div className="text-2xl font-bold mb-2 text-white">
+          <h3 className="font-semibold text-lg mb-2" style={{ color: '#060520' }}>Integrations</h3>
+          <div className="text-2xl font-bold mb-2" style={{ color: '#060520' }}>
             {client.zapier_integrations_setup}/
             {isUnlimited(packageLimits.integrations) ? "∞" : packageLimits.integrations}
           </div>
-          <p className="text-sm text-white/80 mb-4">
+          <p className="text-sm mb-4 leading-relaxed" style={{ color: '#64748b' }}>
             {packageLimits.integrations === 0
               ? "Not included in your package"
               : isUnlimited(packageLimits.integrations)
                 ? `${client.zapier_integrations_setup} integrations active`
                 : `${client.zapier_integrations_setup}/${packageLimits.integrations} integrations active`}
           </p>
-          <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ease-out ${packageLimits.integrations === 0 ? 'bg-white/30' : 'bg-brand-gold'}`}
+              className={`h-full rounded-full transition-all duration-500 ease-out ${packageLimits.integrations === 0 ? 'bg-gray-300' : 'bg-brand-gold'}`}
               style={{ width: `${progress.integrations}%` }}
             />
           </div>
@@ -425,15 +425,15 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
 
       {/* Elite Features */}
       {(packageLimits.migration || packageLimits.slack) && (
-        <div className="bg-[#10122b]/90 text-white rounded-3xl border border-brand-gold/30 p-8 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-brand-gold/10 rounded-2xl flex items-center justify-center border border-brand-gold/20">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
                 <Database className="h-6 w-6 text-brand-gold" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">Elite Features</h2>
-                <p className="text-white/80">Premium services included in your package</p>
+                <h2 className="text-2xl font-bold" style={{ color: '#060520' }}>Elite Features</h2>
+                <p className="leading-relaxed" style={{ color: '#64748b' }}>Premium services included in your package</p>
               </div>
             </div>
             <Badge variant="secondary" className="bg-brand-gold text-brand-DEFAULT">
@@ -442,16 +442,17 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {packageLimits.migration && (
-              <div className="flex items-center justify-between p-4 border border-brand-gold/40 rounded-2xl bg-[#181a2f] text-white">
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-2xl bg-white">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-brand-gold/10 rounded-lg flex items-center justify-center border border-brand-gold/20">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
                     <Database className="h-4 w-4 text-brand-gold" />
                   </div>
-                  <span className="font-medium text-white">Migration Completed</span>
+                  <span className="font-medium" style={{ color: '#060520' }}>Migration Completed</span>
                 </div>
                 <Badge
                   variant={client.migration_completed ? "default" : "secondary"}
-                  className={client.migration_completed ? "bg-brand-gold text-brand-DEFAULT" : "bg-white/10 text-white/80"}
+                  className={client.migration_completed ? "bg-brand-gold text-brand-DEFAULT" : "bg-gray-100 border-gray-200"}
+                  style={{ color: client.migration_completed ? undefined : '#64748b' }}
                 >
                   {client.migration_completed ? "Completed" : "Pending"}
                 </Badge>
@@ -459,16 +460,17 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
             )}
 
             {packageLimits.slack && (
-              <div className="flex items-center justify-between p-4 border border-brand-gold/40 rounded-2xl bg-[#181a2f] text-white">
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-2xl bg-white">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-brand-gold/10 rounded-lg flex items-center justify-center border border-brand-gold/20">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
                     <MessageSquare className="h-4 w-4 text-brand-gold" />
                   </div>
-                  <span className="font-medium text-white">Slack Access Granted</span>
+                  <span className="font-medium" style={{ color: '#060520' }}>Slack Access Granted</span>
                 </div>
                 <Badge
                   variant={client.slack_access_granted ? "default" : "secondary"}
-                  className={client.slack_access_granted ? "bg-brand-gold text-brand-DEFAULT" : "bg-white/10 text-white/80"}
+                  className={client.slack_access_granted ? "bg-brand-gold text-brand-DEFAULT" : "bg-gray-100 border-gray-200"}
+                  style={{ color: client.slack_access_granted ? undefined : '#64748b' }}
                 >
                   {client.slack_access_granted ? "Completed" : "Pending"}
                 </Badge>

@@ -37,12 +37,19 @@ export default async function ClientFeaturesPage({ params }: PageProps) {
 
   return (
     <PasswordProtection>
-      <div className="flex h-screen bg-gradient-to-b from-[#0a0b1a] via-[#10122b] to-[#1a1c3a]">
+      <div className="flex h-screen bg-white">
         <AdminSidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="max-w-5xl mx-auto px-8 pt-8">
-            <h1 className="text-3xl font-bold text-white mb-1">Client Features</h1>
-            <p className="text-slate-400 mb-8">Manage features and upselling opportunities for this client</p>
+            <div className="mb-8">
+              <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
+                <span className="text-brand-gold font-medium text-sm">Features</span>
+              </div>
+              <h1 className="text-5xl lg:text-6xl font-bold mb-4" style={{color: '#060520'}}>
+                Client Features
+              </h1>
+              <p className="text-xl max-w-4xl leading-relaxed mb-8" style={{color: '#64748b'}}>Manage features and upselling opportunities for this client</p>
+            </div>
             <ClientFeaturesManager
               clientFeatures={clientFeatures}
               availableFeatures={availableFeatures}

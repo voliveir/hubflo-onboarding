@@ -17,14 +17,14 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
   }
 
   return (
-    <div className="flex flex-col h-full min-h-[400px] text-center bg-[#10122b]/90 text-white rounded-3xl p-8 border border-brand-gold/30 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg">
+    <div className="flex flex-col h-full min-h-[400px] text-center bg-white rounded-2xl p-8 border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-gray-300">
       {/* Header */}
       <div className="flex flex-col items-center mb-6">
-        <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-brand-gold/20">
+        <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
           <Pin className="h-6 w-6 text-brand-gold" />
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Project Scope & Timeline</h2>
-        <p className="text-white/80 text-sm">
+        <h2 className="text-2xl font-bold mb-2" style={{ color: '#060520' }}>Project Scope & Timeline</h2>
+        <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>
           Your project requirements and agreed-upon go-live date
         </p>
       </div>
@@ -36,10 +36,10 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <FileText className="h-4 w-4 text-brand-gold" />
-              <h3 className="text-white font-semibold">Initial Project Scope</h3>
+              <h3 className="font-semibold" style={{ color: '#060520' }}>Initial Project Scope</h3>
             </div>
-            <div className="bg-[#181a2f]/50 rounded-xl p-4 border border-white/10">
-              <p className="text-white/90 whitespace-pre-wrap leading-relaxed">
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+              <p className="whitespace-pre-wrap leading-relaxed" style={{ color: '#64748b' }}>
                 {pinnedNote.initial_scope}
               </p>
             </div>
@@ -49,21 +49,21 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
         {/* Scope Changes */}
         {pinnedNote.scope_changes && pinnedNote.scope_changes.length > 0 && (
           <div>
-            <h3 className="text-white font-semibold mb-3">Scope Changes & Additions</h3>
+            <h3 className="font-semibold mb-3" style={{ color: '#060520' }}>Scope Changes & Additions</h3>
             <div className="space-y-3">
               {pinnedNote.scope_changes.map((change, index) => (
                 <div
                   key={index}
-                  className="bg-[#181a2f]/50 rounded-xl p-4 border border-white/10"
+                  className="bg-gray-50 rounded-xl p-4 border border-gray-200"
                 >
-                  <p className="text-white/90 mb-2">{change.description}</p>
+                  <p className="mb-2 leading-relaxed" style={{ color: '#64748b' }}>{change.description}</p>
                   {change.extra_time && (
                     <div className="flex items-center gap-2 text-brand-gold text-sm mt-2">
                       <Clock className="h-3 w-3" />
                       <span>Additional time required: {change.extra_time}</span>
                     </div>
                   )}
-                  <p className="text-white/60 text-xs mt-2">
+                  <p className="text-xs mt-2" style={{ color: '#94a3b8' }}>
                     Added on {new Date(change.added_at).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
@@ -78,12 +78,12 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
 
         {/* Go-Live Date */}
         {(pinnedNote.go_live_date || pinnedNote.new_estimated_go_live_date) && (
-          <div className="bg-brand-gold/10 rounded-xl p-4 border border-brand-gold/30">
+          <div className="bg-brand-gold/10 rounded-xl p-4 border border-brand-gold/20">
             {pinnedNote.go_live_date && (
               <>
                 <div className="flex items-center gap-2 mb-2">
                   <Calendar className="h-5 w-5 text-brand-gold" />
-                  <h3 className="text-white font-semibold">Target Go-Live Date - MVP (Minimal Viable Portal)</h3>
+                  <h3 className="font-semibold" style={{ color: '#060520' }}>Target Go-Live Date - MVP (Minimal Viable Portal)</h3>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -92,10 +92,10 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent 
-                        className="bg-[#181a2f] border border-brand-gold/30 text-white max-w-xs p-3"
+                        className="bg-white border border-gray-200 max-w-xs p-3"
                         side="right"
                       >
-                        <p className="text-sm leading-relaxed">
+                        <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>
                           <strong className="text-brand-gold">MVP Definition:</strong> The Minimal Viable Portal means all settings have been updated (logos, branding, etc.) and the workspace template(s) have been created so you can invite your first beta clients for testing.
                         </p>
                       </TooltipContent>
@@ -116,7 +116,7 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
                     })
                   })()}
                 </p>
-                <p className="text-white/80 text-sm mt-2">
+                <p className="text-sm mt-2 leading-relaxed" style={{ color: '#64748b' }}>
                   This is the date we agreed upon during the kickoff call
                 </p>
               </>
@@ -127,7 +127,7 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
               <div className={pinnedNote.go_live_date ? "mt-4 pt-4 border-t border-brand-gold/20" : ""}>
                 <div className="flex items-center gap-2 mb-2">
                   <Calendar className={`${pinnedNote.go_live_date ? "h-4 w-4" : "h-5 w-5"} text-brand-gold`} />
-                  <h4 className={`text-white font-semibold ${pinnedNote.go_live_date ? "text-sm" : ""}`}>
+                  <h4 className={`font-semibold ${pinnedNote.go_live_date ? "text-sm" : ""}`} style={{ color: '#060520' }}>
                     Estimated Go-Live Date
                   </h4>
                   <TooltipProvider>
@@ -138,10 +138,10 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent 
-                        className="bg-[#181a2f] border border-brand-gold/30 text-white max-w-xs p-3"
+                        className="bg-white border border-gray-200 max-w-xs p-3"
                         side="right"
                       >
-                        <p className="text-sm leading-relaxed">
+                        <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>
                           This date accounts for any additional scope added during kickoff or after kickoff is completed.
                         </p>
                       </TooltipContent>
@@ -162,7 +162,7 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
                     })
                   })()}
                 </p>
-                <p className="text-white/80 text-xs mt-2">
+                <p className="text-xs mt-2 leading-relaxed" style={{ color: '#64748b' }}>
                   Updated date accounting for scope changes and additional time required
                 </p>
               </div>
@@ -172,7 +172,7 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
 
         {/* Last Updated */}
         {pinnedNote.updated_at && (
-          <p className="text-white/60 text-xs text-right mt-4">
+          <p className="text-xs text-right mt-4" style={{ color: '#94a3b8' }}>
             Last updated: {new Date(pinnedNote.updated_at).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",

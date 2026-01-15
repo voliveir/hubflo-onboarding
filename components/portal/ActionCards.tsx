@@ -59,19 +59,19 @@ export function ActionCards({ successPackage, implementationManager = 'vanessa',
         <div
           key={action.title}
           className={cn(
-            "flex flex-col h-full min-h-[400px] text-center bg-[#10122b]/90 text-white rounded-3xl p-8 border border-brand-gold/30 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg",
+            "flex flex-col h-full min-h-[400px] text-center bg-white rounded-2xl p-8 border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-gray-300",
             isVisible && "animate-fade-in-up"
           )}
           style={{ animationDelay: `${index * 100}ms` }}
         >
           <div className="flex flex-col items-center mb-6">
-            <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-brand-gold/20">
+            <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
               <action.icon className="h-6 w-6 text-brand-gold" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-4">{action.title}</h3>
+            <h3 className="text-xl font-semibold mb-4" style={{ color: '#060520' }}>{action.title}</h3>
           </div>
           
-          <p className="text-white/80 mb-6 flex-grow text-center">
+          <p className="mb-6 flex-grow text-center text-base" style={{ color: '#64748b' }}>
             {action.description}
           </p>
           

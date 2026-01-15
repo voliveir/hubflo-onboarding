@@ -95,12 +95,19 @@ export default function ClientFollowUpsPage() {
 
   return (
     <PasswordProtection>
-      <div className="flex h-screen bg-gradient-to-br from-[#0d0f2b] to-[#15173d]">
+      <div className="flex h-screen bg-white">
         <AdminSidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-8 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6 text-white">Client Follow-ups</h1>
-            <p className="mb-8 text-gray-400">Follow-ups grouped by due date. Mark them complete as you go!</p>
+            <div className="mb-8">
+              <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
+                <span className="text-brand-gold font-medium text-sm">Follow-ups</span>
+              </div>
+              <h1 className="text-5xl lg:text-6xl font-bold mb-4" style={{color: '#060520'}}>
+                Client Follow-ups
+              </h1>
+              <p className="text-xl max-w-4xl leading-relaxed mb-8" style={{color: '#64748b'}}>Follow-ups grouped by due date. Mark them complete as you go!</p>
+            </div>
             {loading ? (
               <div className="text-gray-400">Loading follow-ups...</div>
             ) : (

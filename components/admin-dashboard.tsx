@@ -306,17 +306,16 @@ export function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <div className="animate-pulse space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              </CardContent>
-            </Card>
+            <div key={i} className="rounded-2xl bg-white border border-gray-200 shadow-sm p-6 min-h-[140px]">
+              <div className="animate-pulse space-y-3">
+                <div className="h-10 w-10 bg-gray-200 rounded mx-auto"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -325,21 +324,19 @@ export function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2 text-red-600">
-              <AlertCircle className="h-5 w-5" />
-              <span>Error loading dashboard: {error}</span>
-            </div>
-            <p className="text-sm text-gray-600 mt-2">
-              This might be because the database tables haven't been set up yet.
-            </p>
-            <Button asChild className="mt-4">
-              <Link href="/admin/setup">Go to Database Setup</Link>
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="space-y-8">
+        <div className="rounded-2xl bg-white border border-red-200 shadow-sm p-8">
+          <div className="flex items-center space-x-3 text-red-600 mb-4">
+            <AlertCircle className="h-6 w-6" />
+            <span className="font-semibold">Error loading dashboard: {error}</span>
+          </div>
+          <p className="text-sm text-gray-600 mb-4">
+            This might be because the database tables haven't been set up yet.
+          </p>
+          <Button asChild className="bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] font-bold hover:shadow-lg">
+            <Link href="/admin/setup">Go to Database Setup</Link>
+          </Button>
+        </div>
         <DatabaseStatusCheck />
       </div>
     )
@@ -348,69 +345,76 @@ export function AdminDashboard() {
   return (
     <div className="space-y-8">
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         {[
           {
             label: 'Total Clients',
             value: stats.totalClients,
-            icon: <Users className="h-10 w-10 text-blue-400 drop-shadow-glow" />,
-            labelColor: 'text-blue-400',
+            icon: <Users className="h-10 w-10 text-blue-500" />,
+            labelColor: 'text-blue-600',
+            bgColor: 'bg-blue-50',
+            borderColor: 'border-blue-200',
           },
           {
             label: 'Active Clients',
             value: stats.activeClients,
-            icon: <Users className="h-10 w-10 text-green-400 drop-shadow-glow" />,
-            labelColor: 'text-green-400',
+            icon: <Users className="h-10 w-10 text-green-500" />,
+            labelColor: 'text-green-600',
+            bgColor: 'bg-green-50',
+            borderColor: 'border-green-200',
           },
           {
             label: 'Avg Progress',
             value: `${stats.averageProgress}%`,
-            icon: <TrendingUp className="h-10 w-10 text-yellow-400 drop-shadow-glow" />,
-            labelColor: 'text-yellow-400',
+            icon: <TrendingUp className="h-10 w-10 text-yellow-500" />,
+            labelColor: 'text-yellow-600',
+            bgColor: 'bg-yellow-50',
+            borderColor: 'border-yellow-200',
           },
           {
             label: 'Premium+',
             value: stats.packageBreakdown.premium + stats.packageBreakdown.gold + stats.packageBreakdown.elite,
-            icon: <Package className="h-10 w-10 text-purple-400 drop-shadow-glow" />,
-            labelColor: 'text-purple-400',
+            icon: <Package className="h-10 w-10 text-purple-500" />,
+            labelColor: 'text-purple-600',
+            bgColor: 'bg-purple-50',
+            borderColor: 'border-purple-200',
           },
         ].map((stat, i) => (
-          <div key={i} className="rounded-2xl bg-white/10 backdrop-blur-md shadow-[inset_0_2px_8px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center p-6 min-h-[140px] border border-white/10">
-            <div className="mb-2">{stat.icon}</div>
-            <div className="text-3xl font-bold text-white drop-shadow-glow">{stat.value}</div>
-            <div className={`text-sm mt-1 font-medium tracking-wide ${stat.labelColor}`}>{stat.label}</div>
+          <div key={i} className={`rounded-2xl ${stat.bgColor} border ${stat.borderColor} shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center p-6 min-h-[140px]`}>
+            <div className="mb-3">{stat.icon}</div>
+            <div className="text-4xl font-bold" style={{color: '#060520'}}>{stat.value}</div>
+            <div className={`text-sm mt-2 font-semibold tracking-wide ${stat.labelColor}`}>{stat.label}</div>
           </div>
         ))}
       </div>
 
       {/* Package Breakdown as mini cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Light', value: stats.packageBreakdown.light, color: 'bg-green-500', emoji: '🟢' },
-          { label: 'Premium', value: stats.packageBreakdown.premium, color: 'bg-blue-500', emoji: '🔵' },
-          { label: 'Gold', value: stats.packageBreakdown.gold, color: 'bg-yellow-400', emoji: '🟡' },
-          { label: 'Elite', value: stats.packageBreakdown.elite, color: 'bg-purple-500', emoji: '🟣' },
+          { label: 'Light', value: stats.packageBreakdown.light, color: 'bg-green-500', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-700' },
+          { label: 'Premium', value: stats.packageBreakdown.premium, color: 'bg-blue-500', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-700' },
+          { label: 'Gold', value: stats.packageBreakdown.gold, color: 'bg-yellow-400', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', textColor: 'text-yellow-700' },
+          { label: 'Elite', value: stats.packageBreakdown.elite, color: 'bg-purple-500', bgColor: 'bg-purple-50', borderColor: 'border-purple-200', textColor: 'text-purple-700' },
         ].map((pkg, i) => (
-          <div key={i} className={`rounded-2xl border border-[#F2C94C] bg-white/10 backdrop-blur-md shadow-inner-glass flex flex-col items-center justify-center p-4 min-h-[90px]`}>
-            <span className="text-2xl mb-1">{pkg.emoji}</span>
-            <div className={`text-2xl font-bold text-white drop-shadow-glow`}>{pkg.value}</div>
-            <div className={`text-xs mt-1 px-2 py-0.5 rounded-full ${pkg.color} text-white font-semibold tracking-wide`}>{pkg.label}</div>
+          <div key={i} className={`rounded-2xl ${pkg.bgColor} border ${pkg.borderColor} shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center p-4 min-h-[100px]`}>
+            <div className={`text-3xl font-bold mb-2`} style={{color: '#060520'}}>{pkg.value}</div>
+            <div className={`text-sm mt-1 px-3 py-1 rounded-full ${pkg.color} text-white font-semibold tracking-wide`}>{pkg.label}</div>
           </div>
         ))}
       </div>
 
       {/* Quick Actions */}
-      <div className="rounded-2xl border border-[#F2C94C] bg-white/10 backdrop-blur-md shadow-inner-glass p-6 flex flex-col items-center">
+      <div className="rounded-2xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-8">
         <div className="flex flex-col sm:flex-row gap-6 w-full justify-center">
-          <Button asChild className="flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] font-bold rounded-xl shadow-gold-glow py-6 px-4 w-48 mx-auto hover:scale-105 transition-transform" size="lg">
+          <Button asChild className="flex items-center justify-center gap-3 bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] font-bold rounded-xl shadow-md hover:shadow-lg py-6 px-8 w-full sm:w-auto hover:scale-105 transition-transform" size="lg">
             <Link href="/admin/clients/new">
-              <Plus className="h-7 w-7 mb-1" />
+              <Plus className="h-6 w-6" />
               <span>Add New Client</span>
             </Link>
           </Button>
-          <Button asChild className="flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] font-bold rounded-xl shadow-gold-glow py-6 px-4 w-48 mx-auto hover:scale-105 transition-transform" size="lg">
+          <Button asChild className="flex items-center justify-center gap-3 bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] font-bold rounded-xl shadow-md hover:shadow-lg py-6 px-8 w-full sm:w-auto hover:scale-105 transition-transform" size="lg">
             <Link href="/admin/integrations">
-              <Package className="h-7 w-7 mb-1" />
+              <Package className="h-6 w-6" />
               <span>Manage Integrations</span>
             </Link>
           </Button>
@@ -418,17 +422,17 @@ export function AdminDashboard() {
       </div>
 
       {/* Tasks & Reminders */}
-      <div className="rounded-2xl border border-[#F2C94C] bg-white/10 backdrop-blur-md shadow-inner-glass p-6">
+      <div className="rounded-2xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-[#F2C94C]" />
+          <h2 className="text-2xl font-bold flex items-center gap-3" style={{color: '#060520'}}>
+            <AlertCircle className="h-6 w-6 text-[#F2C94C]" />
             Tasks & Reminders
           </h2>
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={fetchTasksAndReminders}
-            className="text-[#F2C94C] hover:text-white"
+            className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
           >
             <Clock className="h-4 w-4 mr-1" />
             Refresh
@@ -439,10 +443,10 @@ export function AdminDashboard() {
           {TASK_FILTERS.map((filter) => (
             <button
               key={filter.value}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors border border-[#F2C94C]/40 backdrop-blur-md
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all border
                 ${taskFilter === filter.value
-                  ? "bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] shadow-gold-glow"
-                  : "bg-white/10 text-[#F2C94C] hover:bg-[#F2C94C]/10"}
+                  ? "bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] border-[#F2C94C] shadow-md"
+                  : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 hover:border-gray-300"}
               `}
               onClick={() => setTaskFilter(filter.value)}
               type="button"
@@ -464,40 +468,40 @@ export function AdminDashboard() {
             ))}
           </div>
         ) : filteredTasks.length === 0 ? (
-          <div className="text-center py-8">
-            <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-3" />
-            <p className="text-green-400">All caught up!</p>
+          <div className="text-center py-12">
+            <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
+            <p className="text-green-600 font-semibold">All caught up!</p>
             <p className="text-sm text-gray-500 mt-1">No urgent tasks or reminders</p>
           </div>
         ) : (
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {filteredTasks.map((task) => (
-              <div key={task.id} className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+              <div key={task.id} className="flex items-start space-x-4 p-4 rounded-lg bg-gray-50 border border-gray-200 hover:bg-gray-100 hover:border-gray-300 transition-colors">
                 <div className="flex-shrink-0 mt-1">
                   {task.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-white truncate">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-semibold truncate" style={{color: '#060520'}}>
                       {task.title}
                     </p>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                        task.priority === 'high' ? 'bg-red-500/20 text-red-300' :
-                        task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
-                        'bg-blue-500/20 text-blue-300'
+                      <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                        task.priority === 'high' ? 'bg-red-100 text-red-700 border border-red-200' :
+                        task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
+                        'bg-blue-100 text-blue-700 border border-blue-200'
                       }`}>
                         {task.priority}
                       </span>
                       {task.daysOverdue && (
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-500">
                           {task.daysOverdue}d ago
                         </span>
                       )}
                       {/* Follow-up Email Sent Checkmark */}
                       {task.type === 'follow_up_email' && typeof task.reminderNumber === 'number' && (
                         <button
-                          className="ml-2 rounded-full bg-gradient-to-br from-green-400 to-green-600 p-1 text-white hover:scale-110 transition-transform"
+                          className="ml-2 rounded-full bg-gradient-to-br from-green-500 to-green-600 p-1.5 text-white hover:scale-110 transition-transform shadow-sm"
                           title="Mark follow-up as sent"
                           onClick={async () => {
                             if (typeof task.reminderNumber === 'number') {
@@ -506,24 +510,24 @@ export function AdminDashboard() {
                             }
                           }}
                         >
-                          <CheckCircle className="h-5 w-5" />
+                          <CheckCircle className="h-4 w-4" />
                         </button>
                       )}
                     </div>
                   </div>
-                  <p className="text-xs text-gray-300 mt-1">
+                  <p className="text-sm text-gray-600 mb-2">
                     {task.description}
                   </p>
-                  <div className="flex items-center mt-2">
-                    <User className="h-3 w-3 text-[#F2C94C] mr-1" />
-                    <span className="text-xs text-[#F2C94C] font-medium">
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 text-[#F2C94C] mr-1" />
+                    <span className="text-sm text-gray-700 font-medium">
                       {task.clientName}
                     </span>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       asChild 
-                      className="ml-2 h-6 px-2 text-xs text-gray-400 hover:text-white"
+                      className="ml-3 h-7 px-3 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-200"
                     >
                       <Link href={`/admin/clients/${task.clientId}`}>
                         View Client
@@ -538,17 +542,17 @@ export function AdminDashboard() {
       </div>
 
       {/* Recent Activity Feed */}
-      <div className="rounded-2xl border border-[#F2C94C] bg-white/10 backdrop-blur-md shadow-inner-glass p-6">
+      <div className="rounded-2xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Activity className="h-5 w-5 text-[#F2C94C]" />
+          <h2 className="text-2xl font-bold flex items-center gap-3" style={{color: '#060520'}}>
+            <Activity className="h-6 w-6 text-[#F2C94C]" />
             Recent Activity
           </h2>
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={fetchRecentActivity}
-            className="text-[#F2C94C] hover:text-white"
+            className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
           >
             <Clock className="h-4 w-4 mr-1" />
             Refresh
@@ -558,50 +562,50 @@ export function AdminDashboard() {
         {loadingActivity ? (
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="animate-pulse flex items-center space-x-3 p-3 rounded-lg bg-white/5">
-                <div className="h-4 w-4 bg-gray-400 rounded-full"></div>
+              <div key={i} className="animate-pulse flex items-center space-x-4 p-4 rounded-lg bg-gray-50 border border-gray-200">
+                <div className="h-4 w-4 bg-gray-300 rounded-full"></div>
                 <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-gray-400 rounded w-3/4"></div>
-                  <div className="h-2 bg-gray-400 rounded w-1/2"></div>
+                  <div className="h-3 bg-gray-300 rounded w-3/4"></div>
+                  <div className="h-2 bg-gray-300 rounded w-1/2"></div>
                 </div>
               </div>
             ))}
           </div>
         ) : recentActivity.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-12">
             <Activity className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-400">No recent activity</p>
+            <p className="text-gray-600 font-medium">No recent activity</p>
             <p className="text-sm text-gray-500 mt-1">Activity will appear here as clients complete tasks</p>
           </div>
         ) : (
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {recentActivity.map((activity) => (
-              <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+              <div key={activity.id} className="flex items-start space-x-4 p-4 rounded-lg bg-gray-50 border border-gray-200 hover:bg-gray-100 hover:border-gray-300 transition-colors">
                 <div className="flex-shrink-0 mt-1">
                   {activity.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-white truncate">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-semibold truncate" style={{color: '#060520'}}>
                       {activity.title}
                     </p>
-                    <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
+                    <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
                       {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-300 mt-1">
+                  <p className="text-sm text-gray-600 mb-2">
                     {activity.description}
                   </p>
-                  <div className="flex items-center mt-2">
-                    <User className="h-3 w-3 text-[#F2C94C] mr-1" />
-                    <span className="text-xs text-[#F2C94C] font-medium">
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 text-[#F2C94C] mr-1" />
+                    <span className="text-sm text-gray-700 font-medium">
                       {activity.clientName}
                     </span>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       asChild 
-                      className="ml-2 h-6 px-2 text-xs text-gray-400 hover:text-white"
+                      className="ml-3 h-7 px-3 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-200"
                     >
                       <Link href={`/admin/clients/${activity.clientId}`}>
                         View Client

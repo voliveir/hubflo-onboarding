@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { AdminSidebar } from "@/components/admin-sidebar"
+import { PasswordProtection } from "@/components/password-protection"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { Client } from "@/lib/types"
 import { Input } from "@/components/ui/input"
@@ -9,7 +10,8 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
-import { Loader2, X } from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Loader2, X, ChevronDown, ChevronUp } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -67,6 +69,7 @@ export default function MobileAppWhiteLabelPage() {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(false)
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
   async function fetchClients() {
     setLoading(true)
@@ -241,7 +244,7 @@ export default function MobileAppWhiteLabelPage() {
 
     return (
       <div id={client.id} className="scroll-mt-32">
-        <Card className={`relative bg-[#0B0E24] rounded-2xl ring-2 ring-[#F2C94C]/50 shadow-[inset_0_2px_8px_rgba(0,0,0,0.18)] p-0 flex flex-col min-h-[420px]`}>
+        <Card className={`relative bg-[#0B0E24] rounded-xl ring-1 ring-[#F2C94C]/30 shadow-sm p-0 flex flex-col`}>
           <CardHeader className="pb-2 flex-row items-center gap-2">
             <CardTitle className="text-xl flex-1 truncate text-white">{client.name}</CardTitle>
           </CardHeader>
@@ -498,13 +501,19 @@ export default function MobileAppWhiteLabelPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#0d0f2b] to-[#15173d] flex">
-      <div className="flex flex-col min-h-screen"><AdminSidebar /></div>
-      <main className="flex-1 p-8">
+    <PasswordProtection>
+      <div className="min-h-screen w-full bg-white flex">
+        <div className="flex flex-col min-h-screen"><AdminSidebar /></div>
+        <main className="flex-1 p-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col gap-2 mb-8">
-            <span className="text-3xl font-bold tracking-tight text-white">Mobile App: White Label</span>
-            <span className="text-base text-[#F2C94C]">Track internal steps for every white-label build</span>
+          <div className="mb-8">
+            <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
+              <span className="text-brand-gold font-medium text-sm">Mobile App</span>
+            </div>
+            <h1 className="text-5xl lg:text-6xl font-bold mb-4" style={{color: '#060520'}}>
+              Mobile App: White Label
+            </h1>
+            <p className="text-xl max-w-4xl leading-relaxed" style={{color: '#64748b'}}>Track internal steps for every white-label build</p>
           </div>
           {loading ? (
             <div className="flex justify-center items-center h-40">
@@ -512,20 +521,149 @@ export default function MobileAppWhiteLabelPage() {
             </div>
           ) : (
             clients.filter(client => client.custom_app === "white_label").length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 bg-[#0B0E24] rounded-2xl ring-1 ring-[#F2C94C]/40 shadow-inner-glass">
+              <div className="flex flex-col items-center justify-center h-64 bg-white border border-gray-200 rounded-2xl shadow-sm">
                 <div className="text-4xl mb-2">🎉</div>
-                <div className="text-lg text-white font-semibold mb-1">No white-label projects yet – create one from any client's page.</div>
+                <div className="text-lg font-semibold mb-1" style={{color: '#060520'}}>No white-label projects yet – create one from any client's page.</div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
-                {clients.filter(client => client.custom_app === "white_label").map(client => (
-                  <WhiteLabelClientCard key={client.id} client={client} />
-                ))}
+              <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+                <Table className="min-w-full">
+                  <TableHeader>
+                    <TableRow className="bg-gray-50 border-b border-gray-200 hover:bg-gray-50">
+                      <TableHead className="font-bold text-xs px-3 py-2 w-10" style={{color: '#060520'}}></TableHead>
+                      <TableHead className="font-bold text-xs px-3 py-2 min-w-[200px]" style={{color: '#060520'}}>Client Name</TableHead>
+                      <TableHead className="font-bold text-xs px-3 py-2 min-w-[120px]" style={{color: '#060520'}}>Status</TableHead>
+                      <TableHead className="font-bold text-xs px-3 py-2 min-w-[150px]" style={{color: '#060520'}}>App Name</TableHead>
+                      <TableHead className="font-bold text-xs px-3 py-2 min-w-[100px]" style={{color: '#060520'}}>Progress</TableHead>
+                      <TableHead className="font-bold text-xs px-3 py-2 min-w-[140px]" style={{color: '#060520'}}>Android URL</TableHead>
+                      <TableHead className="font-bold text-xs px-3 py-2 min-w-[140px]" style={{color: '#060520'}}>iOS URL</TableHead>
+                      <TableHead className="font-bold text-xs px-3 py-2 min-w-[100px]" style={{color: '#060520'}}>Assets</TableHead>
+                      <TableHead className="font-bold text-xs px-3 py-2 min-w-[120px]" style={{color: '#060520'}}>Approval</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {clients.filter(client => client.custom_app === "white_label").map(client => {
+                      const isExpanded = expandedRow === client.id
+                      const checklist = client.white_label_checklist || {}
+                      const completedCount = CHECKLIST_STEPS.filter(step => checklist[step.key]?.completed).length
+                      const totalSteps = CHECKLIST_STEPS.length
+                      const progressPercent = totalSteps > 0 ? Math.round((completedCount / totalSteps) * 100) : 0
+                      
+                      return (
+                        <>
+                          <TableRow 
+                            key={client.id} 
+                            className="border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+                            onClick={() => setExpandedRow(isExpanded ? null : client.id)}
+                          >
+                            <TableCell className="px-3 py-2">
+                              {isExpanded ? (
+                                <ChevronUp className="h-4 w-4 text-brand-gold" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4 text-brand-gold" />
+                              )}
+                            </TableCell>
+                            <TableCell className="font-semibold text-xs px-3 py-2" style={{color: '#060520'}}>
+                              {client.name}
+                            </TableCell>
+                            <TableCell className="text-xs px-3 py-2">
+                              <StatusPill status={client.white_label_status || "not_started"} />
+                            </TableCell>
+                            <TableCell className="text-xs px-3 py-2" style={{color: '#64748b'}}>
+                              {client.white_label_app_name || "—"}
+                            </TableCell>
+                            <TableCell className="text-xs px-3 py-2">
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                  <div 
+                                    className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] h-full transition-all"
+                                    style={{ width: `${progressPercent}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs text-gray-600">{completedCount}/{totalSteps}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-xs px-3 py-2">
+                              {client.white_label_android_url ? (
+                                <a 
+                                  href={client.white_label_android_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-brand-gold hover:underline truncate block max-w-[200px]"
+                                >
+                                  View Link
+                                </a>
+                              ) : <span style={{color: '#64748b'}}>—</span>}
+                            </TableCell>
+                            <TableCell className="text-xs px-3 py-2">
+                              {client.white_label_ios_url ? (
+                                <a 
+                                  href={client.white_label_ios_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-brand-gold hover:underline truncate block max-w-[200px]"
+                                >
+                                  View Link
+                                </a>
+                              ) : <span style={{color: '#64748b'}}>—</span>}
+                            </TableCell>
+                            <TableCell className="text-xs px-3 py-2">
+                              {(client.white_label_app_assets || []).length > 0 ? (
+                                <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs">
+                                  {(client.white_label_app_assets || []).length} asset(s)
+                                </span>
+                              ) : <span style={{color: '#64748b'}}>—</span>}
+                            </TableCell>
+                            <TableCell className="text-xs px-3 py-2">
+                              {client.white_label_client_approval_status ? (
+                                <span className={
+                                  client.white_label_client_approval_status === "approved"
+                                    ? "text-green-600 font-semibold text-xs"
+                                    : client.white_label_client_approval_status === "changes_requested"
+                                    ? "text-orange-600 font-semibold text-xs"
+                                    : "text-yellow-600 font-semibold text-xs"
+                                }>
+                                  {client.white_label_client_approval_status === "approved"
+                                    ? "Approved"
+                                    : client.white_label_client_approval_status === "changes_requested"
+                                    ? "Changes"
+                                    : "Pending"}
+                                </span>
+                              ) : <span style={{color: '#64748b'}}>—</span>}
+                            </TableCell>
+                          </TableRow>
+                          {isExpanded && (
+                            <TableRow>
+                              <TableCell colSpan={9} className="px-0 py-0">
+                                <div 
+                                  className="bg-gray-50 p-6"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <WhiteLabelClientCard client={client} />
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </>
+                      )
+                    })}
+                    {clients.filter(client => client.custom_app === "white_label").length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center py-8 px-3" style={{color: '#64748b'}}>
+                          No white-label clients found.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             )
           )}
         </div>
       </main>
     </div>
+    </PasswordProtection>
   )
 } 

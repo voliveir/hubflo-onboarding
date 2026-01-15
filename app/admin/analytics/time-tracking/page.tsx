@@ -358,14 +358,19 @@ export default function TimeTrackingPage() {
 
   return (
     <PasswordProtection>
-      <div className="flex h-screen bg-gradient-to-br from-[#0a0b1a] via-[#10122b] to-[#1a1c3a]">
+      <div className="flex h-screen bg-white">
         <AdminSidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="container mx-auto px-6 py-8">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Time Tracking</h1>
-                <p className="text-white/80">Track meetings, emails, and implementation work</p>
+                <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
+                  <span className="text-brand-gold font-medium text-sm">Analytics</span>
+                </div>
+                <h1 className="text-5xl lg:text-6xl font-bold mb-4" style={{color: '#060520'}}>
+                  Time Tracking
+                </h1>
+                <p className="text-xl max-w-4xl leading-relaxed" style={{color: '#64748b'}}>Track meetings, emails, and implementation work</p>
               </div>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>

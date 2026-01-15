@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 interface PortalSectionProps {
   children: ReactNode
@@ -9,6 +10,8 @@ interface PortalSectionProps {
   id?: string
   gradient?: boolean
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl'
+  delay?: number
+  contentClassName?: string
 }
 
 export function PortalSection({ 
@@ -16,15 +19,22 @@ export function PortalSection({
   className, 
   id, 
   gradient = true,
-  maxWidth = '7xl'
+  maxWidth = '7xl',
+  delay = 0,
+  contentClassName
 }: PortalSectionProps) {
   return (
-    <section 
+    <motion.section 
       id={id}
       className={cn(
-        "py-16 px-4 relative overflow-hidden bg-transparent",
+        "py-16 px-4 relative overflow-hidden",
+        gradient ? "bg-[#060520]" : "bg-transparent",
         className
       )}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.6, delay }}
     >
       {/* Background gradient elements */}
       {gradient && (
@@ -45,10 +55,11 @@ export function PortalSection({
         maxWidth === '4xl' && "max-w-4xl",
         maxWidth === '5xl' && "max-w-5xl",
         maxWidth === '6xl' && "max-w-6xl",
-        maxWidth === '7xl' && "max-w-7xl"
+        maxWidth === '7xl' && "max-w-7xl",
+        contentClassName
       )}>
         {children}
       </div>
-    </section>
+    </motion.section>
   )
 } 

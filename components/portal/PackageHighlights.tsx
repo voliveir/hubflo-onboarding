@@ -77,21 +77,21 @@ export function PackageHighlights({ successPackage }: PackageHighlightsProps) {
         <div
           key={feature.type}
           className={cn(
-            "text-center h-full min-h-[260px] bg-[#10122b]/90 text-white rounded-3xl p-8 border border-brand-gold/30 transition-all duration-500 hover:border-brand-gold/60 hover:shadow-lg",
+            "text-center h-full min-h-[260px] bg-white rounded-2xl p-8 border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-gray-300",
             isVisible && "animate-fade-in-up",
             isVisible && `animation-delay-${index * 100}`
           )}
           style={{ animationDelay: `${index * 100}ms` }}
         >
           <div className="flex flex-col items-center mb-4">
-            <div className="w-14 h-14 bg-brand-gold/10 rounded-2xl flex items-center justify-center mb-4 border border-brand-gold/20">
+            <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
               <feature.icon className="h-6 w-6 text-brand-gold" />
             </div>
-            <div className="font-bold text-2xl mb-2 text-white">
+            <div className="font-bold text-2xl mb-2" style={{ color: '#060520' }}>
               {getPackageFeature(feature.type)}
             </div>
           </div>
-          <p className="text-sm text-white/80">
+          <p className="text-sm" style={{ color: '#64748b' }}>
             {getPackageDescription(feature.type)}
           </p>
         </div>
