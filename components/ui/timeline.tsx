@@ -18,7 +18,7 @@ export function Timeline({ items }: TimelineProps) {
   return (
     <div className="relative max-w-4xl mx-auto">
       {/* Vertical line */}
-      <div className="absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-brand-gold via-brand-gold/70 to-transparent shadow-lg" />
+      <div className="absolute left-8 top-0 bottom-0 w-1 shadow-lg" style={{ background: 'linear-gradient(to bottom, #ecb22d, rgba(236, 178, 45, 0.7), transparent)' }} />
       
       <div className="space-y-12">
         {items.map((item, index) => (
@@ -31,17 +31,17 @@ export function Timeline({ items }: TimelineProps) {
             className="relative flex items-start"
           >
             {/* Step circle */}
-            <div className="relative z-10 flex-shrink-0 w-16 h-16 bg-brand-gold rounded-full flex items-center justify-center shadow-lg">
-              <span className="text-brand-DEFAULT font-bold text-lg">{item.step}</span>
+            <div className="relative z-10 flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: '#ecb22d' }}>
+              <span className="font-bold text-lg" style={{ color: '#060520' }}>{item.step}</span>
             </div>
             
             {/* Content */}
             <div className="ml-8 flex-1">
-              <div className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-brand-gold/30 dark:bg-brand-navy-light/80 dark:border-brand-navy-lighter">
-                <h3 className="text-xl font-semibold text-brand-DEFAULT dark:text-brand-foreground mb-3">
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                <h3 className="text-xl font-semibold mb-3" style={{ color: '#060520' }}>
                   {item.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p className="leading-relaxed" style={{ color: '#64748b' }}>
                   {item.description}
                 </p>
               </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ChevronDown, Play, Star, Zap, Users } from "lucide-react"
+import { Play, Star, Zap, Users } from "lucide-react"
 import { PrimaryButton, SecondaryButton } from "./button-variants"
 import Link from "next/link"
 import { useEffect, useRef } from "react"
@@ -58,7 +58,7 @@ export function Hero() {
           className="text-white text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-8 drop-shadow-xl"
           style={{
             lineHeight: 1.1,
-            textShadow: '0 4px 24px #000, 0 2px 8px #EAB30855',
+            textShadow: '0 4px 24px #000, 0 2px 8px rgba(236, 178, 45, 0.33)',
           }}
         >
           <span className="text-brand-gold">Hubflo</span> Onboarding
@@ -88,18 +88,6 @@ export function Hero() {
           </Link>
         </div>
       </div>
-
-      {/* Enhanced Scroll Indicator */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-30"
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <div className="flex flex-col items-center space-y-2">
-          <span className="text-brand-foreground/40 text-sm font-medium">Scroll to explore</span>
-          <ChevronDown className="h-6 w-6 text-brand-foreground/60" />
-        </div>
-      </motion.div>
 
       {/* Bottom gradient fade */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-brand-DEFAULT to-transparent z-10" />

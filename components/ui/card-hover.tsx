@@ -34,10 +34,9 @@ export function CardHover({
       className="group"
     >
       <Card className={cn(
-        "relative overflow-hidden border border-brand-gold/30 shadow-lg transition-all duration-300",
-        "bg-[#10122b]/90 text-white",
-        "hover:shadow-2xl hover:ring-2 hover:ring-brand-gold/40",
-        "group-hover:bg-[#181a2f]",
+        "relative overflow-hidden border border-gray-200 shadow-sm transition-all duration-300",
+        "bg-white h-full flex flex-col",
+        "hover:shadow-lg hover:border-gray-300",
         className
       )}>
         {(title || description || icon || badge) && (
@@ -48,23 +47,23 @@ export function CardHover({
               </div>
             )}
             {icon && (
-              <div className="w-12 h-12 bg-brand-gold/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-brand-gold/20 transition-colors">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
                 {icon}
               </div>
             )}
             {title && (
-              <CardTitle className="text-white text-xl font-semibold">
+              <CardTitle className="text-xl font-semibold" style={{ color: '#060520' }}>
                 {title}
               </CardTitle>
             )}
             {description && (
-              <CardDescription className="text-white/80 text-base">
+              <CardDescription className="text-base" style={{ color: '#64748b' }}>
                 {description}
               </CardDescription>
             )}
           </CardHeader>
         )}
-        <CardContent className="relative flex flex-col h-full">
+        <CardContent className="relative flex flex-col flex-grow">
           {children}
         </CardContent>
       </Card>

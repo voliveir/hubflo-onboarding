@@ -18,7 +18,7 @@ export function HorizontalTimeline({ steps }: HorizontalTimelineProps) {
   return (
     <div className="relative">
       {/* Connecting line */}
-      <div className="absolute top-8 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-gold via-brand-gold/50 to-transparent hidden md:block" />
+      <div className="absolute top-8 left-0 right-0 h-0.5 hidden md:block" style={{ background: 'linear-gradient(to right, #ecb22d, rgba(236, 178, 45, 0.5), transparent)' }} />
       
       <div className="grid md:grid-cols-3 gap-8">
         {steps.map((step, index) => (
@@ -37,10 +37,10 @@ export function HorizontalTimeline({ steps }: HorizontalTimelineProps) {
             
             {/* Content */}
             <div className="space-y-3">
-              <h4 className="text-lg font-semibold text-brand-DEFAULT dark:text-brand-foreground" style={{textShadow: '0 2px 8px rgba(7,7,32,0.10)'}}>
+              <h4 className="text-lg font-semibold text-white">
                 {step.title}
               </h4>
-              <p className="text-base text-white font-medium" style={{textShadow: '0 2px 12px rgba(7,7,32,0.35)'}}>
+              <p className="text-base font-medium text-white/90">
                 {step.description}
               </p>
             </div>

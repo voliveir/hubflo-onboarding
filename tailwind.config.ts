@@ -61,18 +61,21 @@ const config: Config = {
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
   			},
-  			brand: {
-  				DEFAULT: '#070720',   // navy
-  				foreground: '#F9FAFB',
-  				gold: '#EAB308',
-  				'gold-hover': '#D4A029',
-  				'gold-light': '#F4E4A3',
-  				'gold-lighter': '#FDF8E7',
-  				'navy-light': '#0A0A2A',
-  				'navy-lighter': '#0F0F3A',
-  				'navy-dark': '#050515',
-  				'navy-darker': '#030310',
-  			},
+			brand: {
+				DEFAULT: '#060520',   // new hubflo dark navy
+				foreground: '#F9FAFB',
+				gold: '#ecb22d',      // new hubflo gold
+				'gold-hover': '#D4A029',
+				'gold-light': '#F4E4A3',
+				'gold-lighter': '#FDF8E7',
+				slate: '#1e293b',     // button color
+				'slate-text': '#64748b', // gray text
+				'light-bg': '#FAFBFC',  // light card background
+				'navy-light': '#0A0A2A',
+				'navy-lighter': '#0F0F3A',
+				'navy-dark': '#050515',
+				'navy-darker': '#030310',
+			},
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
@@ -262,10 +265,10 @@ const config: Config = {
   			xs: '2px',
   		},
   		boxShadow: {
-  			'glow': '0 0 20px rgba(234, 179, 8, 0.3)',
-  			'glow-lg': '0 0 40px rgba(234, 179, 8, 0.5)',
-  			'glow-xl': '0 0 60px rgba(234, 179, 8, 0.7)',
-  			'inner-glow': 'inset 0 0 20px rgba(234, 179, 8, 0.2)',
+  			'glow': '0 0 20px rgba(236, 178, 45, 0.3)',
+  			'glow-lg': '0 0 40px rgba(236, 178, 45, 0.5)',
+  			'glow-xl': '0 0 60px rgba(236, 178, 45, 0.7)',
+  			'inner-glow': 'inset 0 0 20px rgba(236, 178, 45, 0.2)',
   			'neumorphism': '20px 20px 60px #d1d9e6, -20px -20px 60px #ffffff',
   			'neumorphism-dark': '20px 20px 60px #0a0a2a, -20px -20px 60px #0f0f3a',
   		},
