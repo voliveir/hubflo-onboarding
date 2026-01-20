@@ -881,24 +881,46 @@ export function countCompletedCalls(client: Client): number {
     if (client.gold_third_call_date) completedCalls++
   }
   
-  // Also count any extra call dates
+  // Also count any extra call dates (filter out empty strings)
   if (client.extra_call_dates && Array.isArray(client.extra_call_dates)) {
-    completedCalls += client.extra_call_dates.length
+    completedCalls += client.extra_call_dates.filter(date => date && date.trim() !== '').length
   }
   
   return completedCalls
 }
 
 // Helper function to get scheduled calls based on package type
-export function getScheduledCallsForPackage(packageType: string): number {
+// For elite and enterprise packages, calculates dynamically from call dates if client is provided
+export function getScheduledCallsForPackage(packageType: string, client?: Client): number {
   const packageLimits: Record<string, number> = {
     light: 1,
     premium: 2,
     gold: 3,
-    elite: 10, // Set to 10 for backend data as requested
+    elite: 10, // Default for elite, but will be calculated dynamically if client is provided
     starter: 1,
     professional: 3,
-    enterprise: 10, // Set to 10 for backend data as requested
+    enterprise: 10, // Default for enterprise, but will be calculated dynamically if client is provided
+  }
+  
+  // For elite and enterprise packages, calculate dynamically from all call dates
+  if (client && (packageType === 'elite' || packageType === 'enterprise')) {
+    let scheduledCalls = 0
+    
+    // Count all standard call dates
+    if (client.light_onboarding_call_date) scheduledCalls++
+    if (client.premium_first_call_date) scheduledCalls++
+    if (client.premium_second_call_date) scheduledCalls++
+    if (client.gold_first_call_date) scheduledCalls++
+    if (client.gold_second_call_date) scheduledCalls++
+    if (client.gold_third_call_date) scheduledCalls++
+    
+    // Count all extra call dates (filter out empty strings)
+    if (client.extra_call_dates && Array.isArray(client.extra_call_dates)) {
+      scheduledCalls += client.extra_call_dates.filter(date => date && date.trim() !== '').length
+    }
+    
+    // Return at least 1 to avoid division by zero, or the calculated value if higher
+    return Math.max(scheduledCalls, 1)
   }
   
   return packageLimits[packageType] || 2 // Default to premium (2 calls)
@@ -915,8 +937,8 @@ export async function updateProjectTracking(clientId: string, tracking: any): Pr
     // Calculate completed calls based on call dates
     const completedCalls = countCompletedCalls(client)
     
-    // Calculate scheduled calls based on package type
-    const scheduledCalls = getScheduledCallsForPackage(client.success_package)
+    // Calculate scheduled calls based on package type (pass client for dynamic calculation of elite/enterprise)
+    const scheduledCalls = getScheduledCallsForPackage(client.success_package, client)
     
     const { data, error } = await supabase
       .from("clients")

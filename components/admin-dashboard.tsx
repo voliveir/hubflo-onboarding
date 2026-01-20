@@ -262,7 +262,7 @@ export function AdminDashboard() {
         }
 
         // Check for overdue scheduled calls based on package
-        const scheduledCalls = getScheduledCallsForPackage(client.success_package)
+        const scheduledCalls = getScheduledCallsForPackage(client.success_package, client)
         const completedCalls = countCompletedCalls(client)
         if (completedCalls < scheduledCalls) {
           const daysSinceCreated = Math.round((now.getTime() - new Date(client.created_at).getTime()) / (1000 * 60 * 60 * 24))

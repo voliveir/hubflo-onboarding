@@ -37,8 +37,8 @@ export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
   // Calculate completed calls based on call dates
   const calculatedCompletedCalls = countCompletedCalls(client)
   
-  // Calculate scheduled calls based on package type
-  const calculatedScheduledCalls = getScheduledCallsForPackage(client.success_package)
+  // Calculate scheduled calls based on package type (pass client for dynamic calculation of elite/enterprise)
+  const calculatedScheduledCalls = getScheduledCallsForPackage(client.success_package, client)
   
   const [tracking, setTracking] = useState({
     calls_scheduled: calculatedScheduledCalls, // Use calculated value
@@ -67,7 +67,7 @@ export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
   // Update tracking when client data changes (e.g., call dates are updated)
   useEffect(() => {
     const newCompletedCalls = countCompletedCalls(client)
-    const newScheduledCalls = getScheduledCallsForPackage(client.success_package)
+    const newScheduledCalls = getScheduledCallsForPackage(client.success_package, client)
     setTracking(prev => ({
       ...prev,
       calls_completed: newCompletedCalls,

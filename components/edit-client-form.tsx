@@ -117,7 +117,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     workflow_builder_enabled: client.workflow_builder_enabled,
     show_figma_workflow: client.show_figma_workflow || false,
     figma_workflow_url: client.figma_workflow_url || "",
-    feedback_board_enabled: client.feedback_board_enabled || true,
+    feedback_board_enabled: client.feedback_board_enabled ?? false,
     light_onboarding_call_date: client.light_onboarding_call_date,
     premium_first_call_date: client.premium_first_call_date,
     premium_second_call_date: client.premium_second_call_date,
@@ -248,7 +248,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
         // Update project tracking with current tracking data but recalculated calls
         const updatedClient = { ...client, ...formData }
         const completedCalls = countCompletedCalls(updatedClient)
-        const scheduledCalls = getScheduledCallsForPackage(updatedClient.success_package)
+        const scheduledCalls = getScheduledCallsForPackage(updatedClient.success_package, updatedClient)
         
         await updateProjectTracking(client.id, {
           calls_scheduled: scheduledCalls,
@@ -741,7 +741,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                   </div>
                   <Switch
                     id="feedback_board_enabled"
-                    checked={formData.feedback_board_enabled ?? true}
+                    checked={formData.feedback_board_enabled ?? false}
                     onCheckedChange={checked => setFormData((f) => ({ ...f, feedback_board_enabled: checked }))}
                     className="data-[state=checked]:bg-brand-gold data-[state=checked]:border-brand-gold"
                   />
