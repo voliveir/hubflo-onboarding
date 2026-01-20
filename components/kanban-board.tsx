@@ -181,7 +181,7 @@ function ClientCard({ client, workflow, onMoveClient, onViewClient }: ClientCard
 
   return (
     <>
-      <Card className="bg-[#10122b]/30 ring-1 ring-[#F2C94C]/25 rounded-lg shadow-sm shadow-black/30 p-4 gap-1 mb-3 hover:shadow-md transition-shadow cursor-pointer relative" onClick={() => onViewClient(client)}>
+      <Card className={`${client.churned ? 'bg-red-950/40 ring-2 ring-red-900' : 'bg-[#10122b]/30 ring-1 ring-[#F2C94C]/25'} rounded-lg shadow-sm shadow-black/30 p-4 gap-1 mb-3 hover:shadow-md transition-shadow cursor-pointer relative`} onClick={() => onViewClient(client)}>
         <CardContent className="p-0">
           <div className="mb-2 flex justify-between items-start">
             <div>
@@ -214,14 +214,24 @@ function ClientCard({ client, workflow, onMoveClient, onViewClient }: ClientCard
               <Badge className={`text-xs ${getPackageColor(client.success_package)}`}>
                 {client.success_package}
               </Badge>
-              {/* CSM Email Status Pill for No Success Package */}
-              {client.success_package === 'no_success' && (
-                client.onboarding_email_sent ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/20 text-green-300 ml-2">CSM Sent Onboarding Email</span>
-                ) : (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-400/20 text-yellow-300 ml-2">CSM Needs to Send Onboarding Email</span>
-                )
-              )}
+              <div className="flex items-center gap-2">
+                {/* CSM Email Status Pill for No Success Package */}
+                {client.success_package === 'no_success' && (
+                  client.onboarding_email_sent ? (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/20 text-green-300 ml-2">CSM Sent Onboarding Email</span>
+                  ) : (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-400/20 text-yellow-300 ml-2">CSM Needs to Send Onboarding Email</span>
+                  )
+                )}
+                {/* Churned badge - deep red */}
+                {client.churned && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-900 text-white border border-red-950">Churned</span>
+                )}
+                {/* Churn Risk badge - medium red (only show if not churned) */}
+                {client.churn_risk && !client.churned && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-600 text-white border border-red-700">⚠ Churn Risk</span>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center justify-between">

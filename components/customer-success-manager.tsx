@@ -351,10 +351,27 @@ export function CustomerSuccessManager() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredClients.map((client) => (
+                {filteredClients.map((client) => {
+                  // Churned takes precedence with deep red background
+                  let rowClassName = "cursor-pointer transition-all"
+                  if (client.churned) {
+                    rowClassName += " bg-red-950/30 hover:bg-red-950/40"
+                    if (selectedClient?.id === client.id) {
+                      rowClassName += " ring-2 ring-red-900"
+                    }
+                  } else if (client.churn_risk) {
+                    rowClassName += " bg-red-500/10 hover:bg-red-500/20"
+                    if (selectedClient?.id === client.id) {
+                      rowClassName += " ring-2 ring-[#F2C94C]"
+                    }
+                  } else {
+                    rowClassName += selectedClient?.id === client.id ? " bg-[#181a2f]/60 ring-2 ring-[#F2C94C]" : " hover:bg-[#181a2f]/40"
+                  }
+                  
+                  return (
                   <TableRow
                     key={client.id}
-                    className={`cursor-pointer transition-all ${selectedClient?.id === client.id ? "bg-[#181a2f]/60 ring-2 ring-[#F2C94C]" : "hover:bg-[#181a2f]/40"}`}
+                    className={rowClassName}
                     onClick={() => setSelectedClient(client)}
                   >
                     <TableCell className="font-semibold">{client.name}</TableCell>
@@ -369,7 +386,8 @@ export function CustomerSuccessManager() {
                     })()}</TableCell>
                     <TableCell>{client.updated_at ? new Date(client.updated_at).toLocaleDateString() : "—"}</TableCell>
                   </TableRow>
-                ))}
+                  )
+                })}
                 {filteredClients.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center text-white/60 py-8">No clients found.</TableCell>

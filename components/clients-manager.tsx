@@ -837,7 +837,10 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                     }
 
                     let rowClass = "border-b border-gray-200 hover:bg-gray-50 transition-colors"
-                    if (client.churn_risk) {
+                    // Churned takes precedence over churn risk with deeper red
+                    if (client.churned) {
+                      rowClass += " bg-red-950/20"
+                    } else if (client.churn_risk) {
                       rowClass += " bg-red-50"
                     }
 
@@ -845,7 +848,7 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                     if (missingFirstCall) alerts.push({ text: "No Onboarding Call", color: "bg-yellow-100 text-yellow-800 border border-yellow-200" });
                     if (showNoRecentCallNote) alerts.push({ text: "No Call 2+ Weeks", color: "bg-red-100 text-red-800 border border-red-200" });
                     if (showEmailReminder) alerts.push({ text: "Email: 1+ Week", color: "bg-yellow-100 text-yellow-800 border border-yellow-200" });
-                    if (client.churned) alerts.push({ text: "Churned", color: "bg-red-100 text-red-800 border border-red-200" });
+                    if (client.churned) alerts.push({ text: "Churned", color: "bg-red-900 text-white border border-red-950" });
                     if (client.churn_risk) alerts.push({ text: "⚠ Churn Risk", color: "bg-red-600 text-white border border-red-700" });
                     if (client.success_package === 'no_success') {
                       if (client.onboarding_email_sent) {
