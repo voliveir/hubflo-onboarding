@@ -363,7 +363,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       )}
 
       {/* Feedback Board Section */}
-      {(client.feedback_board_enabled ?? true) && (
+      {(client.feedback_board_enabled ?? false) && (
         <PortalSection id="feedback" gradient={false} className="relative overflow-hidden bg-white mt-16 scroll-mt-32">
           <div className="max-w-6xl mx-auto">
             <FeedbackBoardClientViewWrapper clientId={client.id} />
