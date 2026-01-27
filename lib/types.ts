@@ -81,10 +81,16 @@ export interface Client {
   // Pinned note for project scope and go-live date
   pinned_note?: {
     initial_scope?: string
+    initial_scope_completed?: boolean
+    initial_scope_started_at?: string
+    initial_scope_completed_at?: string
     scope_changes?: Array<{
       description: string
       extra_time?: string
       added_at: string
+      completed?: boolean
+      started_at?: string
+      completed_at?: string
     }>
     go_live_date?: string | null
     new_estimated_go_live_date?: string | null

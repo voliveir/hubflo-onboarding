@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Pin, Calendar, Plus, X, Save, Clock, Info } from "lucide-react"
+import { Pin, Calendar, Plus, X, Save, Clock, Info, CheckCircle2 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Checkbox } from "@/components/ui/checkbox"
 import type { Client } from "@/lib/types"
 
 interface PinnedNoteEditorProps {
@@ -17,7 +18,10 @@ interface PinnedNoteEditorProps {
 
 export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
   const [initialScope, setInitialScope] = useState("")
-  const [scopeChanges, setScopeChanges] = useState<Array<{ description: string; extra_time?: string; added_at: string }>>([])
+  const [initialScopeCompleted, setInitialScopeCompleted] = useState(false)
+  const [initialScopeStartedAt, setInitialScopeStartedAt] = useState<string | undefined>(undefined)
+  const [initialScopeCompletedAt, setInitialScopeCompletedAt] = useState<string | undefined>(undefined)
+  const [scopeChanges, setScopeChanges] = useState<Array<{ description: string; extra_time?: string; added_at: string; completed?: boolean; started_at?: string; completed_at?: string }>>([])
   const [goLiveDate, setGoLiveDate] = useState("")
   const [newEstimatedGoLiveDate, setNewEstimatedGoLiveDate] = useState("")
   const [newScopeChange, setNewScopeChange] = useState({ description: "", extra_time: "" })
@@ -27,6 +31,9 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
   useEffect(() => {
     if (client.pinned_note) {
       setInitialScope(client.pinned_note.initial_scope || "")
+      setInitialScopeCompleted(client.pinned_note.initial_scope_completed || false)
+      setInitialScopeStartedAt(client.pinned_note.initial_scope_started_at)
+      setInitialScopeCompletedAt(client.pinned_note.initial_scope_completed_at)
       setScopeChanges(client.pinned_note.scope_changes || [])
       // Extract just the date part (YYYY-MM-DD) from the date string, handling both date-only and ISO datetime formats
       if (client.pinned_note.go_live_date) {
@@ -63,11 +70,60 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
     setScopeChanges(scopeChanges.filter((_, i) => i !== index))
   }
 
+  const handleToggleInitialScopeComplete = (checked: boolean) => {
+    setInitialScopeCompleted(checked)
+    if (checked) {
+      // Mark as complete
+      if (!initialScopeStartedAt) {
+        // If not started yet, set started_at to now
+        setInitialScopeStartedAt(new Date().toISOString())
+      }
+      setInitialScopeCompletedAt(new Date().toISOString())
+    } else {
+      // Unmark as complete
+      setInitialScopeCompletedAt(undefined)
+    }
+  }
+
+  const handleToggleScopeChangeComplete = (index: number, checked: boolean) => {
+    const updated = [...scopeChanges]
+    updated[index] = {
+      ...updated[index],
+      completed: checked,
+      started_at: checked && !updated[index].started_at ? new Date().toISOString() : updated[index].started_at,
+      completed_at: checked ? new Date().toISOString() : undefined,
+    }
+    setScopeChanges(updated)
+  }
+
+  const calculateDuration = (startedAt?: string, completedAt?: string): string | null => {
+    if (!startedAt || !completedAt) return null
+    const start = new Date(startedAt)
+    const end = new Date(completedAt)
+    const diffMs = end.getTime() - start.getTime()
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+    
+    if (diffDays > 0) {
+      return `${diffDays} day${diffDays !== 1 ? 's' : ''}${diffHours > 0 ? `, ${diffHours} hour${diffHours !== 1 ? 's' : ''}` : ''}`
+    } else if (diffHours > 0) {
+      return `${diffHours} hour${diffHours !== 1 ? 's' : ''}${diffMinutes > 0 ? `, ${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''}` : ''}`
+    } else if (diffMinutes > 0) {
+      return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''}`
+    } else {
+      return 'Less than a minute'
+    }
+  }
+
   const handleSave = async () => {
     setSaving(true)
     try {
       const pinnedNote = {
         initial_scope: initialScope,
+        initial_scope_completed: initialScopeCompleted,
+        initial_scope_started_at: initialScopeStartedAt || undefined,
+        initial_scope_completed_at: initialScopeCompletedAt || undefined,
         scope_changes: scopeChanges,
         go_live_date: goLiveDate || null,
         new_estimated_go_live_date: newEstimatedGoLiveDate || null,
@@ -113,9 +169,22 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
       <CardContent className="space-y-6">
         {/* Initial Scope */}
         <div>
-          <Label htmlFor="initial-scope" className="mb-2 block" style={{color: '#060520'}}>
-            Initial Scope of Project
-          </Label>
+          <div className="flex items-center justify-between mb-2">
+            <Label htmlFor="initial-scope" className="block" style={{color: '#060520'}}>
+              Initial Scope of Project
+            </Label>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="initial-scope-complete"
+                checked={initialScopeCompleted}
+                onCheckedChange={handleToggleInitialScopeComplete}
+                className="border-gray-300 data-[state=checked]:bg-brand-gold data-[state=checked]:border-brand-gold"
+              />
+              <Label htmlFor="initial-scope-complete" className="text-sm cursor-pointer" style={{color: '#060520'}}>
+                Mark as Complete
+              </Label>
+            </div>
+          </div>
           <Textarea
             id="initial-scope"
             value={initialScope}
@@ -124,6 +193,22 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
             rows={4}
             className="bg-white border border-gray-300 text-gray-900 placeholder:text-gray-500"
           />
+          {initialScopeCompleted && initialScopeCompletedAt && (
+            <div className="mt-2 text-sm text-gray-600">
+              <p>Completed on: {new Date(initialScopeCompletedAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}</p>
+              {initialScopeStartedAt && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Duration: {calculateDuration(initialScopeStartedAt, initialScopeCompletedAt) || 'N/A'}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Scope Changes */}
@@ -193,19 +278,50 @@ export function PinnedNoteEditor({ client, onSave }: PinnedNoteEditorProps) {
               {scopeChanges.map((change, index) => (
                 <div
                   key={index}
-                  className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-start justify-between gap-4"
+                  className={`bg-gray-50 border rounded-lg p-4 flex items-start justify-between gap-4 ${
+                    change.completed ? 'border-green-300 bg-green-50/30' : 'border-gray-200'
+                  }`}
                 >
                   <div className="flex-1">
-                    <p className="text-sm mb-1" style={{color: '#060520'}}>{change.description}</p>
+                    <div className="flex items-start gap-2 mb-1">
+                      <Checkbox
+                        checked={change.completed || false}
+                        onCheckedChange={(checked) => handleToggleScopeChangeComplete(index, !!checked)}
+                        className="mt-0.5 border-gray-300 data-[state=checked]:bg-brand-gold data-[state=checked]:border-brand-gold"
+                      />
+                      <p className={`text-sm flex-1 ${change.completed ? 'line-through text-gray-500' : ''}`} style={{color: change.completed ? '#9ca3af' : '#060520'}}>
+                        {change.description}
+                      </p>
+                    </div>
                     {change.extra_time && (
-                      <div className="flex items-center gap-1 text-brand-gold text-xs mt-1">
+                      <div className="flex items-center gap-1 text-brand-gold text-xs mt-1 ml-6">
                         <Clock className="h-3 w-3" />
                         <span>Extra time: {change.extra_time}</span>
                       </div>
                     )}
-                    <p className="text-gray-600 text-xs mt-2">
-                      Added: {new Date(change.added_at).toLocaleDateString()}
-                    </p>
+                    <div className="ml-6 mt-2 space-y-1">
+                      <p className="text-gray-600 text-xs">
+                        Added: {new Date(change.added_at).toLocaleDateString()}
+                      </p>
+                      {change.completed && change.completed_at && (
+                        <>
+                          <p className="text-green-700 text-xs font-medium">
+                            Completed on: {new Date(change.completed_at).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                          {change.started_at && (
+                            <p className="text-gray-500 text-xs">
+                              Duration: {calculateDuration(change.started_at, change.completed_at) || 'N/A'}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                   <Button
                     type="button"

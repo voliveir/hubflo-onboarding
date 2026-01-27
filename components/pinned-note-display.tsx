@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { Pin, Calendar, Clock, FileText, Info } from "lucide-react"
+import { Pin, Calendar, Clock, FileText, Info, CheckCircle2 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Client } from "@/lib/types"
 
@@ -14,6 +14,26 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
 
   if (!pinnedNote || (!pinnedNote.initial_scope && (!pinnedNote.scope_changes || pinnedNote.scope_changes.length === 0) && !pinnedNote.go_live_date && !pinnedNote.new_estimated_go_live_date)) {
     return null
+  }
+
+  const calculateDuration = (startedAt?: string, completedAt?: string): string | null => {
+    if (!startedAt || !completedAt) return null
+    const start = new Date(startedAt)
+    const end = new Date(completedAt)
+    const diffMs = end.getTime() - start.getTime()
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+    
+    if (diffDays > 0) {
+      return `${diffDays} day${diffDays !== 1 ? 's' : ''}${diffHours > 0 ? `, ${diffHours} hour${diffHours !== 1 ? 's' : ''}` : ''}`
+    } else if (diffHours > 0) {
+      return `${diffHours} hour${diffHours !== 1 ? 's' : ''}${diffMinutes > 0 ? `, ${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''}` : ''}`
+    } else if (diffMinutes > 0) {
+      return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''}`
+    } else {
+      return 'Less than a minute'
+    }
   }
 
   return (
@@ -37,11 +57,39 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
             <div className="flex items-center gap-2 mb-3">
               <FileText className="h-4 w-4 text-brand-gold" />
               <h3 className="font-semibold" style={{ color: '#060520' }}>Initial Project Scope</h3>
+              {pinnedNote.initial_scope_completed && (
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+              )}
             </div>
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-              <p className="whitespace-pre-wrap leading-relaxed" style={{ color: '#64748b' }}>
+            <div className={`rounded-xl p-4 border ${
+              pinnedNote.initial_scope_completed 
+                ? 'bg-green-50/30 border-green-300' 
+                : 'bg-gray-50 border-gray-200'
+            }`}>
+              <p className={`whitespace-pre-wrap leading-relaxed ${
+                pinnedNote.initial_scope_completed ? 'line-through' : ''
+              }`} style={{ color: pinnedNote.initial_scope_completed ? '#9ca3af' : '#64748b' }}>
                 {pinnedNote.initial_scope}
               </p>
+              {pinnedNote.initial_scope_completed && pinnedNote.initial_scope_completed_at && (
+                <div className="mt-3 pt-3 border-t border-green-200 space-y-1">
+                  <div className="flex items-center gap-2 text-green-700 text-sm font-medium">
+                    <CheckCircle2 className="h-3 w-3" />
+                    <span>Completed on {new Date(pinnedNote.initial_scope_completed_at).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}</span>
+                  </div>
+                  {pinnedNote.initial_scope_started_at && (
+                    <p className="text-xs text-gray-600 ml-5">
+                      Duration: {calculateDuration(pinnedNote.initial_scope_started_at, pinnedNote.initial_scope_completed_at) || 'N/A'}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -54,22 +102,56 @@ export function PinnedNoteDisplay({ client }: PinnedNoteDisplayProps) {
               {pinnedNote.scope_changes.map((change, index) => (
                 <div
                   key={index}
-                  className="bg-gray-50 rounded-xl p-4 border border-gray-200"
+                  className={`rounded-xl p-4 border ${
+                    change.completed 
+                      ? 'bg-green-50/30 border-green-300' 
+                      : 'bg-gray-50 border-gray-200'
+                  }`}
                 >
-                  <p className="mb-2 leading-relaxed" style={{ color: '#64748b' }}>{change.description}</p>
+                  <div className="flex items-start gap-2 mb-2">
+                    {change.completed && (
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    )}
+                    <p className={`leading-relaxed flex-1 ${
+                      change.completed ? 'line-through' : ''
+                    }`} style={{ color: change.completed ? '#9ca3af' : '#64748b' }}>
+                      {change.description}
+                    </p>
+                  </div>
                   {change.extra_time && (
                     <div className="flex items-center gap-2 text-brand-gold text-sm mt-2">
                       <Clock className="h-3 w-3" />
                       <span>Additional time required: {change.extra_time}</span>
                     </div>
                   )}
-                  <p className="text-xs mt-2" style={{ color: '#94a3b8' }}>
-                    Added on {new Date(change.added_at).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs" style={{ color: '#94a3b8' }}>
+                      Added on {new Date(change.added_at).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                    {change.completed && change.completed_at && (
+                      <>
+                        <div className="flex items-center gap-2 text-green-700 text-xs font-medium mt-2">
+                          <CheckCircle2 className="h-3 w-3" />
+                          <span>Completed on {new Date(change.completed_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}</span>
+                        </div>
+                        {change.started_at && (
+                          <p className="text-xs text-gray-600 ml-5">
+                            Duration: {calculateDuration(change.started_at, change.completed_at) || 'N/A'}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
