@@ -480,12 +480,14 @@ export function UniversityManager() {
             <h2 className="text-2xl font-bold" style={{ color: '#060520' }}>Sections</h2>
             <div className="flex gap-2">
               <Select value={selectedCourse || ""} onValueChange={setSelectedCourse}>
-                <SelectTrigger className="w-64">
-                  <SelectValue placeholder="Select a course" />
+                <SelectTrigger className="w-64 text-[#060520] bg-white border-gray-300">
+                  <SelectValue placeholder="Select a course" className="text-[#060520]" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border-gray-300">
                   {courses.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                    <SelectItem key={course.id} value={course.id} className="text-[#060520] focus:text-[#060520] focus:bg-gray-100 cursor-pointer">
+                      {course.title}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -539,12 +541,14 @@ export function UniversityManager() {
             <h2 className="text-2xl font-bold" style={{ color: '#060520' }}>Lectures</h2>
             <div className="flex gap-2">
               <Select value={selectedSection || ""} onValueChange={setSelectedSection}>
-                <SelectTrigger className="w-64">
-                  <SelectValue placeholder="Select a section" />
+                <SelectTrigger className="w-64 text-[#060520] bg-white border-gray-300">
+                  <SelectValue placeholder="Select a section" className="text-[#060520]" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border-gray-300">
                   {sections.map((section) => (
-                    <SelectItem key={section.id} value={section.id}>{section.title}</SelectItem>
+                    <SelectItem key={section.id} value={section.id} className="text-[#060520] focus:text-[#060520] focus:bg-gray-100 cursor-pointer">
+                      {section.title}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
