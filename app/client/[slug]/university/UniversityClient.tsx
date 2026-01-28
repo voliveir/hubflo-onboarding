@@ -48,7 +48,7 @@ export function UniversityClient({
 }: UniversityClientProps) {
   const [selectedSchool, setSelectedSchool] = useState<UniversitySchool | null>(null)
   const [selectedCourse, setSelectedCourse] = useState<UniversityCourse | null>(null)
-  const [viewMode, setViewMode] = useState<"overview" | "course">("overview")
+  const [viewMode, setViewMode] = useState<"overview" | "school" | "course">("overview")
 
   // Create progress map
   const progressMap = new Map(
@@ -70,11 +70,6 @@ export function UniversityClient({
     // This is a simplified check - in reality, you'd check all lectures
     return courseProgress.length > 0
   }
-
-  // Get courses for selected school
-  const schoolCourses = selectedSchool
-    ? courses.filter(c => c.school_id === selectedSchool.id)
-    : courses
 
   // If no schools or courses exist, show coming soon
   if (schools.length === 0 && courses.length === 0) {
@@ -98,6 +93,28 @@ export function UniversityClient({
     )
   }
 
+  if (viewMode === "school" && selectedSchool) {
+    return (
+      <SchoolDetailView
+        school={selectedSchool}
+        courses={courses.filter(c => c.school_id === selectedSchool.id)}
+        clientId={clientId}
+        clientProgress={clientProgress}
+        getCourseProgress={getCourseProgress}
+        isCourseCompleted={isCourseCompleted}
+        onBack={() => {
+          setViewMode("overview")
+          setSelectedSchool(null)
+        }}
+        onCourseSelect={(course) => {
+          setSelectedCourse(course)
+          setViewMode("course")
+          // Keep selectedSchool in state for navigation back
+        }}
+      />
+    )
+  }
+
   if (viewMode === "course" && selectedCourse) {
     return (
       <CourseDetailView
@@ -105,8 +122,12 @@ export function UniversityClient({
         clientId={clientId}
         clientProgress={clientProgress}
         onBack={() => {
-          setViewMode("overview")
-          setSelectedCourse(null)
+          if (selectedSchool) {
+            setViewMode("school")
+          } else {
+            setViewMode("overview")
+            setSelectedCourse(null)
+          }
         }}
       />
     )
@@ -177,46 +198,182 @@ export function UniversityClient({
         </PortalSection>
       )}
 
-      {/* Schools and Courses */}
+      {/* Programs Section */}
       <PortalSection gradient={false} className="relative overflow-hidden bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
-              <BookOpen className="h-4 w-4 text-brand-gold" />
+              <GraduationCap className="h-4 w-4 text-brand-gold" />
               <span className="text-brand-gold font-medium text-sm">Learning Path</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-bold mb-4" style={{ color: '#060520' }}>
-              Available Courses
+              Select a Program
             </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Choose a program to explore available courses and start your learning journey
+            </p>
           </div>
 
-          {/* School Filter */}
-          {schools.length > 0 && (
-            <div className="mb-8 flex flex-wrap gap-2 justify-center">
-              <Button
-                variant={selectedSchool === null ? "default" : "outline"}
-                onClick={() => setSelectedSchool(null)}
-                className={selectedSchool === null ? "bg-brand-gold text-[#010124]" : ""}
-              >
-                All Schools
-              </Button>
-              {schools.map((school) => (
-                <Button
-                  key={school.id}
-                  variant={selectedSchool?.id === school.id ? "default" : "outline"}
-                  onClick={() => setSelectedSchool(school)}
-                  className={selectedSchool?.id === school.id ? "bg-brand-gold text-[#010124]" : ""}
-                >
-                  {school.name}
-                </Button>
-              ))}
+          {/* Programs Grid */}
+          {schools.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {schools.map((school) => {
+                const schoolCourses = courses.filter(c => c.school_id === school.id)
+                const totalCourses = schoolCourses.length
+                const completedCourses = schoolCourses.filter(c => isCourseCompleted(c.id)).length
+                
+                return (
+                  <Card
+                    key={school.id}
+                    className="border-gray-200 hover:border-brand-gold/40 transition-all cursor-pointer group"
+                    onClick={() => {
+                      setSelectedSchool(school)
+                      setViewMode("school")
+                    }}
+                  >
+                    <CardHeader>
+                      {school.image_url && (
+                        <div className="w-full h-40 bg-gray-100 rounded-lg mb-4 overflow-hidden">
+                          <img
+                            src={school.image_url}
+                            alt={school.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        </div>
+                      )}
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <GraduationCap className="h-5 w-5 text-brand-gold" />
+                            <CardTitle style={{ color: '#060520' }}>
+                              {school.name}
+                            </CardTitle>
+                          </div>
+                          {school.description && (
+                            <CardDescription className="line-clamp-2">
+                              {school.description}
+                            </CardDescription>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">
+                            {totalCourses} {totalCourses === 1 ? 'Course' : 'Courses'}
+                          </span>
+                          {completedCourses > 0 && (
+                            <span className="text-brand-gold font-medium">
+                              {completedCourses} Completed
+                            </span>
+                          )}
+                        </div>
+                        
+                        {totalCourses > 0 && (
+                          <div className="flex items-center justify-between">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-brand-gold hover:text-brand-gold-hover"
+                            >
+                              View Courses
+                              <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <GraduationCap className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-lg text-gray-600">No programs available yet.</p>
             </div>
           )}
+        </div>
+      </PortalSection>
+    </div>
+  )
+}
+
+// School Detail View Component
+function SchoolDetailView({
+  school,
+  courses,
+  clientId,
+  clientProgress,
+  getCourseProgress,
+  isCourseCompleted,
+  onBack,
+  onCourseSelect,
+}: {
+  school: UniversitySchool
+  courses: UniversityCourse[]
+  clientId: string
+  clientProgress: UniversityClientProgress[]
+  getCourseProgress: (courseId: string) => number
+  isCourseCompleted: (courseId: string) => boolean
+  onBack: () => void
+  onCourseSelect: (course: UniversityCourse) => void
+}) {
+  return (
+    <div className="min-h-screen">
+      <PortalSection gradient={false} className="relative overflow-hidden bg-white">
+        <div className="max-w-6xl mx-auto">
+          <Button
+            variant="ghost"
+            onClick={onBack}
+            className="mb-6 text-brand-gold hover:text-brand-gold-hover"
+          >
+            ← Back to Programs
+          </Button>
+          
+          <div className="mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              {school.image_url && (
+                <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                  <img
+                    src={school.image_url}
+                    alt={school.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <GraduationCap className="h-6 w-6 text-brand-gold" />
+                  <h1 className="text-4xl font-bold" style={{ color: '#060520' }}>
+                    {school.name}
+                  </h1>
+                </div>
+                {school.description && (
+                  <p className="text-lg text-gray-600">{school.description}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-4">
+              <BookOpen className="h-4 w-4 text-brand-gold" />
+              <span className="text-brand-gold font-medium text-sm">Available Courses</span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4" style={{ color: '#060520' }}>
+              Courses in {school.name}
+            </h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Explore all available courses in this program
+            </p>
+          </div>
 
           {/* Courses Grid */}
-          {schoolCourses.length > 0 ? (
+          {courses.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {schoolCourses.map((course) => {
+              {courses.map((course) => {
                 const progress = getCourseProgress(course.id)
                 const completed = isCourseCompleted(course.id)
                 
@@ -224,10 +381,7 @@ export function UniversityClient({
                   <Card
                     key={course.id}
                     className="border-gray-200 hover:border-brand-gold/40 transition-all cursor-pointer group"
-                    onClick={() => {
-                      setSelectedCourse(course)
-                      setViewMode("course")
-                    }}
+                    onClick={() => onCourseSelect(course)}
                   >
                     <CardHeader>
                       {course.image_url && (
@@ -307,7 +461,7 @@ export function UniversityClient({
           ) : (
             <div className="text-center py-12">
               <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-lg text-gray-600">No courses available yet.</p>
+              <p className="text-lg text-gray-600">No courses available in this program yet.</p>
             </div>
           )}
         </div>
@@ -455,7 +609,7 @@ function CourseDetailView({
             onClick={onBack}
             className="mb-6 text-brand-gold hover:text-brand-gold-hover"
           >
-            ← Back to Courses
+            ← Back to Program
           </Button>
           
           <div className="mb-8">
