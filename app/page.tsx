@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Users, Zap, FileText, Settings, Play, ExternalLink, CheckCircle, Star, ArrowRight, Clock, Shield, Award, TrendingUp, Sparkles, Trophy, Crown, HelpCircle, MessageSquare } from "lucide-react"
+import { Users, Zap, FileText, Settings, Play, ExternalLink, CheckCircle, Star, ArrowRight, Clock, Shield, Award, TrendingUp, Sparkles, Trophy, Crown, HelpCircle, MessageSquare, GraduationCap } from "lucide-react"
 import Image from "next/image"
 import { Header } from "@/components/ui/header"
 import { Hero } from "@/components/ui/hero"
@@ -567,7 +567,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto relative z-10">
+          <div className="grid md:grid-cols-3 gap-12 max-w-6xl mx-auto relative z-10">
             <CardHover
               title="Hubflo Knowledge Base"
               description="Comprehensive guides and documentation"
@@ -611,6 +611,24 @@ export default function HomePage() {
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </a>
                 </PrimaryButton>
+              </div>
+            </CardHover>
+
+            <CardHover
+              title="Hubflo University"
+              description="Comprehensive Hubflo education suite"
+              icon={<GraduationCap className="h-8 w-8 text-brand-gold" />}
+              delay={0.3}
+            >
+              <div className="flex flex-col flex-grow">
+                <p className="mb-8 leading-relaxed flex-grow" style={{ color: '#64748b' }}>
+                  A comprehensive Hubflo education suite designed to help make your onboarding smoother. Access personalized courses, programs, and learning paths tailored to your needs.
+                </p>
+                <div className="mt-auto pt-4 border-t border-gray-200">
+                  <p className="text-sm text-center" style={{ color: '#64748b' }}>
+                    Available in your client portal
+                  </p>
+                </div>
               </div>
             </CardHover>
           </div>
