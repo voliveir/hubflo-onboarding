@@ -559,35 +559,57 @@ export function UniversityManager() {
           </div>
           {selectedSection ? (
             <div className="space-y-4">
-              {lectures.map((lecture) => (
-                <Card key={lecture.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2">
-                        {getContentTypeIcon(lecture.content_type)}
-                        <CardTitle style={{ color: '#060520' }}>{lecture.title}</CardTitle>
+              {lectures.map((lecture) => {
+                const contentData = lecture.content_data || {}
+                const hasVideo = contentData.video?.url || (lecture.content_type === "video" && contentData.url)
+                const hasText = contentData.text?.content || (lecture.content_type === "text" && contentData.content)
+                const hasBoth = hasVideo && hasText
+                
+                return (
+                  <Card key={lecture.id}>
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-2">
+                          {hasBoth ? (
+                            <>
+                              <Video className="h-4 w-4" />
+                              <FileText className="h-4 w-4" />
+                            </>
+                          ) : (
+                            getContentTypeIcon(lecture.content_type)
+                          )}
+                          <CardTitle style={{ color: '#060520' }}>{lecture.title}</CardTitle>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => { setEditingLecture(lecture); setIsLectureDialogOpen(true) }}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteLecture(lecture.id)}>
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => { setEditingLecture(lecture); setIsLectureDialogOpen(true) }}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteLecture(lecture.id)}>
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
+                      {lecture.description && <CardDescription>{lecture.description}</CardDescription>}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {hasBoth ? (
+                            <Badge variant="outline">Video + Text</Badge>
+                          ) : (
+                            <Badge variant="outline">{lecture.content_type}</Badge>
+                          )}
+                          {hasVideo && !hasBoth && <Badge variant="secondary" className="text-xs">Video</Badge>}
+                          {hasText && !hasBoth && <Badge variant="secondary" className="text-xs">Text</Badge>}
+                        </div>
+                        <Badge variant={lecture.is_active ? "default" : "secondary"}>
+                          {lecture.is_active ? "Active" : "Inactive"}
+                        </Badge>
                       </div>
-                    </div>
-                    {lecture.description && <CardDescription>{lecture.description}</CardDescription>}
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline">{lecture.content_type}</Badge>
-                      <Badge variant={lecture.is_active ? "default" : "secondary"}>
-                        {lecture.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           ) : (
             <Card>
@@ -1104,6 +1126,10 @@ function LectureDialog({
     is_active: true,
   })
   const [videoUrl, setVideoUrl] = useState("")
+  const [textContent, setTextContent] = useState("")
+  const [textFormat, setTextFormat] = useState<"markdown" | "html">("markdown")
+  const [hasVideo, setHasVideo] = useState(false)
+  const [hasText, setHasText] = useState(false)
 
   // Helper function to detect video provider and format content_data
   const parseVideoUrl = (url: string) => {
@@ -1158,11 +1184,33 @@ function LectureDialog({
         sort_order: lecture.sort_order,
         is_active: lecture.is_active,
       })
-      // Set video URL if it's a video type
-      if (lecture.content_type === "video" && contentData.url) {
+      
+      // Check if lecture has video or text (new structure)
+      const hasVideoContent = contentData.video?.url || (lecture.content_type === "video" && contentData.url)
+      const hasTextContent = contentData.text?.content || (lecture.content_type === "text" && contentData.content)
+      
+      setHasVideo(!!hasVideoContent)
+      setHasText(!!hasTextContent)
+      
+      // Set video URL
+      if (contentData.video?.url) {
+        setVideoUrl(contentData.video.url)
+      } else if (lecture.content_type === "video" && contentData.url) {
         setVideoUrl(contentData.url)
       } else {
         setVideoUrl("")
+      }
+      
+      // Set text content
+      if (contentData.text?.content) {
+        setTextContent(contentData.text.content)
+        setTextFormat(contentData.text.format || "markdown")
+      } else if (lecture.content_type === "text" && contentData.content) {
+        setTextContent(contentData.content)
+        setTextFormat(contentData.format || "markdown")
+      } else {
+        setTextContent("")
+        setTextFormat("markdown")
       }
     } else {
       setFormData({
@@ -1175,28 +1223,45 @@ function LectureDialog({
         is_active: true,
       })
       setVideoUrl("")
+      setTextContent("")
+      setTextFormat("markdown")
+      setHasVideo(false)
+      setHasText(false)
     }
   }, [lecture, open, sectionId, sections])
 
-  // Update content_data when video URL changes
+  // Update content_data when video URL or text content changes
   useEffect(() => {
-    if (formData.content_type === "video") {
+    const newContentData: any = {}
+    
+    if (hasVideo && videoUrl) {
       const parsed = parseVideoUrl(videoUrl)
-      setFormData(prev => ({
-        ...prev,
-        content_data: parsed,
-      }))
+      newContentData.video = parsed
     }
-  }, [videoUrl, formData.content_type])
-
-  // Reset video URL when content type changes
-  useEffect(() => {
-    if (formData.content_type !== "video") {
-      setVideoUrl("")
-    } else if (formData.content_data?.url) {
-      setVideoUrl(formData.content_data.url)
+    
+    if (hasText && textContent) {
+      newContentData.text = {
+        content: textContent,
+        format: textFormat,
+      }
     }
-  }, [formData.content_type])
+    
+    // Determine content_type based on what's enabled
+    let newContentType = formData.content_type
+    if (hasVideo && hasText) {
+      newContentType = "video" // Default to video when both are present
+    } else if (hasVideo) {
+      newContentType = "video"
+    } else if (hasText) {
+      newContentType = "text"
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      content_type: newContentType,
+      content_data: Object.keys(newContentData).length > 0 ? newContentData : {},
+    }))
+  }, [videoUrl, textContent, textFormat, hasVideo, hasText])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -1244,46 +1309,107 @@ function LectureDialog({
           </div>
           <div>
             <Label className="text-[#060520]">Content Type</Label>
-            <Select value={formData.content_type} onValueChange={(value: any) => setFormData({ ...formData, content_type: value, content_data: {} })}>
+            <Select value={formData.content_type} onValueChange={(value: any) => {
+              // Only allow changing to quiz, download, or link - video/text are controlled by toggles
+              if (value === "quiz" || value === "download" || value === "link") {
+                setFormData({ ...formData, content_type: value, content_data: {} })
+                setHasVideo(false)
+                setHasText(false)
+                setVideoUrl("")
+                setTextContent("")
+              }
+            }}>
               <SelectTrigger className="text-[#060520] placeholder:text-gray-400">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="text-[#060520]">
-                <SelectItem value="video" className="text-[#060520]">Video</SelectItem>
-                <SelectItem value="text" className="text-[#060520]">Text</SelectItem>
+                <SelectItem value="video" className="text-[#060520]">Video/Text (use toggles below)</SelectItem>
                 <SelectItem value="quiz" className="text-[#060520]">Quiz</SelectItem>
                 <SelectItem value="download" className="text-[#060520]">Download</SelectItem>
                 <SelectItem value="link" className="text-[#060520]">Link</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              For video and text content, use the toggles below. You can include both in the same lecture.
+            </p>
           </div>
 
-          {/* Video URL Input - Simple field for videos */}
-          {formData.content_type === "video" && (
-            <div>
-              <Label className="text-[#060520]">Video URL</Label>
-              <Input
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://youtu.be/WZ3hTvi5Mfs or https://www.youtube.com/watch?v=..."
-                className="text-[#060520] placeholder:text-gray-400"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Supports YouTube (youtube.com or youtu.be), Vimeo, Tella, and other video URLs. 
-                The provider will be automatically detected.
-              </p>
-              {videoUrl && formData.content_data?.provider && (
-                <p className="text-xs text-green-600 mt-1">
-                  ✓ Detected: {formData.content_data.provider === "youtube" ? "YouTube" : 
-                                formData.content_data.provider === "vimeo" ? "Vimeo" :
-                                formData.content_data.provider === "tella" ? "Tella" : "Custom"} video
-                </p>
+          {/* Video and Text Content Toggles - Only show for video/text types */}
+          {(formData.content_type === "video" || formData.content_type === "text") && (
+            <div className="space-y-4 border rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={hasVideo}
+                    onCheckedChange={setHasVideo}
+                  />
+                  <Label className="text-[#060520]">Include Video</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={hasText}
+                    onCheckedChange={setHasText}
+                  />
+                  <Label className="text-[#060520]">Include Text Content</Label>
+                </div>
+              </div>
+
+              {/* Video URL Input */}
+              {hasVideo && (
+                <div>
+                  <Label className="text-[#060520]">Video URL</Label>
+                  <Input
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    placeholder="https://youtu.be/WZ3hTvi5Mfs or https://www.youtube.com/watch?v=..."
+                    className="text-[#060520] placeholder:text-gray-400"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Supports YouTube (youtube.com or youtu.be), Vimeo, Tella, and other video URLs. 
+                    The provider will be automatically detected.
+                  </p>
+                  {videoUrl && formData.content_data?.video?.provider && (
+                    <p className="text-xs text-green-600 mt-1">
+                      ✓ Detected: {formData.content_data.video.provider === "youtube" ? "YouTube" : 
+                                    formData.content_data.video.provider === "vimeo" ? "Vimeo" :
+                                    formData.content_data.video.provider === "tella" ? "Tella" : "Custom"} video
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Text Content Input */}
+              {hasText && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-[#060520]">Text Content</Label>
+                    <Select value={textFormat} onValueChange={(value: "markdown" | "html") => setTextFormat(value)}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="markdown">Markdown</SelectItem>
+                        <SelectItem value="html">HTML</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Textarea
+                    value={textContent}
+                    onChange={(e) => setTextContent(e.target.value)}
+                    placeholder="Enter text content for clients who prefer reading..."
+                    rows={8}
+                    className="text-[#060520] placeholder:text-gray-400"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This text content will be displayed alongside or instead of the video for clients who prefer reading.
+                  </p>
+                </div>
               )}
             </div>
           )}
 
-          {/* Content Data (JSON) - For non-video types or advanced editing */}
-          {formData.content_type !== "video" && (
+          {/* Content Data (JSON) - For quiz, download, link types */}
+          {(formData.content_type === "quiz" || formData.content_type === "download" || formData.content_type === "link") && (
             <div>
               <Label className="text-[#060520]">Content Data (JSON)</Label>
               <Textarea
@@ -1297,9 +1423,7 @@ function LectureDialog({
                 }}
                 rows={6}
                 placeholder={
-                  formData.content_type === "text" 
-                    ? '{"content": "Your text content here", "format": "markdown"}'
-                    : formData.content_type === "link"
+                  formData.content_type === "link"
                     ? '{"url": "https://example.com", "title": "Link Title", "description": "Link description"}'
                     : formData.content_type === "download"
                     ? '{"file_url": "https://example.com/file.pdf", "file_name": "Document.pdf", "file_size": 1024000}'
@@ -1310,7 +1434,6 @@ function LectureDialog({
                 className="text-[#060520] placeholder:text-gray-400 font-mono text-sm"
               />
               <p className="text-xs text-gray-500 mt-1">
-                {formData.content_type === "text" && "Enter text content and format (markdown or html)."}
                 {formData.content_type === "link" && "Enter link URL, title, and description."}
                 {formData.content_type === "download" && "Enter file URL, file name, and file size in bytes."}
                 {formData.content_type === "quiz" && "Enter the quiz ID to link to a quiz."}
@@ -1318,32 +1441,36 @@ function LectureDialog({
             </div>
           )}
 
-          {/* Advanced JSON Editor for videos (collapsible) */}
-          {formData.content_type === "video" && (
-            <details className="text-xs">
-              <summary className="text-gray-500 cursor-pointer hover:text-gray-700">
-                Advanced: Edit JSON directly
-              </summary>
-              <div className="mt-2">
-                <Textarea
-                  value={JSON.stringify(formData.content_data, null, 2)}
-                  onChange={(e) => {
-                    try {
-                      const parsed = JSON.parse(e.target.value)
-                      setFormData({ ...formData, content_data: parsed })
-                      if (parsed.url) {
-                        setVideoUrl(parsed.url)
-                      }
-                    } catch {
-                      // Invalid JSON, keep as is
+          {/* Advanced JSON Editor (collapsible) */}
+          <details className="text-xs">
+            <summary className="text-gray-500 cursor-pointer hover:text-gray-700">
+              Advanced: Edit JSON directly
+            </summary>
+            <div className="mt-2">
+              <Textarea
+                value={JSON.stringify(formData.content_data, null, 2)}
+                onChange={(e) => {
+                  try {
+                    const parsed = JSON.parse(e.target.value)
+                    setFormData({ ...formData, content_data: parsed })
+                    if (parsed.video?.url) {
+                      setVideoUrl(parsed.video.url)
+                      setHasVideo(true)
                     }
-                  }}
-                  rows={4}
-                  className="text-[#060520] placeholder:text-gray-400 font-mono text-sm"
-                />
-              </div>
-            </details>
-          )}
+                    if (parsed.text?.content) {
+                      setTextContent(parsed.text.content)
+                      setTextFormat(parsed.text.format || "markdown")
+                      setHasText(true)
+                    }
+                  } catch {
+                    // Invalid JSON, keep as is
+                  }
+                }}
+                rows={6}
+                className="text-[#060520] placeholder:text-gray-400 font-mono text-sm"
+              />
+            </div>
+          </details>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="text-[#060520]">Sort Order</Label>

@@ -182,74 +182,124 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
     }
   }
 
+  const renderVideo = (videoData: any) => {
+    if (!videoData || !videoData.url) return null
+
+    // Handle different video providers
+    if (videoData.provider === "youtube") {
+      const videoId = videoData.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1]
+      return (
+        <div className="aspect-video w-full mb-6">
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}`}
+            className="w-full h-full rounded-lg"
+            allowFullScreen
+            title={lecture.title}
+          />
+        </div>
+      )
+    } else if (videoData.provider === "vimeo") {
+      const videoId = videoData.url.match(/vimeo\.com\/(\d+)/)?.[1]
+      return (
+        <div className="aspect-video w-full mb-6">
+          <iframe
+            src={`https://player.vimeo.com/video/${videoId}`}
+            className="w-full h-full rounded-lg"
+            allowFullScreen
+            title={lecture.title}
+          />
+        </div>
+      )
+    } else if (videoData.provider === "tella") {
+      const embedUrl = videoData.url.replace("/video/", "/video/").replace(/\/$/, "") + "/embed"
+      return (
+        <div className="aspect-video w-full mb-6">
+          <iframe
+            src={embedUrl}
+            className="w-full h-full rounded-lg"
+            allowFullScreen
+            title={lecture.title}
+          />
+        </div>
+      )
+    } else {
+      // Generic video URL
+      return (
+        <div className="aspect-video w-full bg-gray-100 rounded-lg flex items-center justify-center mb-6">
+          <video controls className="w-full h-full rounded-lg">
+            <source src={videoData.url} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      )
+    }
+  }
+
+  const renderText = (textData: any) => {
+    if (!textData || !textData.content) return null
+
+    if (textData.format === "html") {
+      return (
+        <div 
+          className="prose max-w-none"
+          dangerouslySetInnerHTML={{ __html: textData.content || "" }} 
+        />
+      )
+    } else {
+      // Markdown or plain text
+      return (
+        <div className="prose max-w-none">
+          <pre className="whitespace-pre-wrap font-sans bg-gray-50 p-4 rounded-lg">{textData.content || ""}</pre>
+        </div>
+      )
+    }
+  }
+
   const renderContent = () => {
+    const contentData = lecture.content_data || {}
+    
+    // Check for new structure with both video and text
+    const hasVideo = contentData.video?.url || (lecture.content_type === "video" && contentData.url)
+    const hasText = contentData.text?.content || (lecture.content_type === "text" && contentData.content)
+    
+    // If both video and text are present, render both
+    if (hasVideo && hasText) {
+      const videoData = contentData.video || (lecture.content_type === "video" ? contentData : null)
+      const textData = contentData.text || (lecture.content_type === "text" ? contentData : null)
+      
+      return (
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+              <Video className="h-5 w-5 text-brand-gold" />
+              Video Content
+            </h3>
+            {renderVideo(videoData)}
+          </div>
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-brand-gold" />
+              Text Content
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">For clients who prefer reading over watching the video:</p>
+            {renderText(textData)}
+          </div>
+        </div>
+      )
+    }
+    
+    // Legacy single content type rendering
     switch (lecture.content_type) {
       case "video":
-        const videoData = lecture.content_data || {}
+        const videoData = contentData.video || contentData
         if (videoData.url) {
-          // Handle different video providers
-          if (videoData.provider === "youtube") {
-            const videoId = videoData.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1]
-            return (
-              <div className="aspect-video w-full">
-                <iframe
-                  src={`https://www.youtube.com/embed/${videoId}`}
-                  className="w-full h-full rounded-lg"
-                  allowFullScreen
-                  title={lecture.title}
-                />
-              </div>
-            )
-          } else if (videoData.provider === "vimeo") {
-            const videoId = videoData.url.match(/vimeo\.com\/(\d+)/)?.[1]
-            return (
-              <div className="aspect-video w-full">
-                <iframe
-                  src={`https://player.vimeo.com/video/${videoId}`}
-                  className="w-full h-full rounded-lg"
-                  allowFullScreen
-                  title={lecture.title}
-                />
-              </div>
-            )
-          } else if (videoData.provider === "tella") {
-            const embedUrl = videoData.url.replace("/video/", "/video/").replace(/\/$/, "") + "/embed"
-            return (
-              <div className="aspect-video w-full">
-                <iframe
-                  src={embedUrl}
-                  className="w-full h-full rounded-lg"
-                  allowFullScreen
-                  title={lecture.title}
-                />
-              </div>
-            )
-          } else {
-            // Generic video URL
-            return (
-              <div className="aspect-video w-full bg-gray-100 rounded-lg flex items-center justify-center">
-                <video controls className="w-full h-full rounded-lg">
-                  <source src={videoData.url} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-            )
-          }
+          return renderVideo(videoData)
         }
         return <p className="text-gray-500">Video URL not configured</p>
 
       case "text":
-        const textData = lecture.content_data || {}
-        if (textData.format === "html") {
-          return <div dangerouslySetInnerHTML={{ __html: textData.content || "" }} />
-        } else {
-          // Markdown or plain text
-          return (
-            <div className="prose max-w-none">
-              <pre className="whitespace-pre-wrap font-sans">{textData.content || ""}</pre>
-            </div>
-          )
-        }
+        const textData = contentData.text || contentData
+        return renderText(textData)
 
       case "link":
         const linkData = lecture.content_data || {}
@@ -497,11 +547,31 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  {lecture.content_type === "video" && <Video className="h-5 w-5 text-brand-gold" />}
-                  {lecture.content_type === "text" && <FileText className="h-5 w-5 text-brand-gold" />}
-                  {lecture.content_type === "quiz" && <HelpCircle className="h-5 w-5 text-brand-gold" />}
-                  {lecture.content_type === "download" && <Download className="h-5 w-5 text-brand-gold" />}
-                  {lecture.content_type === "link" && <ExternalLink className="h-5 w-5 text-brand-gold" />}
+                  {(() => {
+                    const contentData = lecture.content_data || {}
+                    const hasVideo = contentData.video?.url || (lecture.content_type === "video" && contentData.url)
+                    const hasText = contentData.text?.content || (lecture.content_type === "text" && contentData.content)
+                    
+                    if (hasVideo && hasText) {
+                      return (
+                        <>
+                          <Video className="h-5 w-5 text-brand-gold" />
+                          <FileText className="h-5 w-5 text-brand-gold" />
+                        </>
+                      )
+                    } else if (lecture.content_type === "video") {
+                      return <Video className="h-5 w-5 text-brand-gold" />
+                    } else if (lecture.content_type === "text") {
+                      return <FileText className="h-5 w-5 text-brand-gold" />
+                    } else if (lecture.content_type === "quiz") {
+                      return <HelpCircle className="h-5 w-5 text-brand-gold" />
+                    } else if (lecture.content_type === "download") {
+                      return <Download className="h-5 w-5 text-brand-gold" />
+                    } else if (lecture.content_type === "link") {
+                      return <ExternalLink className="h-5 w-5 text-brand-gold" />
+                    }
+                    return null
+                  })()}
                   <CardTitle style={{ color: '#060520' }}>{lecture.title}</CardTitle>
                 </div>
                 {lecture.description && (
