@@ -9,6 +9,12 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Fix Turbopack workspace root inference issue
+  experimental: {
+    turbo: {
+      root: process.cwd(),
+    },
+  },
 }
 
 export default nextConfig

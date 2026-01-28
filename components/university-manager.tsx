@@ -1402,6 +1402,7 @@ function LectureDialog({
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     This text content will be displayed alongside or instead of the video for clients who prefer reading.
+                    {textFormat === "html" && " You can use HTML tags for formatting (e.g., &lt;p&gt;, &lt;strong&gt;, &lt;ul&gt;, &lt;li&gt;, etc.)."}
                   </p>
                 </div>
               )}

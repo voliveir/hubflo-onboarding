@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -49,11 +49,124 @@ export function UniversityClient({
   const [selectedSchool, setSelectedSchool] = useState<UniversitySchool | null>(null)
   const [selectedCourse, setSelectedCourse] = useState<UniversityCourse | null>(null)
   const [viewMode, setViewMode] = useState<"overview" | "school" | "course">("overview")
+  const [fullCoursesData, setFullCoursesData] = useState<Map<string, UniversityCourse>>(new Map())
+  const [loadingCourses, setLoadingCourses] = useState(false)
+  const [completedSchools, setCompletedSchools] = useState<UniversitySchool[]>([])
 
   // Create progress map
   const progressMap = new Map(
     clientProgress.map(p => [p.lecture_id || p.course_id, p])
   )
+
+  // Fetch full course data with sections and lectures
+  useEffect(() => {
+    const fetchFullCourses = async () => {
+      if (courses.length === 0) return
+      
+      setLoadingCourses(true)
+      try {
+        const coursePromises = courses.map(async (course) => {
+          try {
+            const response = await fetch(`/api/university/course/${course.id}`)
+            if (response.ok) {
+              const data = await response.json()
+              return { id: course.id, data: data.data }
+            }
+          } catch (error) {
+            console.error(`Error fetching course ${course.id}:`, error)
+          }
+          return null
+        })
+
+        const results = await Promise.all(coursePromises)
+        const coursesMap = new Map<string, UniversityCourse>()
+        
+        results.forEach((result) => {
+          if (result?.data) {
+            coursesMap.set(result.id, result.data)
+          }
+        })
+
+        setFullCoursesData(coursesMap)
+      } catch (error) {
+        console.error("Error fetching full courses:", error)
+      } finally {
+        setLoadingCourses(false)
+      }
+    }
+
+    fetchFullCourses()
+  }, [courses])
+
+  // Check if a course is fully completed (all lectures completed)
+  const isCourseFullyCompleted = useCallback((courseId: string): boolean => {
+    const fullCourse = fullCoursesData.get(courseId)
+    if (!fullCourse || !fullCourse.sections) return false
+
+    // Get all lectures from all sections
+    const allLectures: UniversityLecture[] = []
+    fullCourse.sections.forEach((section) => {
+      if (section.lectures) {
+        section.lectures.forEach((lecture) => {
+          allLectures.push(lecture)
+        })
+      }
+    })
+
+    if (allLectures.length === 0) return false
+
+    // Check if all lectures are completed
+    const allCompleted = allLectures.every((lecture) => {
+      const progress = clientProgress.find((p) => p.lecture_id === lecture.id)
+      return progress?.is_completed === true
+    })
+
+    return allCompleted
+  }, [fullCoursesData, clientProgress])
+
+  // Check if a school/program is fully completed (all courses completed)
+  const isSchoolCompleted = useCallback((schoolId: string): boolean => {
+    const schoolCourses = courses.filter(c => c.school_id === schoolId)
+    if (schoolCourses.length === 0) return false
+
+    // Check if all courses in the school are fully completed
+    return schoolCourses.every((course) => isCourseFullyCompleted(course.id))
+  }, [courses, isCourseFullyCompleted])
+
+  // Calculate completed schools
+  useEffect(() => {
+    if (!loadingCourses && fullCoursesData.size > 0 && courses.length > 0) {
+      const completed = schools.filter((school) => {
+        const schoolCourses = courses.filter(c => c.school_id === school.id)
+        if (schoolCourses.length === 0) return false
+        return schoolCourses.every((course) => {
+          const fullCourse = fullCoursesData.get(course.id)
+          if (!fullCourse || !fullCourse.sections) return false
+
+          // Get all lectures from all sections
+          const allLectures: UniversityLecture[] = []
+          fullCourse.sections.forEach((section) => {
+            if (section.lectures) {
+              section.lectures.forEach((lecture) => {
+                allLectures.push(lecture)
+              })
+            }
+          })
+
+          if (allLectures.length === 0) return false
+
+          // Check if all lectures are completed
+          return allLectures.every((lecture) => {
+            const progress = clientProgress.find((p) => p.lecture_id === lecture.id)
+            return progress?.is_completed === true
+          })
+        })
+      })
+      setCompletedSchools(completed)
+    } else {
+      setCompletedSchools([])
+    }
+  }, [schools, courses, fullCoursesData, clientProgress, loadingCourses])
 
   // Calculate course progress
   const getCourseProgress = (courseId: string) => {
@@ -64,11 +177,9 @@ export function UniversityClient({
     return Math.round(totalProgress / courseProgress.length)
   }
 
-  // Check if course is completed
+  // Check if course is completed (simplified check for display)
   const isCourseCompleted = (courseId: string) => {
-    const courseProgress = clientProgress.filter(p => p.course_id === courseId && p.is_completed)
-    // This is a simplified check - in reality, you'd check all lectures
-    return courseProgress.length > 0
+    return isCourseFullyCompleted(courseId)
   }
 
   // If no schools or courses exist, show coming soon
@@ -149,6 +260,65 @@ export function UniversityClient({
         </div>
       </PortalSection>
 
+      {/* Completed Programs Badges Section - Very Prominent */}
+      {completedSchools.length > 0 && (
+        <PortalSection gradient={false} className="relative overflow-hidden bg-gradient-to-br from-brand-gold/10 via-brand-gold/5 to-transparent border-y-4 border-brand-gold/30">
+          <div className="max-w-6xl mx-auto py-12">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center space-x-3 bg-brand-gold/20 border-2 border-brand-gold rounded-full px-8 py-3 mb-6 animate-pulse">
+                <Award className="h-6 w-6 text-brand-gold" />
+                <span className="text-brand-gold font-bold text-lg">Programs Completed!</span>
+                <Award className="h-6 w-6 text-brand-gold" />
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: '#060520' }}>
+                🎉 Congratulations! 🎉
+              </h2>
+              <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+                You've completed all courses in {completedSchools.length} {completedSchools.length === 1 ? 'program' : 'programs'}!
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+              {completedSchools.map((school) => {
+                const schoolCourses = courses.filter(c => c.school_id === school.id)
+                return (
+                  <Card
+                    key={school.id}
+                    className="border-4 border-brand-gold bg-gradient-to-br from-brand-gold/20 to-brand-gold/5 shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer"
+                    onClick={() => {
+                      setSelectedSchool(school)
+                      setViewMode("school")
+                    }}
+                  >
+                    <CardHeader className="text-center pb-4">
+                      <div className="mx-auto mb-4 w-20 h-20 bg-brand-gold rounded-full flex items-center justify-center shadow-lg">
+                        <Award className="h-12 w-12 text-[#010124]" />
+                      </div>
+                      <CardTitle className="text-2xl font-bold mb-2" style={{ color: '#060520' }}>
+                        {school.name}
+                      </CardTitle>
+                      <Badge className="bg-brand-gold text-[#010124] text-sm px-4 py-1 mx-auto">
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Program Completed
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <p className="text-sm text-gray-600 mb-2">
+                        {schoolCourses.length} {schoolCourses.length === 1 ? 'course' : 'courses'} completed
+                      </p>
+                      <div className="flex items-center justify-center space-x-2 text-brand-gold">
+                        <CheckCircle className="h-5 w-5" />
+                        <span className="font-semibold">100% Complete</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          </div>
+        </PortalSection>
+      )}
+
       {/* Certificates Section */}
       {certificates.length > 0 && (
         <PortalSection gradient={false} className="relative overflow-hidden bg-white">
@@ -221,19 +391,33 @@ export function UniversityClient({
                 const schoolCourses = courses.filter(c => c.school_id === school.id)
                 const totalCourses = schoolCourses.length
                 const completedCourses = schoolCourses.filter(c => isCourseCompleted(c.id)).length
+                const isCompleted = isSchoolCompleted(school.id)
                 
                 return (
                   <Card
                     key={school.id}
-                    className="border-gray-200 hover:border-brand-gold/40 transition-all cursor-pointer group"
+                    className={`${
+                      isCompleted 
+                        ? 'border-4 border-brand-gold bg-gradient-to-br from-brand-gold/10 to-transparent shadow-lg' 
+                        : 'border-gray-200 hover:border-brand-gold/40'
+                    } transition-all cursor-pointer group relative overflow-hidden`}
                     onClick={() => {
                       setSelectedSchool(school)
                       setViewMode("school")
                     }}
                   >
+                    {isCompleted && (
+                      <div className="absolute top-4 right-4 z-10">
+                        <div className="bg-brand-gold rounded-full p-2 shadow-lg animate-bounce">
+                          <Award className="h-6 w-6 text-[#010124]" />
+                        </div>
+                      </div>
+                    )}
                     <CardHeader>
                       {school.image_url && (
-                        <div className="w-full h-40 bg-gray-100 rounded-lg mb-4 overflow-hidden">
+                        <div className={`w-full h-40 bg-gray-100 rounded-lg mb-4 overflow-hidden ${
+                          isCompleted ? 'ring-4 ring-brand-gold' : ''
+                        }`}>
                           <img
                             src={school.image_url}
                             alt={school.name}
@@ -244,7 +428,7 @@ export function UniversityClient({
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <GraduationCap className="h-5 w-5 text-brand-gold" />
+                            <GraduationCap className={`h-5 w-5 ${isCompleted ? 'text-brand-gold' : 'text-brand-gold'}`} />
                             <CardTitle style={{ color: '#060520' }}>
                               {school.name}
                             </CardTitle>
@@ -259,13 +443,21 @@ export function UniversityClient({
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
+                        {isCompleted ? (
+                          <div className="flex items-center justify-center mb-2">
+                            <Badge className="bg-brand-gold text-[#010124] px-4 py-1.5 text-sm font-bold">
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Program Completed!
+                            </Badge>
+                          </div>
+                        ) : null}
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-600">
                             {totalCourses} {totalCourses === 1 ? 'Course' : 'Courses'}
                           </span>
                           {completedCourses > 0 && (
-                            <span className="text-brand-gold font-medium">
-                              {completedCourses} Completed
+                            <span className={`font-medium ${isCompleted ? 'text-brand-gold' : 'text-brand-gold'}`}>
+                              {completedCourses}/{totalCourses} Completed
                             </span>
                           )}
                         </div>

@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import type { UniversityLecture, UniversityQuiz } from "@/lib/types"
 import { toast } from "@/hooks/use-toast"
+import DOMPurify from "dompurify"
 
 interface LectureViewerProps {
   lecture: UniversityLecture
@@ -238,18 +239,35 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
   const renderText = (textData: any) => {
     if (!textData || !textData.content) return null
 
-    if (textData.format === "html") {
+    const content = textData.content || ""
+    
+    // Check if content contains HTML tags
+    const hasHtmlTags = /<[a-z][\s\S]*>/i.test(content)
+    
+    // If format is explicitly set to HTML, or if HTML tags are detected, render as HTML
+    if (textData.format === "html" || hasHtmlTags) {
+      // Sanitize HTML to prevent XSS attacks
+      const sanitizedHtml = DOMPurify.sanitize(content, {
+        ALLOWED_TAGS: [
+          'p', 'br', 'strong', 'em', 'u', 's', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+          'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'img', 'div', 'span',
+          'table', 'thead', 'tbody', 'tr', 'th', 'td', 'hr', 'sub', 'sup'
+        ],
+        ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel'],
+        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+      })
+      
       return (
         <div 
-          className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: textData.content || "" }} 
+          className="prose max-w-none prose-headings:text-[#060520] prose-p:text-gray-700 prose-strong:text-[#060520] prose-a:text-brand-gold prose-a:no-underline hover:prose-a:underline prose-ul:list-disc prose-ol:list-decimal prose-li:my-1"
+          dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
         />
       )
     } else {
-      // Markdown or plain text
+      // Plain text - preserve line breaks and whitespace
       return (
         <div className="prose max-w-none">
-          <pre className="whitespace-pre-wrap font-sans bg-gray-50 p-4 rounded-lg">{textData.content || ""}</pre>
+          <div className="whitespace-pre-wrap font-sans text-gray-700 leading-relaxed">{content}</div>
         </div>
       )
     }
