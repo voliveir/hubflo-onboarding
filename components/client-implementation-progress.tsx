@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Users, FileText, BookOpen, Zap, Database, MessageSquare } from "lucide-react"
+import { CheckCircle, Users, FileText, BookOpen, Zap, Database, MessageSquare, Clock } from "lucide-react"
 import { useReveal } from "@/hooks/useReveal"
 import { cn } from "@/lib/utils"
 import type { Client } from "@/lib/types"
@@ -20,11 +20,38 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
     smartdocs: 0,
     integrations: 0,
   })
-  const [showDates, setShowDates] = useState(false);
+  const [showDates, setShowDates] = useState(false)
+  const [timeSummary, setTimeSummary] = useState<{
+    total_minutes: number
+    total_hours: number
+    meeting_minutes: number
+    email_minutes: number
+    implementation_minutes: number
+  } | null>(null)
 
   useEffect(() => {
     calculateProgress()
   }, [client])
+
+  useEffect(() => {
+    if (!client?.id) return
+    fetch(`/api/time-entries/summary?client_id=${client.id}`)
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data && typeof data.total_minutes === "number") {
+          setTimeSummary({
+            total_minutes: data.total_minutes ?? 0,
+            total_hours: data.total_hours ?? data.total_minutes / 60,
+            meeting_minutes: data.meeting_minutes ?? 0,
+            email_minutes: data.email_minutes ?? 0,
+            implementation_minutes: data.implementation_minutes ?? 0,
+          })
+        } else {
+          setTimeSummary(null)
+        }
+      })
+      .catch(() => setTimeSummary(null))
+  }, [client?.id])
 
   const calculateProgress = () => {
     // Define package limits
@@ -169,6 +196,14 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
   const packageLimits = getPackageLimits()
   const isUnlimited = (value: number) => value === 999
 
+  const formatDuration = (minutes: number) => {
+    if (!minutes || minutes < 0) return "0m"
+    const h = Math.floor(minutes / 60)
+    const m = Math.round(minutes % 60)
+    if (h > 0) return m > 0 ? `${h}h ${m}m` : `${h}h`
+    return `${m}m`
+  }
+
   const getServiceStatus = (completed: number, total: number, isEliteFeature = false) => {
     if (isEliteFeature) {
       return completed ? { text: "Completed", color: "text-brand-gold" } : { text: "Pending", color: "text-white/60" }
@@ -244,6 +279,50 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
                 : "Let's get started with your Hubflo onboarding journey."}
             </span>
           </div>
+
+          {/* Implementation Time Invested - client-facing, no ROU/internal metrics */}
+          {timeSummary && timeSummary.total_minutes > 0 && (
+            <>
+              <div className="my-6 border-t border-gray-200" />
+              <div className="rounded-xl p-4" style={{ backgroundColor: 'rgba(236, 178, 45, 0.06)', border: '1px solid rgba(236, 178, 45, 0.15)' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(236, 178, 45, 0.12)' }}>
+                    <Clock className="h-4 w-4 text-brand-gold" />
+                  </div>
+                  <span className="text-sm font-medium" style={{ color: '#64748b' }}>Time invested in your implementation</span>
+                </div>
+                <p className="text-2xl font-bold mb-3" style={{ color: '#060520' }}>
+                  {formatDuration(timeSummary.total_minutes)}
+                </p>
+                <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>
+                  So far we&apos;ve spent{" "}
+                  {timeSummary.total_hours >= 1
+                    ? `${timeSummary.total_hours.toFixed(1)} hours`
+                    : formatDuration(timeSummary.total_minutes)}{" "}
+                  on your onboarding—including calls, email, and hands-on setup. This is separate from your progress completion above.
+                </p>
+                {(timeSummary.meeting_minutes > 0 || timeSummary.email_minutes > 0 || timeSummary.implementation_minutes > 0) && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {timeSummary.meeting_minutes > 0 && (
+                      <span className="text-xs px-2.5 py-1 rounded-full" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)', color: '#64748b' }}>
+                        Calls {formatDuration(timeSummary.meeting_minutes)}
+                      </span>
+                    )}
+                    {timeSummary.email_minutes > 0 && (
+                      <span className="text-xs px-2.5 py-1 rounded-full" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)', color: '#64748b' }}>
+                        Email {formatDuration(timeSummary.email_minutes)}
+                      </span>
+                    )}
+                    {timeSummary.implementation_minutes > 0 && (
+                      <span className="text-xs px-2.5 py-1 rounded-full" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)', color: '#64748b' }}>
+                        Hands-on work {formatDuration(timeSummary.implementation_minutes)}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
