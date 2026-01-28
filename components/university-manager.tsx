@@ -1382,14 +1382,18 @@ function LectureDialog({
               {hasText && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <Label className="text-[#060520]">Text Content</Label>
+                    <Label className="text-[#060520] font-semibold">Text Content</Label>
                     <Select value={textFormat} onValueChange={(value: "markdown" | "html") => setTextFormat(value)}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
+                      <SelectTrigger className="w-32 text-[#060520] bg-white border-gray-300">
+                        <SelectValue className="text-[#060520]" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="markdown">Markdown</SelectItem>
-                        <SelectItem value="html">HTML</SelectItem>
+                      <SelectContent className="bg-white border-gray-300">
+                        <SelectItem value="markdown" className="text-[#060520] focus:text-[#060520] focus:bg-gray-100 cursor-pointer">
+                          Markdown
+                        </SelectItem>
+                        <SelectItem value="html" className="text-[#060520] focus:text-[#060520] focus:bg-gray-100 cursor-pointer">
+                          HTML
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1397,12 +1401,22 @@ function LectureDialog({
                     value={textContent}
                     onChange={(e) => setTextContent(e.target.value)}
                     placeholder="Enter text content for clients who prefer reading..."
-                    rows={8}
-                    className="text-[#060520] placeholder:text-gray-400"
+                    rows={16}
+                    className={`text-[#060520] placeholder:text-gray-400 text-sm leading-relaxed ${
+                      textFormat === "html" || textFormat === "markdown" 
+                        ? "font-mono bg-gray-50 border-2 border-gray-300 focus:border-brand-gold" 
+                        : ""
+                    }`}
+                    style={{
+                      fontSize: '14px',
+                      lineHeight: '1.6',
+                      fontFamily: textFormat === "html" || textFormat === "markdown" ? 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace' : 'inherit'
+                    }}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     This text content will be displayed alongside or instead of the video for clients who prefer reading.
                     {textFormat === "html" && " You can use HTML tags for formatting (e.g., &lt;p&gt;, &lt;strong&gt;, &lt;ul&gt;, &lt;li&gt;, etc.)."}
+                    {textFormat === "markdown" && " You can use Markdown syntax for formatting (e.g., **bold**, *italic*, - lists, etc.)."}
                   </p>
                 </div>
               )}
