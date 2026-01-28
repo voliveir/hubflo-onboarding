@@ -270,10 +270,10 @@ export function UniversityClient({
                 <span className="text-brand-gold font-bold text-lg">Programs Completed!</span>
                 <Award className="h-6 w-6 text-brand-gold" />
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: '#060520' }}>
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
                 🎉 Congratulations! 🎉
               </h2>
-              <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+              <p className="text-xl text-white/90 max-w-2xl mx-auto">
                 You've completed all courses in {completedSchools.length} {completedSchools.length === 1 ? 'program' : 'programs'}!
               </p>
             </div>
