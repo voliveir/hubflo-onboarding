@@ -1,0 +1,1603 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { toast } from "@/hooks/use-toast"
+import {
+  getUniversitySchools,
+  createUniversitySchool,
+  updateUniversitySchool,
+  deleteUniversitySchool,
+  getUniversityCourses,
+  createUniversityCourse,
+  updateUniversityCourse,
+  deleteUniversityCourse,
+  getUniversitySections,
+  createUniversitySection,
+  updateUniversitySection,
+  deleteUniversitySection,
+  getUniversityLectures,
+  createUniversityLecture,
+  updateUniversityLecture,
+  deleteUniversityLecture,
+  getUniversityQuizzes,
+  createUniversityQuiz,
+  updateUniversityQuiz,
+  deleteUniversityQuiz,
+} from "@/lib/database"
+import type {
+  UniversitySchool,
+  UniversityCourse,
+  UniversitySection,
+  UniversityLecture,
+  UniversityQuiz,
+} from "@/lib/types"
+import {
+  GraduationCap,
+  BookOpen,
+  FileText,
+  HelpCircle,
+  Plus,
+  Edit,
+  Trash2,
+  ChevronRight,
+  Video,
+  Download,
+  ExternalLink,
+} from "lucide-react"
+
+export function UniversityManager() {
+  const [schools, setSchools] = useState<UniversitySchool[]>([])
+  const [courses, setCourses] = useState<UniversityCourse[]>([])
+  const [sections, setSections] = useState<UniversitySection[]>([])
+  const [lectures, setLectures] = useState<UniversityLecture[]>([])
+  const [quizzes, setQuizzes] = useState<UniversityQuiz[]>([])
+  
+  const [loading, setLoading] = useState(true)
+  const [selectedSchool, setSelectedSchool] = useState<string | null>(null)
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(null)
+  const [selectedSection, setSelectedSection] = useState<string | null>(null)
+  
+  // Dialog states
+  const [isSchoolDialogOpen, setIsSchoolDialogOpen] = useState(false)
+  const [isCourseDialogOpen, setIsCourseDialogOpen] = useState(false)
+  const [isSectionDialogOpen, setIsSectionDialogOpen] = useState(false)
+  const [isLectureDialogOpen, setIsLectureDialogOpen] = useState(false)
+  const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false)
+  
+  const [editingSchool, setEditingSchool] = useState<UniversitySchool | null>(null)
+  const [editingCourse, setEditingCourse] = useState<UniversityCourse | null>(null)
+  const [editingSection, setEditingSection] = useState<UniversitySection | null>(null)
+  const [editingLecture, setEditingLecture] = useState<UniversityLecture | null>(null)
+  const [editingQuiz, setEditingQuiz] = useState<UniversityQuiz | null>(null)
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadSections(selectedCourse)
+    }
+  }, [selectedCourse])
+
+  useEffect(() => {
+    if (selectedSection) {
+      loadLectures(selectedSection)
+    }
+  }, [selectedSection])
+
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      const [schoolsData, coursesData, quizzesData] = await Promise.all([
+        getUniversitySchools(),
+        getUniversityCourses(),
+        getUniversityQuizzes(),
+      ])
+      setSchools(schoolsData)
+      setCourses(coursesData)
+      setQuizzes(quizzesData)
+    } catch (error) {
+      console.error("Error loading data:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load University data",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadSections = async (courseId: string) => {
+    try {
+      const data = await getUniversitySections(courseId)
+      setSections(data)
+    } catch (error) {
+      console.error("Error loading sections:", error)
+    }
+  }
+
+  const loadLectures = async (sectionId: string) => {
+    try {
+      const data = await getUniversityLectures(sectionId)
+      setLectures(data)
+    } catch (error) {
+      console.error("Error loading lectures:", error)
+    }
+  }
+
+  // School handlers
+  const handleCreateSchool = async (data: Omit<UniversitySchool, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      await createUniversitySchool(data)
+      await loadData()
+      setIsSchoolDialogOpen(false)
+      toast({ title: "Success", description: "School created successfully" })
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to create school", variant: "destructive" })
+    }
+  }
+
+  const handleUpdateSchool = async (id: string, updates: Partial<UniversitySchool>) => {
+    try {
+      await updateUniversitySchool(id, updates)
+      await loadData()
+      setEditingSchool(null)
+      toast({ title: "Success", description: "School updated successfully" })
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update school", variant: "destructive" })
+    }
+  }
+
+  const handleDeleteSchool = async (id: string) => {
+    if (confirm("Are you sure you want to delete this school? All courses will be deleted.")) {
+      try {
+        await deleteUniversitySchool(id)
+        await loadData()
+        toast({ title: "Success", description: "School deleted successfully" })
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to delete school", variant: "destructive" })
+      }
+    }
+  }
+
+  // Course handlers
+  const handleCreateCourse = async (data: Omit<UniversityCourse, 'id' | 'created_at' | 'updated_at' | 'school' | 'sections'>) => {
+    try {
+      await createUniversityCourse(data)
+      await loadData()
+      setIsCourseDialogOpen(false)
+      toast({ title: "Success", description: "Course created successfully" })
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to create course", variant: "destructive" })
+    }
+  }
+
+  const handleUpdateCourse = async (id: string, updates: Partial<UniversityCourse>) => {
+    try {
+      await updateUniversityCourse(id, updates)
+      await loadData()
+      setEditingCourse(null)
+      toast({ title: "Success", description: "Course updated successfully" })
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update course", variant: "destructive" })
+    }
+  }
+
+  const handleDeleteCourse = async (id: string) => {
+    if (confirm("Are you sure you want to delete this course? All sections and lectures will be deleted.")) {
+      try {
+        await deleteUniversityCourse(id)
+        await loadData()
+        toast({ title: "Success", description: "Course deleted successfully" })
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to delete course", variant: "destructive" })
+      }
+    }
+  }
+
+  // Section handlers
+  const handleCreateSection = async (data: Omit<UniversitySection, 'id' | 'created_at' | 'updated_at' | 'course' | 'lectures'>) => {
+    try {
+      await createUniversitySection(data)
+      if (selectedCourse) await loadSections(selectedCourse)
+      setIsSectionDialogOpen(false)
+      toast({ title: "Success", description: "Section created successfully" })
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to create section", variant: "destructive" })
+    }
+  }
+
+  const handleUpdateSection = async (id: string, updates: Partial<UniversitySection>) => {
+    try {
+      await updateUniversitySection(id, updates)
+      if (selectedCourse) await loadSections(selectedCourse)
+      setEditingSection(null)
+      toast({ title: "Success", description: "Section updated successfully" })
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update section", variant: "destructive" })
+    }
+  }
+
+  const handleDeleteSection = async (id: string) => {
+    if (confirm("Are you sure you want to delete this section? All lectures will be deleted.")) {
+      try {
+        await deleteUniversitySection(id)
+        if (selectedCourse) await loadSections(selectedCourse)
+        toast({ title: "Success", description: "Section deleted successfully" })
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to delete section", variant: "destructive" })
+      }
+    }
+  }
+
+  // Lecture handlers
+  const handleCreateLecture = async (data: Omit<UniversityLecture, 'id' | 'created_at' | 'updated_at' | 'section'>) => {
+    try {
+      await createUniversityLecture(data)
+      if (selectedSection) await loadLectures(selectedSection)
+      setIsLectureDialogOpen(false)
+      toast({ title: "Success", description: "Lecture created successfully" })
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to create lecture", variant: "destructive" })
+    }
+  }
+
+  const handleUpdateLecture = async (id: string, updates: Partial<UniversityLecture>) => {
+    try {
+      await updateUniversityLecture(id, updates)
+      if (selectedSection) await loadLectures(selectedSection)
+      setEditingLecture(null)
+      toast({ title: "Success", description: "Lecture updated successfully" })
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update lecture", variant: "destructive" })
+    }
+  }
+
+  const handleDeleteLecture = async (id: string) => {
+    if (confirm("Are you sure you want to delete this lecture?")) {
+      try {
+        await deleteUniversityLecture(id)
+        if (selectedSection) await loadLectures(selectedSection)
+        toast({ title: "Success", description: "Lecture deleted successfully" })
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to delete lecture", variant: "destructive" })
+      }
+    }
+  }
+
+  // Quiz handlers
+  const handleCreateQuiz = async (data: Omit<UniversityQuiz, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      console.log("Creating quiz with data:", data)
+      // Ensure questions is always an array
+      const quizData = {
+        ...data,
+        questions: Array.isArray(data.questions) ? data.questions : [],
+      }
+      await createUniversityQuiz(quizData)
+      await loadData()
+      setIsQuizDialogOpen(false)
+      setEditingQuiz(null)
+      toast({ title: "Success", description: "Quiz created successfully" })
+    } catch (error: any) {
+      console.error("Error creating quiz:", error)
+      toast({ 
+        title: "Error", 
+        description: error?.message || "Failed to create quiz. Please check the browser console for details.", 
+        variant: "destructive" 
+      })
+    }
+  }
+
+  const handleUpdateQuiz = async (id: string, updates: Partial<UniversityQuiz>) => {
+    try {
+      console.log("Updating quiz with id:", id, "updates:", updates)
+      // Ensure questions is always an array if provided
+      const updateData = {
+        ...updates,
+        ...(updates.questions && { questions: Array.isArray(updates.questions) ? updates.questions : [] }),
+      }
+      await updateUniversityQuiz(id, updateData)
+      await loadData()
+      setEditingQuiz(null)
+      setIsQuizDialogOpen(false)
+      toast({ title: "Success", description: "Quiz updated successfully" })
+    } catch (error: any) {
+      console.error("Error updating quiz:", error)
+      toast({ 
+        title: "Error", 
+        description: error?.message || "Failed to update quiz. Please check the browser console for details.", 
+        variant: "destructive" 
+      })
+    }
+  }
+
+  const handleDeleteQuiz = async (id: string) => {
+    if (confirm("Are you sure you want to delete this quiz?")) {
+      try {
+        await deleteUniversityQuiz(id)
+        await loadData()
+        toast({ title: "Success", description: "Quiz deleted successfully" })
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to delete quiz", variant: "destructive" })
+      }
+    }
+  }
+
+  const getContentTypeIcon = (type: string) => {
+    switch (type) {
+      case 'video': return <Video className="h-4 w-4" />
+      case 'text': return <FileText className="h-4 w-4" />
+      case 'quiz': return <HelpCircle className="h-4 w-4" />
+      case 'download': return <Download className="h-4 w-4" />
+      case 'link': return <ExternalLink className="h-4 w-4" />
+      default: return <FileText className="h-4 w-4" />
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <Tabs defaultValue="schools" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="schools">
+            <GraduationCap className="h-4 w-4 mr-2" />
+            Schools
+          </TabsTrigger>
+          <TabsTrigger value="courses">
+            <BookOpen className="h-4 w-4 mr-2" />
+            Courses
+          </TabsTrigger>
+          <TabsTrigger value="sections">
+            <FileText className="h-4 w-4 mr-2" />
+            Sections
+          </TabsTrigger>
+          <TabsTrigger value="lectures">
+            <Video className="h-4 w-4 mr-2" />
+            Lectures
+          </TabsTrigger>
+          <TabsTrigger value="quizzes">
+            <HelpCircle className="h-4 w-4 mr-2" />
+            Quizzes
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Schools Tab */}
+        <TabsContent value="schools" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold" style={{ color: '#060520' }}>Schools</h2>
+            <Button onClick={() => { setEditingSchool(null); setIsSchoolDialogOpen(true) }}>
+              <Plus className="h-4 w-4 mr-2" />
+              New School
+            </Button>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {schools.map((school) => (
+              <Card key={school.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle style={{ color: '#060520' }}>{school.name}</CardTitle>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => { setEditingSchool(school); setIsSchoolDialogOpen(true) }}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteSchool(school.id)}>
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                  {school.description && <CardDescription>{school.description}</CardDescription>}
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <Badge variant={school.is_active ? "default" : "secondary"}>
+                      {school.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                    <span className="text-sm text-gray-500">Order: {school.sort_order}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* Courses Tab */}
+        <TabsContent value="courses" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold" style={{ color: '#060520' }}>Courses</h2>
+            <Button onClick={() => { setEditingCourse(null); setIsCourseDialogOpen(true) }}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Course
+            </Button>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {courses.map((course) => (
+              <Card key={course.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle style={{ color: '#060520' }}>{course.title}</CardTitle>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => { setEditingCourse(course); setIsCourseDialogOpen(true) }}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteCourse(course.id)}>
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                  {course.description && <CardDescription>{course.description}</CardDescription>}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Badge variant={course.is_active ? "default" : "secondary"}>
+                        {course.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                      {course.difficulty_level && (
+                        <Badge variant="outline">{course.difficulty_level}</Badge>
+                      )}
+                    </div>
+                    {course.estimated_duration_minutes && (
+                      <p className="text-sm text-gray-500">
+                        Duration: {Math.round(course.estimated_duration_minutes / 60)}h {course.estimated_duration_minutes % 60}m
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* Sections Tab */}
+        <TabsContent value="sections" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold" style={{ color: '#060520' }}>Sections</h2>
+            <div className="flex gap-2">
+              <Select value={selectedCourse || ""} onValueChange={setSelectedCourse}>
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Select a course" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button 
+                onClick={() => { setEditingSection(null); setIsSectionDialogOpen(true) }}
+                disabled={!selectedCourse}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Section
+              </Button>
+            </div>
+          </div>
+          {selectedCourse ? (
+            <div className="space-y-4">
+              {sections.map((section) => (
+                <Card key={section.id}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <CardTitle style={{ color: '#060520' }}>{section.title}</CardTitle>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => { setEditingSection(section); setIsSectionDialogOpen(true) }}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteSection(section.id)}>
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                    {section.description && <CardDescription>{section.description}</CardDescription>}
+                  </CardHeader>
+                  <CardContent>
+                    <Badge variant={section.is_active ? "default" : "secondary"}>
+                      {section.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-gray-500">Please select a course to view sections</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Lectures Tab */}
+        <TabsContent value="lectures" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold" style={{ color: '#060520' }}>Lectures</h2>
+            <div className="flex gap-2">
+              <Select value={selectedSection || ""} onValueChange={setSelectedSection}>
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Select a section" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sections.map((section) => (
+                    <SelectItem key={section.id} value={section.id}>{section.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button 
+                onClick={() => { setEditingLecture(null); setIsLectureDialogOpen(true) }}
+                disabled={!selectedSection}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Lecture
+              </Button>
+            </div>
+          </div>
+          {selectedSection ? (
+            <div className="space-y-4">
+              {lectures.map((lecture) => (
+                <Card key={lecture.id}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                        {getContentTypeIcon(lecture.content_type)}
+                        <CardTitle style={{ color: '#060520' }}>{lecture.title}</CardTitle>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => { setEditingLecture(lecture); setIsLectureDialogOpen(true) }}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteLecture(lecture.id)}>
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                    {lecture.description && <CardDescription>{lecture.description}</CardDescription>}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline">{lecture.content_type}</Badge>
+                      <Badge variant={lecture.is_active ? "default" : "secondary"}>
+                        {lecture.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-gray-500">Please select a section to view lectures</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Quizzes Tab */}
+        <TabsContent value="quizzes" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold" style={{ color: '#060520' }}>Quizzes</h2>
+            <Button onClick={() => { setEditingQuiz(null); setIsQuizDialogOpen(true) }}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Quiz
+            </Button>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {quizzes.map((quiz) => (
+              <Card key={quiz.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle style={{ color: '#060520' }}>{quiz.title}</CardTitle>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => { setEditingQuiz(quiz); setIsQuizDialogOpen(true) }}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteQuiz(quiz.id)}>
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                  {quiz.description && <CardDescription>{quiz.description}</CardDescription>}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Badge variant={quiz.is_active ? "default" : "secondary"}>
+                        {quiz.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                      <span className="text-sm text-gray-500">Pass: {quiz.passing_score}%</span>
+                    </div>
+                    {quiz.time_limit_minutes && (
+                      <p className="text-sm text-gray-500">Time Limit: {quiz.time_limit_minutes} min</p>
+                    )}
+                    <p className="text-sm text-gray-500">
+                      Questions: {Array.isArray(quiz.questions) ? quiz.questions.length : 0}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* School Dialog */}
+      <SchoolDialog
+        open={isSchoolDialogOpen}
+        onOpenChange={setIsSchoolDialogOpen}
+        school={editingSchool}
+        onSubmit={editingSchool ? (data) => handleUpdateSchool(editingSchool.id, data) : handleCreateSchool}
+      />
+
+      {/* Course Dialog */}
+      <CourseDialog
+        open={isCourseDialogOpen}
+        onOpenChange={setIsCourseDialogOpen}
+        course={editingCourse}
+        schools={schools}
+        onSubmit={editingCourse ? (data) => handleUpdateCourse(editingCourse.id, data) : handleCreateCourse}
+      />
+
+      {/* Section Dialog */}
+      <SectionDialog
+        open={isSectionDialogOpen}
+        onOpenChange={setIsSectionDialogOpen}
+        section={editingSection}
+        courseId={selectedCourse}
+        courses={courses}
+        onSubmit={editingSection ? (data) => handleUpdateSection(editingSection.id, data) : handleCreateSection}
+      />
+
+      {/* Lecture Dialog */}
+      <LectureDialog
+        open={isLectureDialogOpen}
+        onOpenChange={setIsLectureDialogOpen}
+        lecture={editingLecture}
+        sectionId={selectedSection}
+        sections={sections}
+        onSubmit={editingLecture ? (data) => handleUpdateLecture(editingLecture.id, data) : handleCreateLecture}
+      />
+
+      {/* Quiz Dialog */}
+      <QuizDialog
+        open={isQuizDialogOpen}
+        onOpenChange={setIsQuizDialogOpen}
+        quiz={editingQuiz}
+        courses={courses}
+        onSubmit={editingQuiz ? (data) => handleUpdateQuiz(editingQuiz.id, data) : handleCreateQuiz}
+      />
+    </div>
+  )
+}
+
+// Dialog Components
+function SchoolDialog({
+  open,
+  onOpenChange,
+  school,
+  onSubmit,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  school: UniversitySchool | null
+  onSubmit: (data: Omit<UniversitySchool, 'id' | 'created_at' | 'updated_at'>) => void
+}) {
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    image_url: "",
+    sort_order: 0,
+    is_active: true,
+  })
+
+  useEffect(() => {
+    if (school) {
+      setFormData({
+        name: school.name,
+        description: school.description || "",
+        image_url: school.image_url || "",
+        sort_order: school.sort_order,
+        is_active: school.is_active,
+      })
+    } else {
+      setFormData({
+        name: "",
+        description: "",
+        image_url: "",
+        sort_order: 0,
+        is_active: true,
+      })
+    }
+  }, [school, open])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit(formData)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-[#060520]">{school ? "Edit School" : "Create School"}</DialogTitle>
+          <DialogDescription className="text-gray-600">Manage school information</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label className="text-[#060520]">Name</Label>
+            <Input
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+              className="text-[#060520] placeholder:text-gray-400"
+            />
+          </div>
+          <div>
+            <Label className="text-[#060520]">Description</Label>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="text-[#060520] placeholder:text-gray-400"
+            />
+          </div>
+          <div>
+            <Label className="text-[#060520]">Image URL</Label>
+            <Input
+              value={formData.image_url}
+              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              type="url"
+              className="text-[#060520] placeholder:text-gray-400"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-[#060520]">Sort Order</Label>
+              <Input
+                value={formData.sort_order}
+                onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
+                type="number"
+                className="text-[#060520] placeholder:text-gray-400"
+              />
+            </div>
+            <div className="flex items-center space-x-2 pt-8">
+              <Switch
+                checked={formData.is_active}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+              />
+              <Label className="text-[#060520]">Active</Label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Save</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function CourseDialog({
+  open,
+  onOpenChange,
+  course,
+  schools,
+  onSubmit,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  course: UniversityCourse | null
+  schools: UniversitySchool[]
+  onSubmit: (data: Omit<UniversityCourse, 'id' | 'created_at' | 'updated_at' | 'school' | 'sections'>) => void
+}) {
+  const [formData, setFormData] = useState({
+    school_id: "",
+    title: "",
+    description: "",
+    image_url: "",
+    estimated_duration_minutes: 0,
+    difficulty_level: "beginner" as "beginner" | "intermediate" | "advanced",
+    sort_order: 0,
+    is_active: true,
+  })
+
+  useEffect(() => {
+    if (course) {
+      setFormData({
+        school_id: course.school_id,
+        title: course.title,
+        description: course.description || "",
+        image_url: course.image_url || "",
+        estimated_duration_minutes: course.estimated_duration_minutes || 0,
+        difficulty_level: course.difficulty_level || "beginner",
+        sort_order: course.sort_order,
+        is_active: course.is_active,
+      })
+    } else {
+      setFormData({
+        school_id: schools[0]?.id || "",
+        title: "",
+        description: "",
+        image_url: "",
+        estimated_duration_minutes: 0,
+        difficulty_level: "beginner",
+        sort_order: 0,
+        is_active: true,
+      })
+    }
+  }, [course, open, schools])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit(formData)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-[#060520]">{course ? "Edit Course" : "Create Course"}</DialogTitle>
+          <DialogDescription className="text-gray-600">Manage course information</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label className="text-[#060520]">School</Label>
+            <Select value={formData.school_id} onValueChange={(value) => setFormData({ ...formData, school_id: value })}>
+              <SelectTrigger className="text-[#060520] placeholder:text-gray-400">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="text-[#060520]">
+                {schools.map((school) => (
+                  <SelectItem key={school.id} value={school.id} className="text-[#060520]">{school.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-[#060520]">Title</Label>
+            <Input
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+              className="text-[#060520] placeholder:text-gray-400"
+            />
+          </div>
+          <div>
+            <Label className="text-[#060520]">Description</Label>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="text-[#060520] placeholder:text-gray-400"
+            />
+          </div>
+          <div>
+            <Label className="text-[#060520]">Image URL</Label>
+            <Input
+              value={formData.image_url}
+              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              type="url"
+              className="text-[#060520] placeholder:text-gray-400"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-[#060520]">Estimated Duration (minutes)</Label>
+              <Input
+                value={formData.estimated_duration_minutes}
+                onChange={(e) => setFormData({ ...formData, estimated_duration_minutes: parseInt(e.target.value) || 0 })}
+                type="number"
+                className="text-[#060520] placeholder:text-gray-400"
+              />
+            </div>
+            <div>
+              <Label className="text-[#060520]">Difficulty Level</Label>
+              <Select value={formData.difficulty_level} onValueChange={(value: any) => setFormData({ ...formData, difficulty_level: value })}>
+                <SelectTrigger className="text-[#060520] placeholder:text-gray-400">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="text-[#060520]">
+                  <SelectItem value="beginner" className="text-[#060520]">Beginner</SelectItem>
+                  <SelectItem value="intermediate" className="text-[#060520]">Intermediate</SelectItem>
+                  <SelectItem value="advanced" className="text-[#060520]">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-[#060520]">Sort Order</Label>
+              <Input
+                value={formData.sort_order}
+                onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
+                type="number"
+                className="text-[#060520] placeholder:text-gray-400"
+              />
+            </div>
+            <div className="flex items-center space-x-2 pt-8">
+              <Switch
+                checked={formData.is_active}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+              />
+              <Label className="text-[#060520]">Active</Label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Save</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function SectionDialog({
+  open,
+  onOpenChange,
+  section,
+  courseId,
+  courses,
+  onSubmit,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  section: UniversitySection | null
+  courseId: string | null
+  courses: UniversityCourse[]
+  onSubmit: (data: Omit<UniversitySection, 'id' | 'created_at' | 'updated_at' | 'course' | 'lectures'>) => void
+}) {
+  const [formData, setFormData] = useState({
+    course_id: "",
+    title: "",
+    description: "",
+    sort_order: 0,
+    is_active: true,
+  })
+
+  useEffect(() => {
+    if (section) {
+      setFormData({
+        course_id: section.course_id,
+        title: section.title,
+        description: section.description || "",
+        sort_order: section.sort_order,
+        is_active: section.is_active,
+      })
+    } else {
+      setFormData({
+        course_id: courseId || courses[0]?.id || "",
+        title: "",
+        description: "",
+        sort_order: 0,
+        is_active: true,
+      })
+    }
+  }, [section, open, courseId, courses])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit(formData)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="text-[#060520]">{section ? "Edit Section" : "Create Section"}</DialogTitle>
+          <DialogDescription className="text-gray-600">Manage section information</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label className="text-[#060520]">Course</Label>
+            <Select value={formData.course_id} onValueChange={(value) => setFormData({ ...formData, course_id: value })}>
+              <SelectTrigger className="text-[#060520] placeholder:text-gray-400">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="text-[#060520]">
+                {courses.map((course) => (
+                  <SelectItem key={course.id} value={course.id} className="text-[#060520]">{course.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-[#060520]">Title</Label>
+            <Input
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+              className="text-[#060520] placeholder:text-gray-400"
+            />
+          </div>
+          <div>
+            <Label className="text-[#060520]">Description</Label>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="text-[#060520] placeholder:text-gray-400"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-[#060520]">Sort Order</Label>
+              <Input
+                value={formData.sort_order}
+                onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
+                type="number"
+                className="text-[#060520] placeholder:text-gray-400"
+              />
+            </div>
+            <div className="flex items-center space-x-2 pt-8">
+              <Switch
+                checked={formData.is_active}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+              />
+              <Label className="text-[#060520]">Active</Label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Save</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function LectureDialog({
+  open,
+  onOpenChange,
+  lecture,
+  sectionId,
+  sections,
+  onSubmit,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  lecture: UniversityLecture | null
+  sectionId: string | null
+  sections: UniversitySection[]
+  onSubmit: (data: Omit<UniversityLecture, 'id' | 'created_at' | 'updated_at' | 'section'>) => void
+}) {
+  const [formData, setFormData] = useState({
+    section_id: "",
+    title: "",
+    description: "",
+    content_type: "video" as "video" | "text" | "quiz" | "download" | "link",
+    content_data: {} as any,
+    sort_order: 0,
+    is_active: true,
+  })
+  const [videoUrl, setVideoUrl] = useState("")
+
+  // Helper function to detect video provider and format content_data
+  const parseVideoUrl = (url: string) => {
+    if (!url || url.trim() === "") {
+      return { url: "", provider: "custom" }
+    }
+
+    // YouTube detection
+    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
+    const youtubeMatch = url.match(youtubeRegex)
+    if (youtubeMatch) {
+      return {
+        url: url,
+        provider: "youtube",
+      }
+    }
+
+    // Vimeo detection
+    const vimeoRegex = /(?:vimeo\.com\/)(\d+)/
+    const vimeoMatch = url.match(vimeoRegex)
+    if (vimeoMatch) {
+      return {
+        url: url,
+        provider: "vimeo",
+      }
+    }
+
+    // Tella detection
+    if (url.includes("tella.tv")) {
+      return {
+        url: url,
+        provider: "tella",
+      }
+    }
+
+    // Default to custom
+    return {
+      url: url,
+      provider: "custom",
+    }
+  }
+
+  useEffect(() => {
+    if (lecture) {
+      const contentData = lecture.content_data || {}
+      setFormData({
+        section_id: lecture.section_id,
+        title: lecture.title,
+        description: lecture.description || "",
+        content_type: lecture.content_type,
+        content_data: contentData,
+        sort_order: lecture.sort_order,
+        is_active: lecture.is_active,
+      })
+      // Set video URL if it's a video type
+      if (lecture.content_type === "video" && contentData.url) {
+        setVideoUrl(contentData.url)
+      } else {
+        setVideoUrl("")
+      }
+    } else {
+      setFormData({
+        section_id: sectionId || sections[0]?.id || "",
+        title: "",
+        description: "",
+        content_type: "video",
+        content_data: {},
+        sort_order: 0,
+        is_active: true,
+      })
+      setVideoUrl("")
+    }
+  }, [lecture, open, sectionId, sections])
+
+  // Update content_data when video URL changes
+  useEffect(() => {
+    if (formData.content_type === "video") {
+      const parsed = parseVideoUrl(videoUrl)
+      setFormData(prev => ({
+        ...prev,
+        content_data: parsed,
+      }))
+    }
+  }, [videoUrl, formData.content_type])
+
+  // Reset video URL when content type changes
+  useEffect(() => {
+    if (formData.content_type !== "video") {
+      setVideoUrl("")
+    } else if (formData.content_data?.url) {
+      setVideoUrl(formData.content_data.url)
+    }
+  }, [formData.content_type])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit(formData)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-[#060520]">{lecture ? "Edit Lecture" : "Create Lecture"}</DialogTitle>
+          <DialogDescription className="text-gray-600">Manage lecture content</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label className="text-[#060520]">Section</Label>
+            <Select value={formData.section_id} onValueChange={(value) => setFormData({ ...formData, section_id: value })}>
+              <SelectTrigger className="text-[#060520] placeholder:text-gray-400">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="text-[#060520]">
+                {sections.map((section) => (
+                  <SelectItem key={section.id} value={section.id} className="text-[#060520]">{section.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-[#060520]">Title</Label>
+            <Input
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+              className="text-[#060520] placeholder:text-gray-400"
+            />
+          </div>
+          <div>
+            <Label className="text-[#060520]">Description</Label>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="text-[#060520] placeholder:text-gray-400"
+            />
+          </div>
+          <div>
+            <Label className="text-[#060520]">Content Type</Label>
+            <Select value={formData.content_type} onValueChange={(value: any) => setFormData({ ...formData, content_type: value, content_data: {} })}>
+              <SelectTrigger className="text-[#060520] placeholder:text-gray-400">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="text-[#060520]">
+                <SelectItem value="video" className="text-[#060520]">Video</SelectItem>
+                <SelectItem value="text" className="text-[#060520]">Text</SelectItem>
+                <SelectItem value="quiz" className="text-[#060520]">Quiz</SelectItem>
+                <SelectItem value="download" className="text-[#060520]">Download</SelectItem>
+                <SelectItem value="link" className="text-[#060520]">Link</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Video URL Input - Simple field for videos */}
+          {formData.content_type === "video" && (
+            <div>
+              <Label className="text-[#060520]">Video URL</Label>
+              <Input
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                placeholder="https://youtu.be/WZ3hTvi5Mfs or https://www.youtube.com/watch?v=..."
+                className="text-[#060520] placeholder:text-gray-400"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Supports YouTube (youtube.com or youtu.be), Vimeo, Tella, and other video URLs. 
+                The provider will be automatically detected.
+              </p>
+              {videoUrl && formData.content_data?.provider && (
+                <p className="text-xs text-green-600 mt-1">
+                  ✓ Detected: {formData.content_data.provider === "youtube" ? "YouTube" : 
+                                formData.content_data.provider === "vimeo" ? "Vimeo" :
+                                formData.content_data.provider === "tella" ? "Tella" : "Custom"} video
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Content Data (JSON) - For non-video types or advanced editing */}
+          {formData.content_type !== "video" && (
+            <div>
+              <Label className="text-[#060520]">Content Data (JSON)</Label>
+              <Textarea
+                value={JSON.stringify(formData.content_data, null, 2)}
+                onChange={(e) => {
+                  try {
+                    setFormData({ ...formData, content_data: JSON.parse(e.target.value) })
+                  } catch {
+                    // Invalid JSON, keep as is
+                  }
+                }}
+                rows={6}
+                placeholder={
+                  formData.content_type === "text" 
+                    ? '{"content": "Your text content here", "format": "markdown"}'
+                    : formData.content_type === "link"
+                    ? '{"url": "https://example.com", "title": "Link Title", "description": "Link description"}'
+                    : formData.content_type === "download"
+                    ? '{"file_url": "https://example.com/file.pdf", "file_name": "Document.pdf", "file_size": 1024000}'
+                    : formData.content_type === "quiz"
+                    ? '{"quiz_id": "uuid-of-quiz"}'
+                    : '{}'
+                }
+                className="text-[#060520] placeholder:text-gray-400 font-mono text-sm"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.content_type === "text" && "Enter text content and format (markdown or html)."}
+                {formData.content_type === "link" && "Enter link URL, title, and description."}
+                {formData.content_type === "download" && "Enter file URL, file name, and file size in bytes."}
+                {formData.content_type === "quiz" && "Enter the quiz ID to link to a quiz."}
+              </p>
+            </div>
+          )}
+
+          {/* Advanced JSON Editor for videos (collapsible) */}
+          {formData.content_type === "video" && (
+            <details className="text-xs">
+              <summary className="text-gray-500 cursor-pointer hover:text-gray-700">
+                Advanced: Edit JSON directly
+              </summary>
+              <div className="mt-2">
+                <Textarea
+                  value={JSON.stringify(formData.content_data, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      const parsed = JSON.parse(e.target.value)
+                      setFormData({ ...formData, content_data: parsed })
+                      if (parsed.url) {
+                        setVideoUrl(parsed.url)
+                      }
+                    } catch {
+                      // Invalid JSON, keep as is
+                    }
+                  }}
+                  rows={4}
+                  className="text-[#060520] placeholder:text-gray-400 font-mono text-sm"
+                />
+              </div>
+            </details>
+          )}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-[#060520]">Sort Order</Label>
+              <Input
+                value={formData.sort_order}
+                onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
+                type="number"
+                className="text-[#060520] placeholder:text-gray-400"
+              />
+            </div>
+            <div className="flex items-center space-x-2 pt-8">
+              <Switch
+                checked={formData.is_active}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+              />
+              <Label className="text-[#060520]">Active</Label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Save</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function QuizDialog({
+  open,
+  onOpenChange,
+  quiz,
+  courses,
+  onSubmit,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  quiz: UniversityQuiz | null
+  courses: UniversityCourse[]
+  onSubmit: (data: Omit<UniversityQuiz, 'id' | 'created_at' | 'updated_at'>) => void
+}) {
+  const [formData, setFormData] = useState({
+    lecture_id: "",
+    course_id: "",
+    title: "",
+    description: "",
+    passing_score: 70,
+    time_limit_minutes: 0,
+    questions: [] as any[],
+    is_active: true,
+  })
+
+  useEffect(() => {
+    if (quiz) {
+      setFormData({
+        lecture_id: quiz.lecture_id || "",
+        course_id: quiz.course_id || "none",
+        title: quiz.title,
+        description: quiz.description || "",
+        passing_score: quiz.passing_score,
+        time_limit_minutes: quiz.time_limit_minutes || 0,
+        questions: Array.isArray(quiz.questions) ? quiz.questions : [],
+        is_active: quiz.is_active,
+      })
+    } else {
+      setFormData({
+        lecture_id: "",
+        course_id: "none",
+        title: "",
+        description: "",
+        passing_score: 70,
+        time_limit_minutes: 0,
+        questions: [],
+        is_active: true,
+      })
+    }
+  }, [quiz, open, courses])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Validate required fields
+    if (!formData.title || formData.title.trim() === "") {
+      toast({
+        title: "Error",
+        description: "Title is required",
+        variant: "destructive"
+      })
+      return
+    }
+    
+    // Validate questions JSON
+    let questions = formData.questions
+    try {
+      // Try to parse if it's a string (from textarea)
+      if (typeof formData.questions === 'string') {
+        const trimmed = formData.questions.trim()
+        if (trimmed === "") {
+          questions = []
+        } else {
+          questions = JSON.parse(trimmed)
+        }
+      }
+      // Ensure it's an array
+      if (!Array.isArray(questions)) {
+        toast({
+          title: "Error",
+          description: "Questions must be a valid JSON array",
+          variant: "destructive"
+        })
+        return
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: `Invalid JSON format for questions: ${error.message}. Please check your syntax.`,
+        variant: "destructive"
+      })
+      return
+    }
+    
+    // Convert "none" back to empty string for course_id, and handle empty lecture_id
+    const submitData: any = {
+      title: formData.title,
+      description: formData.description || null,
+      passing_score: formData.passing_score,
+      time_limit_minutes: formData.time_limit_minutes || null,
+      questions: questions,
+      is_active: formData.is_active,
+    }
+    
+    // Only include course_id and lecture_id if they have values
+    if (formData.course_id && formData.course_id !== "none") {
+      submitData.course_id = formData.course_id
+    }
+    if (formData.lecture_id && formData.lecture_id.trim() !== "") {
+      submitData.lecture_id = formData.lecture_id
+    }
+    
+    console.log("Submitting quiz data:", submitData)
+    onSubmit(submitData)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-[#060520]">{quiz ? "Edit Quiz" : "Create Quiz"}</DialogTitle>
+          <DialogDescription className="text-gray-600">Manage quiz questions and settings</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-[#060520]">Course (Optional)</Label>
+              <Select 
+                value={formData.course_id || undefined} 
+                onValueChange={(value) => setFormData({ ...formData, course_id: value === "none" ? "" : value })}
+              >
+                <SelectTrigger className="text-[#060520] placeholder:text-gray-400">
+                  <SelectValue placeholder="Select course" />
+                </SelectTrigger>
+                <SelectContent className="text-[#060520]">
+                  <SelectItem value="none" className="text-[#060520]">None</SelectItem>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id} className="text-[#060520]">{course.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-[#060520]">Lecture ID (Optional)</Label>
+              <Input
+                value={formData.lecture_id}
+                onChange={(e) => setFormData({ ...formData, lecture_id: e.target.value })}
+                placeholder="UUID of linked lecture"
+                className="text-[#060520] placeholder:text-gray-400"
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="text-[#060520]">Title</Label>
+            <Input
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+              className="text-[#060520] placeholder:text-gray-400"
+            />
+          </div>
+          <div>
+            <Label className="text-[#060520]">Description</Label>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="text-[#060520] placeholder:text-gray-400"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-[#060520]">Passing Score (%)</Label>
+              <Input
+                value={formData.passing_score}
+                onChange={(e) => setFormData({ ...formData, passing_score: parseInt(e.target.value) || 0 })}
+                type="number"
+                min="0"
+                max="100"
+                className="text-[#060520] placeholder:text-gray-400"
+              />
+            </div>
+            <div>
+              <Label className="text-[#060520]">Time Limit (minutes, 0 = no limit)</Label>
+              <Input
+                value={formData.time_limit_minutes}
+                onChange={(e) => setFormData({ ...formData, time_limit_minutes: parseInt(e.target.value) || 0 })}
+                type="number"
+                min="0"
+                className="text-[#060520] placeholder:text-gray-400"
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="text-[#060520]">Questions (JSON Array)</Label>
+            <Textarea
+              value={typeof formData.questions === 'string' ? formData.questions : JSON.stringify(formData.questions, null, 2)}
+              onChange={(e) => {
+                // Store as string to allow editing invalid JSON
+                setFormData({ ...formData, questions: e.target.value as any })
+              }}
+              rows={10}
+              placeholder='[{"id": "q1", "type": "multiple_choice", "question": "What is...?", "options": ["A", "B", "C"], "correct_answer": 0, "points": 10}]'
+              className="text-[#060520] placeholder:text-gray-400 font-mono text-sm"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Enter questions as JSON array. Each question needs: id, type, question, correct_answer, points. 
+              For multiple_choice: include options array. Example: {`[{"id": "q1", "type": "multiple_choice", "question": "What is...?", "options": ["A", "B", "C"], "correct_answer": 0, "points": 10}]`}
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={formData.is_active}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+            />
+            <Label className="text-[#060520]">Active</Label>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Save</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}

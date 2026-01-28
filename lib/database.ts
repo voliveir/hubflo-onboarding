@@ -24,6 +24,14 @@ import type {
   AnalyticsOverview,
   FeedbackBoardCard,
   ClientFollowUpEmail,
+  UniversitySchool,
+  UniversityCourse,
+  UniversitySection,
+  UniversityLecture,
+  UniversityQuiz,
+  UniversityClientProgress,
+  UniversityQuizAttempt,
+  UniversityCertificate,
 } from "./types"
 import { addDays, startOfDay, endOfDay, isWithinInterval, parseISO } from "date-fns"
 
@@ -3239,4 +3247,490 @@ export async function getAllClientTimeSummaries(): Promise<
   })
 
   return Object.values(clientSummaries)
+}
+
+// ============================================================================
+// HUBFLO UNIVERSITY DATABASE FUNCTIONS
+// ============================================================================
+
+/**
+ * Get all active schools
+ */
+export async function getUniversitySchools(): Promise<UniversitySchool[]> {
+  const { data, error } = await supabase
+    .from("university_schools")
+    .select("*")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Get a school by ID
+ */
+export async function getUniversitySchool(id: string): Promise<UniversitySchool | null> {
+  const { data, error } = await supabase
+    .from("university_schools")
+    .select("*")
+    .eq("id", id)
+    .single()
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    throw error
+  }
+  return data
+}
+
+/**
+ * Create a new school
+ */
+export async function createUniversitySchool(school: Omit<UniversitySchool, 'id' | 'created_at' | 'updated_at'>): Promise<UniversitySchool> {
+  const { data, error } = await supabase
+    .from("university_schools")
+    .insert([school])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update a school
+ */
+export async function updateUniversitySchool(id: string, updates: Partial<UniversitySchool>): Promise<UniversitySchool> {
+  const { data, error } = await supabase
+    .from("university_schools")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Delete a school
+ */
+export async function deleteUniversitySchool(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("university_schools")
+    .delete()
+    .eq("id", id)
+  if (error) throw error
+}
+
+/**
+ * Get all courses for a school
+ */
+export async function getUniversityCourses(schoolId?: string): Promise<UniversityCourse[]> {
+  let query = supabase
+    .from("university_courses")
+    .select("*, school:university_schools(*)")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+  
+  if (schoolId) {
+    query = query.eq("school_id", schoolId)
+  }
+  
+  const { data, error } = await query
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Get a course by ID with full details
+ */
+export async function getUniversityCourse(id: string): Promise<UniversityCourse | null> {
+  const { data, error } = await supabase
+    .from("university_courses")
+    .select("*, school:university_schools(*), sections:university_sections(*, lectures:university_lectures(*))")
+    .eq("id", id)
+    .single()
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    throw error
+  }
+  return data
+}
+
+/**
+ * Create a new course
+ */
+export async function createUniversityCourse(course: Omit<UniversityCourse, 'id' | 'created_at' | 'updated_at' | 'school' | 'sections'>): Promise<UniversityCourse> {
+  const { data, error } = await supabase
+    .from("university_courses")
+    .insert([course])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update a course
+ */
+export async function updateUniversityCourse(id: string, updates: Partial<UniversityCourse>): Promise<UniversityCourse> {
+  const { data, error } = await supabase
+    .from("university_courses")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Delete a course
+ */
+export async function deleteUniversityCourse(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("university_courses")
+    .delete()
+    .eq("id", id)
+  if (error) throw error
+}
+
+/**
+ * Get all sections for a course
+ */
+export async function getUniversitySections(courseId: string): Promise<UniversitySection[]> {
+  const { data, error } = await supabase
+    .from("university_sections")
+    .select("*, lectures:university_lectures(*)")
+    .eq("course_id", courseId)
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Create a new section
+ */
+export async function createUniversitySection(section: Omit<UniversitySection, 'id' | 'created_at' | 'updated_at' | 'course' | 'lectures'>): Promise<UniversitySection> {
+  const { data, error } = await supabase
+    .from("university_sections")
+    .insert([section])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update a section
+ */
+export async function updateUniversitySection(id: string, updates: Partial<UniversitySection>): Promise<UniversitySection> {
+  const { data, error } = await supabase
+    .from("university_sections")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Delete a section
+ */
+export async function deleteUniversitySection(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("university_sections")
+    .delete()
+    .eq("id", id)
+  if (error) throw error
+}
+
+/**
+ * Get all lectures for a section
+ */
+export async function getUniversityLectures(sectionId: string): Promise<UniversityLecture[]> {
+  const { data, error } = await supabase
+    .from("university_lectures")
+    .select("*")
+    .eq("section_id", sectionId)
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Get a lecture by ID
+ */
+export async function getUniversityLecture(id: string): Promise<UniversityLecture | null> {
+  const { data, error } = await supabase
+    .from("university_lectures")
+    .select("*, section:university_sections(*, course:university_courses(*))")
+    .eq("id", id)
+    .single()
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    throw error
+  }
+  return data
+}
+
+/**
+ * Create a new lecture
+ */
+export async function createUniversityLecture(lecture: Omit<UniversityLecture, 'id' | 'created_at' | 'updated_at' | 'section'>): Promise<UniversityLecture> {
+  const { data, error } = await supabase
+    .from("university_lectures")
+    .insert([lecture])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update a lecture
+ */
+export async function updateUniversityLecture(id: string, updates: Partial<UniversityLecture>): Promise<UniversityLecture> {
+  const { data, error } = await supabase
+    .from("university_lectures")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Delete a lecture
+ */
+export async function deleteUniversityLecture(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("university_lectures")
+    .delete()
+    .eq("id", id)
+  if (error) throw error
+}
+
+/**
+ * Get all quizzes
+ */
+export async function getUniversityQuizzes(courseId?: string, lectureId?: string): Promise<UniversityQuiz[]> {
+  let query = supabase
+    .from("university_quizzes")
+    .select("*")
+    .eq("is_active", true)
+  
+  if (courseId) {
+    query = query.eq("course_id", courseId)
+  }
+  if (lectureId) {
+    query = query.eq("lecture_id", lectureId)
+  }
+  
+  const { data, error } = await query
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Get a quiz by ID
+ */
+export async function getUniversityQuiz(id: string): Promise<UniversityQuiz | null> {
+  const { data, error } = await supabase
+    .from("university_quizzes")
+    .select("*")
+    .eq("id", id)
+    .single()
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    throw error
+  }
+  return data
+}
+
+/**
+ * Create a new quiz
+ */
+export async function createUniversityQuiz(quiz: Omit<UniversityQuiz, 'id' | 'created_at' | 'updated_at'>): Promise<UniversityQuiz> {
+  const { data, error } = await supabase
+    .from("university_quizzes")
+    .insert([quiz])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update a quiz
+ */
+export async function updateUniversityQuiz(id: string, updates: Partial<UniversityQuiz>): Promise<UniversityQuiz> {
+  const { data, error } = await supabase
+    .from("university_quizzes")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Delete a quiz
+ */
+export async function deleteUniversityQuiz(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("university_quizzes")
+    .delete()
+    .eq("id", id)
+  if (error) throw error
+}
+
+/**
+ * Get client progress for a course
+ */
+export async function getClientUniversityProgress(clientId: string, courseId?: string): Promise<UniversityClientProgress[]> {
+  let query = supabase
+    .from("university_client_progress")
+    .select("*")
+    .eq("client_id", clientId)
+  
+  if (courseId) {
+    query = query.eq("course_id", courseId)
+  }
+  
+  const { data, error } = await query
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Update client progress for a lecture
+ */
+export async function updateClientUniversityProgress(
+  clientId: string,
+  lectureId: string,
+  courseId: string,
+  progress: { progress_percentage: number; is_completed?: boolean; time_spent_minutes?: number }
+): Promise<UniversityClientProgress> {
+  // Check if progress exists
+  const { data: existing } = await supabase
+    .from("university_client_progress")
+    .select("*")
+    .eq("client_id", clientId)
+    .eq("lecture_id", lectureId)
+    .single()
+  
+  const progressData = {
+    client_id: clientId,
+    lecture_id: lectureId,
+    course_id: courseId,
+    progress_percentage: progress.progress_percentage,
+    is_completed: progress.is_completed || false,
+    time_spent_minutes: progress.time_spent_minutes || 0,
+    last_accessed_at: new Date().toISOString(),
+    completed_at: progress.is_completed ? new Date().toISOString() : null,
+  }
+  
+  if (existing) {
+    const { data, error } = await supabase
+      .from("university_client_progress")
+      .update(progressData)
+      .eq("id", existing.id)
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  } else {
+    const { data, error } = await supabase
+      .from("university_client_progress")
+      .insert([progressData])
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  }
+}
+
+/**
+ * Submit a quiz attempt
+ */
+export async function submitQuizAttempt(
+  clientId: string,
+  quizId: string,
+  answers: any,
+  score: number,
+  timeTakenMinutes?: number
+): Promise<UniversityQuizAttempt> {
+  const quiz = await getUniversityQuiz(quizId)
+  if (!quiz) throw new Error("Quiz not found")
+  
+  const passed = score >= quiz.passing_score
+  
+  const { data, error } = await supabase
+    .from("university_quiz_attempts")
+    .insert([{
+      client_id: clientId,
+      quiz_id: quizId,
+      score,
+      passed,
+      answers,
+      time_taken_minutes: timeTakenMinutes,
+      completed_at: new Date().toISOString(),
+    }])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Get quiz attempts for a client
+ */
+export async function getClientQuizAttempts(clientId: string, quizId?: string): Promise<UniversityQuizAttempt[]> {
+  let query = supabase
+    .from("university_quiz_attempts")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false })
+  
+  if (quizId) {
+    query = query.eq("quiz_id", quizId)
+  }
+  
+  const { data, error } = await query
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Get certificates for a client
+ */
+export async function getClientCertificates(clientId: string): Promise<UniversityCertificate[]> {
+  const { data, error } = await supabase
+    .from("university_certificates")
+    .select("*, course:university_courses(*)")
+    .eq("client_id", clientId)
+    .order("issued_at", { ascending: false })
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Create a certificate for a client
+ */
+export async function createClientCertificate(clientId: string, courseId: string, certificateUrl?: string): Promise<UniversityCertificate> {
+  const { data, error } = await supabase
+    .from("university_certificates")
+    .insert([{
+      client_id: clientId,
+      course_id: courseId,
+      certificate_url: certificateUrl,
+    }])
+    .select()
+    .single()
+  if (error) throw error
+  return data
 }

@@ -19,6 +19,7 @@ import {
   Kanban,
   BarChart3,
   TrendingUp,
+  GraduationCap,
 } from "lucide-react"
 
 type NavChild = { name: string; href: string };
@@ -92,6 +93,11 @@ const navigation = [
     name: "Integrations",
     href: "/admin/integrations",
     icon: Puzzle,
+  },
+  {
+    name: "University",
+    href: "/admin/university",
+    icon: GraduationCap,
   },
   {
     name: "Settings",

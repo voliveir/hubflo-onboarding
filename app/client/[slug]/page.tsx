@@ -320,7 +320,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       {/* Onboarding Access Guide - NEW SECTION */}
       <PortalSection gradient={false} className="relative overflow-hidden bg-white">
         <div className="max-w-6xl mx-auto">
-          <ClientChecklist clientId={client.id} clientName={clientName} client={client} />
+          <ClientChecklist clientId={client.id} clientName={clientName} clientSlug={slug} client={client} />
         </div>
       </PortalSection>
 

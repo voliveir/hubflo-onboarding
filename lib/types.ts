@@ -800,4 +800,122 @@ export interface ClientTimeSummary {
   entry_count: number;
 }
 
+// ============================================================================
+// HUBFLO UNIVERSITY TYPES
+// ============================================================================
+
+export interface UniversitySchool {
+  id: string;
+  name: string;
+  description?: string;
+  image_url?: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UniversityCourse {
+  id: string;
+  school_id: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  estimated_duration_minutes?: number;
+  difficulty_level?: 'beginner' | 'intermediate' | 'advanced';
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  school?: UniversitySchool;
+  sections?: UniversitySection[];
+}
+
+export interface UniversitySection {
+  id: string;
+  course_id: string;
+  title: string;
+  description?: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  course?: UniversityCourse;
+  lectures?: UniversityLecture[];
+}
+
+export interface UniversityLecture {
+  id: string;
+  section_id: string;
+  title: string;
+  description?: string;
+  content_type: 'video' | 'text' | 'quiz' | 'download' | 'link';
+  content_data: any; // JSONB - flexible structure based on content_type
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  section?: UniversitySection;
+}
+
+export interface UniversityQuiz {
+  id: string;
+  lecture_id?: string;
+  course_id?: string;
+  title: string;
+  description?: string;
+  passing_score: number;
+  time_limit_minutes?: number;
+  questions: QuizQuestion[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  type: 'multiple_choice' | 'true_false' | 'short_answer';
+  question: string;
+  options?: string[];
+  correct_answer: string | number;
+  points: number;
+  explanation?: string;
+}
+
+export interface UniversityClientProgress {
+  id: string;
+  client_id: string;
+  course_id: string;
+  lecture_id?: string;
+  progress_percentage: number;
+  is_completed: boolean;
+  completed_at?: string;
+  time_spent_minutes: number;
+  last_accessed_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UniversityQuizAttempt {
+  id: string;
+  client_id: string;
+  quiz_id: string;
+  score: number;
+  passed: boolean;
+  answers: any; // JSONB - user's answers
+  time_taken_minutes?: number;
+  started_at: string;
+  completed_at?: string;
+  created_at: string;
+}
+
+export interface UniversityCertificate {
+  id: string;
+  client_id: string;
+  course_id: string;
+  certificate_url?: string;
+  issued_at: string;
+  created_at: string;
+}
+
 
