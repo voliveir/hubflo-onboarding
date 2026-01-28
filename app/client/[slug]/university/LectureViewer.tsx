@@ -253,15 +253,31 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
           'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'img', 'div', 'span',
           'table', 'thead', 'tbody', 'tr', 'th', 'td', 'hr', 'sub', 'sup'
         ],
-        ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel'],
+        ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel', 'width', 'height', 'style'],
         ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
       })
       
       return (
-        <div 
-          className="prose max-w-none prose-headings:text-[#060520] prose-p:text-gray-700 prose-strong:text-[#060520] prose-a:text-brand-gold prose-a:no-underline hover:prose-a:underline prose-ul:list-disc prose-ol:list-decimal prose-li:my-1"
-          dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
-        />
+        <>
+          <style dangerouslySetInnerHTML={{__html: `
+            .lecture-content img {
+              border-radius: 8px;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+              margin: 1.5rem auto;
+              max-width: 100%;
+              height: auto;
+              display: block;
+            }
+            .lecture-content img:hover {
+              box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+              transition: box-shadow 0.2s ease-in-out;
+            }
+          `}} />
+          <div 
+            className="lecture-content prose max-w-none prose-headings:text-[#060520] prose-p:text-gray-700 prose-strong:text-[#060520] prose-a:text-brand-gold prose-a:no-underline hover:prose-a:underline prose-ul:list-disc prose-ol:list-decimal prose-li:my-1"
+            dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
+          />
+        </>
       )
     } else {
       // Plain text - preserve line breaks and whitespace

@@ -1415,8 +1415,25 @@ function LectureDialog({
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     This text content will be displayed alongside or instead of the video for clients who prefer reading.
-                    {textFormat === "html" && " You can use HTML tags for formatting (e.g., &lt;p&gt;, &lt;strong&gt;, &lt;ul&gt;, &lt;li&gt;, etc.)."}
-                    {textFormat === "markdown" && " You can use Markdown syntax for formatting (e.g., **bold**, *italic*, - lists, etc.)."}
+                    {textFormat === "html" && (
+                      <>
+                        {" You can use HTML tags for formatting (e.g., "}
+                        <code className="text-xs bg-gray-100 px-1 rounded">&lt;p&gt;</code>
+                        {", "}
+                        <code className="text-xs bg-gray-100 px-1 rounded">&lt;strong&gt;</code>
+                        {", "}
+                        <code className="text-xs bg-gray-100 px-1 rounded">&lt;ul&gt;</code>
+                        {", "}
+                        <code className="text-xs bg-gray-100 px-1 rounded">&lt;li&gt;</code>
+                        {"). "}
+                        <strong>To add images or GIFs:</strong> Use {" "}
+                        <code className="text-xs bg-gray-100 px-1 rounded">&lt;img src="URL" alt="description" /&gt;</code>
+                        {" (e.g., "}
+                        <code className="text-xs bg-gray-100 px-1 rounded">&lt;img src="https://example.com/image.gif" alt="Example" /&gt;</code>
+                        {")."}
+                      </>
+                    )}
+                    {textFormat === "markdown" && " You can use Markdown syntax for formatting (e.g., **bold**, *italic*, - lists, etc.). To add images: ![alt text](image-url)."}
                   </p>
                 </div>
               )}
