@@ -811,6 +811,8 @@ export interface UniversitySchool {
   image_url?: string;
   sort_order: number;
   phase?: number; // 1 = start, 2 = middle, 3 = end (for recommended programs grouping)
+  /** When set: recommend this program if client answered Yes to every question_key in this array */
+  recommend_when_yes_to_question_keys?: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;

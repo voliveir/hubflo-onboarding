@@ -3258,6 +3258,12 @@ export async function getAllClientTimeSummaries(): Promise<
 /**
  * Get all active schools
  */
+function normalizeSchoolRecommendKeys(school: Record<string, unknown>): UniversitySchool {
+  const keys = school.recommend_when_yes_to_question_keys
+  const arr = Array.isArray(keys) ? keys : typeof keys === "string" ? JSON.parse(keys || "[]") : []
+  return { ...school, recommend_when_yes_to_question_keys: arr } as UniversitySchool
+}
+
 export async function getUniversitySchools(): Promise<UniversitySchool[]> {
   const { data, error } = await supabase
     .from("university_schools")
@@ -3265,7 +3271,7 @@ export async function getUniversitySchools(): Promise<UniversitySchool[]> {
     .eq("is_active", true)
     .order("sort_order", { ascending: true })
   if (error) throw error
-  return data || []
+  return (data || []).map(normalizeSchoolRecommendKeys)
 }
 
 /**
@@ -3281,34 +3287,40 @@ export async function getUniversitySchool(id: string): Promise<UniversitySchool 
     if (error.code === 'PGRST116') return null
     throw error
   }
-  return data
+  return data ? normalizeSchoolRecommendKeys(data) : null
 }
 
 /**
  * Create a new school
  */
 export async function createUniversitySchool(school: Omit<UniversitySchool, 'id' | 'created_at' | 'updated_at'>): Promise<UniversitySchool> {
+  const payload = { ...school }
+  if (payload.recommend_when_yes_to_question_keys != null && !Array.isArray(payload.recommend_when_yes_to_question_keys))
+    payload.recommend_when_yes_to_question_keys = []
   const { data, error } = await supabase
     .from("university_schools")
-    .insert([school])
+    .insert([payload])
     .select()
     .single()
   if (error) throw error
-  return data
+  return data ? normalizeSchoolRecommendKeys(data) : (data as UniversitySchool)
 }
 
 /**
  * Update a school
  */
 export async function updateUniversitySchool(id: string, updates: Partial<UniversitySchool>): Promise<UniversitySchool> {
+  const payload = { ...updates, updated_at: new Date().toISOString() }
+  if (payload.recommend_when_yes_to_question_keys != null && !Array.isArray(payload.recommend_when_yes_to_question_keys))
+    payload.recommend_when_yes_to_question_keys = []
   const { data, error } = await supabase
     .from("university_schools")
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(payload)
     .eq("id", id)
     .select()
     .single()
   if (error) throw error
-  return data
+  return data ? normalizeSchoolRecommendKeys(data) : (data as UniversitySchool)
 }
 
 /**

@@ -784,6 +784,7 @@ export function UniversityManager() {
         open={isSchoolDialogOpen}
         onOpenChange={setIsSchoolDialogOpen}
         school={editingSchool}
+        onboardingQuestions={onboardingQuestions}
         onSubmit={editingSchool ? (data) => handleUpdateSchool(editingSchool.id, data) : handleCreateSchool}
       />
 
@@ -849,11 +850,13 @@ function SchoolDialog({
   open,
   onOpenChange,
   school,
+  onboardingQuestions,
   onSubmit,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   school: UniversitySchool | null
+  onboardingQuestions: UniversityOnboardingQuestion[]
   onSubmit: (data: Omit<UniversitySchool, 'id' | 'created_at' | 'updated_at'>) => void
 }) {
   const [formData, setFormData] = useState({
@@ -862,6 +865,7 @@ function SchoolDialog({
     image_url: "",
     sort_order: 0,
     phase: 1 as 1 | 2 | 3,
+    recommend_when_yes_to_question_keys: [] as string[],
     is_active: true,
   })
 
@@ -873,6 +877,7 @@ function SchoolDialog({
         image_url: school.image_url || "",
         sort_order: school.sort_order,
         phase: (school.phase ?? 1) as 1 | 2 | 3,
+        recommend_when_yes_to_question_keys: school.recommend_when_yes_to_question_keys ?? [],
         is_active: school.is_active,
       })
     } else {
@@ -882,6 +887,7 @@ function SchoolDialog({
         image_url: "",
         sort_order: 0,
         phase: 1,
+        recommend_when_yes_to_question_keys: [],
         is_active: true,
       })
     }
@@ -929,7 +935,7 @@ function SchoolDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-[#060520]">Phase (for recommended programs)</Label>
+              <Label className="text-[#060520]">Phase (where this program appears in client recommendations)</Label>
               <Select
                 value={String(formData.phase)}
                 onValueChange={(v) => setFormData({ ...formData, phase: Number(v) as 1 | 2 | 3 })}
@@ -938,11 +944,12 @@ function SchoolDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1" className="text-[#060520]">1 – Start (workspace & Hubflo)</SelectItem>
-                  <SelectItem value="2" className="text-[#060520]">2 – Middle (billing & integrations)</SelectItem>
-                  <SelectItem value="3" className="text-[#060520]">3 – End (automations & rest)</SelectItem>
+                  <SelectItem value="1" className="text-[#060520]">Phase 1 – Start (workspace & Hubflo)</SelectItem>
+                  <SelectItem value="2" className="text-[#060520]">Phase 2 – Middle (billing & integrations)</SelectItem>
+                  <SelectItem value="3" className="text-[#060520]">Phase 3 – End (automations & rest)</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-gray-500 mt-1">Choose which block (Phase 1, 2, or 3) this program shows under on the client&apos;s &quot;Your implementation path&quot;.</p>
             </div>
             <div>
               <Label className="text-[#060520]">Sort Order</Label>
@@ -952,6 +959,36 @@ function SchoolDialog({
                 type="number"
                 className="text-[#060520] placeholder:text-gray-400"
               />
+            </div>
+          </div>
+          <div>
+            <Label className="text-[#060520]">Recommend this program when client answers Yes to all of:</Label>
+            <p className="text-sm text-gray-500 mb-2">If the client says Yes to every question you select below, this program will be recommended (in addition to any per-question recommendations).</p>
+            <div className="border rounded-lg p-4 bg-gray-50 space-y-2 max-h-48 overflow-y-auto">
+              {onboardingQuestions.length === 0 ? (
+                <p className="text-sm text-gray-500">No onboarding questions yet. Add questions in the Onboarding tab first.</p>
+              ) : (
+                onboardingQuestions.map((q) => {
+                  const selected = formData.recommend_when_yes_to_question_keys.includes(q.question_key)
+                  return (
+                    <label key={q.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Checkbox
+                        checked={selected}
+                        onCheckedChange={(checked) => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            recommend_when_yes_to_question_keys: checked
+                              ? [...prev.recommend_when_yes_to_question_keys, q.question_key]
+                              : prev.recommend_when_yes_to_question_keys.filter((k) => k !== q.question_key),
+                          }))
+                        }}
+                      />
+                      <span className="text-[#060520]">{q.title}</span>
+                      <span className="text-xs text-gray-400">({q.question_key})</span>
+                    </label>
+                  )
+                })
+              )}
             </div>
           </div>
           <div className="flex items-center space-x-2">
