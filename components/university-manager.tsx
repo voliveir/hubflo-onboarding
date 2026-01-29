@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { toast } from "@/hooks/use-toast"
+import { formatCourseDuration } from "@/lib/utils"
 import {
   getUniversitySchools,
   createUniversitySchool,
@@ -464,7 +465,7 @@ export function UniversityManager() {
                     </div>
                     {course.estimated_duration_minutes && (
                       <p className="text-sm text-gray-500">
-                        Duration: {Math.round(course.estimated_duration_minutes / 60)}h {course.estimated_duration_minutes % 60}m
+                        Duration: {formatCourseDuration(course.estimated_duration_minutes)}
                       </p>
                     )}
                   </div>

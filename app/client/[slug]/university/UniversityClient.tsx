@@ -27,6 +27,7 @@ import type {
   UniversityLecture,
 } from "@/lib/types"
 import { PortalSection } from "@/components/ui/PortalSection"
+import { formatCourseDuration } from "@/lib/utils"
 import { LectureViewer } from "./LectureViewer"
 
 interface UniversityClientProps {
@@ -632,7 +633,7 @@ function SchoolDetailView({
                           {course.estimated_duration_minutes && (
                             <div className="flex items-center text-gray-600">
                               <Clock className="h-4 w-4 mr-1" />
-                              {Math.round(course.estimated_duration_minutes / 60)}h {course.estimated_duration_minutes % 60}m
+                              {formatCourseDuration(course.estimated_duration_minutes)}
                             </div>
                           )}
                           <Button
