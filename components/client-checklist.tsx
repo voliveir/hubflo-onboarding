@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PrimaryButton, SecondaryButton } from "@/components/ui/button-variants"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Settings, FileText, Users, Calendar, Star, ExternalLink, GraduationCap, Clock } from "lucide-react"
-import Link from "next/link"
+import { CheckCircle, Settings, FileText, Users, Calendar, Star, ExternalLink } from "lucide-react"
 
 interface SupportLink {
   url: string
@@ -45,15 +44,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
   // Define the checklist structure based on the new requirements
   const getChecklistTasks = (): ChecklistTask[] => {
     const baseTasks: ChecklistTask[] = [
-      // Section 1: Setup Basics & Foundations
-      {
-        id: "hubflo-university",
-        title: "Complete Hubflo University Courses",
-        description: "Learn everything you need to know about Hubflo through our comprehensive educational platform. Access courses, tutorials, quizzes, and earn certificates as you progress.",
-        completed: false,
-        accountability: "Client",
-        section: "Setup Basics & Foundations",
-      },
+      // Section 1: Setup Basics & Foundations (Hubflo University is a separate section above this checklist)
       {
         id: "basic-setup",
         title: "Basic Setup",
@@ -422,8 +413,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-4" style={{ color: '#060520' }}>Your Onboarding Checklist</h2>
           <p className="text-xl max-w-2xl mx-auto leading-relaxed" style={{ color: '#64748b' }}>
-            Complete these essential tasks to get the most out of Hubflo. Each section builds upon the previous one to
-            ensure a smooth setup process.
+            We recommend starting with Hubflo University to become a Hubflo expert. All our courses, tutorials, and in-depth education are there. This checklist covers the most basic steps required to go live with a minimal viable portal; Hubflo University expands on adding and mastering everything else. Each section builds on the previous for a smooth setup.
           </p>
         </div>
 
@@ -518,12 +508,6 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
                               >
                                 {task.title}
                               </h4>
-                              {task.id === "hubflo-university" && (
-                                <Badge variant="outline" className="text-xs border-orange-500 text-orange-600 bg-orange-50 flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  Coming Soon
-                                </Badge>
-                              )}
                             </div>
                             <Badge variant="outline" className="text-xs border-[#ECB22D] text-[#ECB22D] bg-transparent">
                               {task.accountability}
@@ -553,32 +537,8 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
                             </div>
                           )}
 
-                          {/* Special University Link */}
-                          {task.id === "hubflo-university" && (
-                            <div className="mt-4 border-t border-gray-200 pt-4">
-                              <div className="mb-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                                <div className="flex items-start gap-2">
-                                  <Clock className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                                  <p className="text-sm text-orange-800">
-                                    <strong>Coming Soon:</strong> Hubflo University is currently being built. 
-                                    You can preview the platform, but full courses and content will be available soon.
-                                  </p>
-                                </div>
-                              </div>
-                              <Link href={`/client/${clientSlug}/university`}>
-                                <PrimaryButton
-                                  type="button"
-                                  className="flex items-center gap-2 px-6 py-2 text-base w-full opacity-90 hover:opacity-100"
-                                >
-                                  <GraduationCap className="w-4 h-4" />
-                                  Preview Hubflo University
-                                </PrimaryButton>
-                              </Link>
-                            </div>
-                          )}
-
                           {/* Resources Section */}
-                          {(task.videoUrls?.length || task.supportLinks?.length) && task.id !== "hubflo-university" && (
+                          {(task.videoUrls?.length || task.supportLinks?.length) && (
                             <div className="mt-4 border-t border-gray-200 pt-4">
                               <div className="flex flex-wrap gap-2">
                                 {/* Video Tutorial Button */}

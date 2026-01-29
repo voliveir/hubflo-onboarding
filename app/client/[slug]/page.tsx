@@ -24,11 +24,12 @@ import {
   Rocket,
   MessageCircle,
   Zap,
+  GraduationCap,
 } from "lucide-react"
 import { OnboardingAccessGuideWrapper } from "@/components/OnboardingAccessGuideWrapper"
 import { ClientIntegrationsSectionWrapper } from "@/components/ClientIntegrationsSectionWrapper"
 import { ClientFeaturesSectionWrapper } from "@/components/ClientFeaturesSectionWrapper"
-import { getClientBySlug, getClientIntegrations, getClientFeaturesForPortal } from "@/lib/database"
+import { getClientBySlug, getClientIntegrations, getClientFeaturesForPortal, getUniversitySchools } from "@/lib/database"
 import Image from "next/image"
 import type { ClientIntegration, ClientFeature } from "@/lib/types"
 import { IndustryWorkflowsWrapper } from "@/components/IndustryWorkflowsWrapper"
@@ -95,6 +96,15 @@ export default async function ClientPage({ params }: ClientPageProps) {
     console.error("Error fetching client features for portal:", error)
     features = []
   }
+
+  // Fetch University schools for programs carousel
+  let universitySchools: Awaited<ReturnType<typeof getUniversitySchools>> = []
+  try {
+    universitySchools = await getUniversitySchools()
+  } catch (error) {
+    console.error("Error fetching University schools:", error)
+  }
+  const activeSchools = universitySchools.filter((s) => s.is_active)
 
   // Safe property extraction with fallbacks
   const clientName = client?.name || "Client"
@@ -317,7 +327,92 @@ export default async function ClientPage({ params }: ClientPageProps) {
         />
       </PortalSection>
 
-      {/* Onboarding Access Guide - NEW SECTION */}
+      {/* Hubflo University – same layout as Integrations with programs carousel */}
+      <PortalSection gradient={false} className="relative overflow-hidden bg-white">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
+            <GraduationCap className="h-4 w-4 text-brand-gold" />
+            <span className="text-brand-gold font-medium text-sm">Your learning path</span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-bold mb-8" style={{ color: "#060520" }}>
+            Hubflo University
+          </h2>
+          <p className="text-xl max-w-3xl mx-auto leading-relaxed" style={{ color: "#64748b" }}>
+            Learn everything you need to know about Hubflo through our comprehensive educational platform. Access courses, tutorials, quizzes, and earn certificates as you progress.
+          </p>
+        </div>
+
+        {/* Programs / badges carousel (like integration logos on homepage) */}
+        {activeSchools.length > 0 && (
+          <div className="mt-12 mb-8 relative max-w-7xl mx-auto">
+            <div className="relative overflow-hidden py-4">
+              <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+              <div className="group flex gap-8 overflow-hidden p-2 flex-row">
+                <div className="flex shrink-0 justify-around gap-8 animate-marquee flex-row">
+                  {activeSchools.map((school) => (
+                    <a
+                      key={school.id}
+                      href={`/client/${slug}/university`}
+                      className="flex flex-col items-center justify-center bg-white rounded-xl border border-gray-200 shadow-sm p-4 w-28 h-28 md:w-36 md:h-36 hover:shadow-md hover:border-brand-gold/40 transition-all"
+                    >
+                      {school.image_url ? (
+                        <img
+                          src={school.image_url}
+                          alt={school.name}
+                          className="w-12 h-12 md:w-16 md:h-16 object-contain flex-shrink-0"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <GraduationCap className="w-10 h-10 md:w-12 md:h-12 text-brand-gold flex-shrink-0" />
+                      )}
+                      <span className="text-xs font-medium mt-2 text-center line-clamp-2" style={{ color: "#060520" }}>
+                        {school.name}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+                <div className="flex shrink-0 justify-around gap-8 animate-marquee flex-row">
+                  {activeSchools.map((school) => (
+                    <a
+                      key={`dup-${school.id}`}
+                      href={`/client/${slug}/university`}
+                      className="flex flex-col items-center justify-center bg-white rounded-xl border border-gray-200 shadow-sm p-4 w-28 h-28 md:w-36 md:h-36 hover:shadow-md hover:border-brand-gold/40 transition-all"
+                    >
+                      {school.image_url ? (
+                        <img
+                          src={school.image_url}
+                          alt={school.name}
+                          className="w-12 h-12 md:w-16 md:h-16 object-contain flex-shrink-0"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <GraduationCap className="w-10 h-10 md:w-12 md:h-12 text-brand-gold flex-shrink-0" />
+                      )}
+                      <span className="text-xs font-medium mt-2 text-center line-clamp-2" style={{ color: "#060520" }}>
+                        {school.name}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="max-w-4xl mx-auto text-center mt-8">
+          <a
+            href={`/client/${slug}/university`}
+            className="inline-flex items-center gap-2 bg-[#010124] hover:bg-[#060520] text-white font-semibold rounded-xl px-8 py-4 text-base transition-colors"
+          >
+            <GraduationCap className="h-5 w-5" />
+            Open Hubflo University
+            <ArrowRight className="h-4 w-4" />
+          </a>
+        </div>
+      </PortalSection>
+
+      {/* Onboarding Checklist */}
       <PortalSection gradient={false} className="relative overflow-hidden bg-white">
         <div className="max-w-6xl mx-auto">
           <ClientChecklist clientId={client.id} clientName={clientName} clientSlug={slug} client={client} />
