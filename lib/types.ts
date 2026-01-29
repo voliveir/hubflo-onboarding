@@ -924,6 +924,8 @@ export interface UniversityOnboardingQuestionOption {
   value: string;
   label: string;
   recommended_school_ids: string[];
+  /** Optional: recommend specific courses (in addition to or instead of programs) */
+  recommended_course_ids?: string[];
 }
 
 export interface UniversityOnboardingQuestion {
@@ -948,6 +950,9 @@ export interface UniversityClientOnboarding {
   recommended_school_ids: string[];
   /** Schools recommended per phase (from question phase when answered): "1" | "2" | "3" -> school ids */
   recommended_school_ids_by_phase?: Record<string, string[]>;
+  recommended_course_ids: string[];
+  /** Courses recommended per phase (from question phase when answered): "1" | "2" | "3" -> course ids */
+  recommended_course_ids_by_phase?: Record<string, string[]>;
   created_at: string;
   updated_at: string;
 }

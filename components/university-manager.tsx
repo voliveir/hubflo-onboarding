@@ -761,13 +761,13 @@ export function UniversityManager() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-600 mb-2">Options → recommended programs:</p>
+                  <p className="text-sm text-gray-600 mb-2">Options → recommended programs & courses:</p>
                   <ul className="text-sm space-y-1">
                     {(q.options || []).map((opt) => (
                       <li key={opt.value}>
                         <strong>{opt.label}</strong>
-                        {opt.recommended_school_ids?.length
-                          ? ` → ${opt.recommended_school_ids.length} program(s)`
+                        {(opt.recommended_school_ids?.length || opt.recommended_course_ids?.length)
+                          ? ` → ${opt.recommended_school_ids?.length || 0} program(s), ${opt.recommended_course_ids?.length || 0} course(s)`
                           : " (none)"}
                       </li>
                     ))}
@@ -834,6 +834,7 @@ export function UniversityManager() {
         }}
         question={editingOnboardingQuestion}
         schools={schools}
+        courses={courses}
         onSubmit={editingOnboardingQuestion
           ? (data) => handleUpdateOnboardingQuestion(editingOnboardingQuestion.id, data)
           : handleCreateOnboardingQuestion
@@ -1911,17 +1912,19 @@ function OnboardingQuestionDialog({
   onOpenChange,
   question,
   schools,
+  courses,
   onSubmit,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   question: UniversityOnboardingQuestion | null
   schools: UniversitySchool[]
+  courses: UniversityCourse[]
   onSubmit: (data: Omit<UniversityOnboardingQuestion, "id" | "created_at" | "updated_at">) => void
 }) {
   const defaultOptions: UniversityOnboardingQuestionOption[] = [
-    { value: "yes", label: "Yes", recommended_school_ids: [] },
-    { value: "no", label: "No", recommended_school_ids: [] },
+    { value: "yes", label: "Yes", recommended_school_ids: [], recommended_course_ids: [] },
+    { value: "no", label: "No", recommended_school_ids: [], recommended_course_ids: [] },
   ]
   const [formData, setFormData] = useState({
     title: "",
@@ -1941,7 +1944,9 @@ function OnboardingQuestionDialog({
         question_text: question.question_text,
         question_key: question.question_key,
         input_type: question.input_type,
-        options: (question.options && question.options.length) ? question.options : defaultOptions,
+        options: (question.options && question.options.length)
+          ? question.options.map((o) => ({ ...o, recommended_course_ids: o.recommended_course_ids ?? [] }))
+          : defaultOptions,
         phase: question.phase as 1 | 2 | 3,
         sort_order: question.sort_order,
         is_active: question.is_active,
@@ -1952,7 +1957,7 @@ function OnboardingQuestionDialog({
         question_text: "",
         question_key: "",
         input_type: "yes_no",
-        options: defaultOptions.map((o) => ({ ...o, recommended_school_ids: [] })),
+        options: defaultOptions.map((o) => ({ ...o, recommended_school_ids: [], recommended_course_ids: [] })),
         phase: 1,
         sort_order: 0,
         is_active: true,
@@ -1974,11 +1979,27 @@ function OnboardingQuestionDialog({
     }))
   }
 
+  const setOptionRecommendedCourses = (optionIndex: number, courseIds: string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      options: prev.options.map((opt, i) =>
+        i === optionIndex ? { ...opt, recommended_course_ids: courseIds } : opt
+      ),
+    }))
+  }
+
   const toggleOptionSchool = (optionIndex: number, schoolId: string) => {
     const opt = formData.options[optionIndex]
     const ids = opt.recommended_school_ids || []
     const next = ids.includes(schoolId) ? ids.filter((id) => id !== schoolId) : [...ids, schoolId]
     setOptionRecommendedSchools(optionIndex, next)
+  }
+
+  const toggleOptionCourse = (optionIndex: number, courseId: string) => {
+    const opt = formData.options[optionIndex]
+    const ids = opt.recommended_course_ids || []
+    const next = ids.includes(courseId) ? ids.filter((id) => id !== courseId) : [...ids, courseId]
+    setOptionRecommendedCourses(optionIndex, next)
   }
 
   return (
@@ -1989,7 +2010,7 @@ function OnboardingQuestionDialog({
             {question ? "Edit Onboarding Question" : "Create Onboarding Question"}
           </DialogTitle>
           <DialogDescription className="text-gray-600">
-            Shown when a client enters University for the first time. Set which programs to recommend per answer.
+            Shown when a client enters University for the first time. For each answer you can recommend programs and/or specific courses.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -2069,8 +2090,8 @@ function OnboardingQuestionDialog({
             </div>
           </div>
           <div>
-            <Label className="text-[#060520]">Answer options → recommend programs</Label>
-            <p className="text-sm text-gray-500 mb-2">For each option, select which programs (schools) to recommend when the client chooses that answer.</p>
+            <Label className="text-[#060520]">Answer options → recommend programs & courses</Label>
+            <p className="text-sm text-gray-500 mb-2">For each option, select which programs and/or specific courses to recommend when the client chooses that answer.</p>
             <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
               {formData.options.map((opt, idx) => (
                 <div key={idx} className="space-y-2">
@@ -2098,19 +2119,47 @@ function OnboardingQuestionDialog({
                       className="flex-1 text-[#060520]"
                     />
                   </div>
-                  <div className="flex flex-wrap gap-2 pl-2">
-                    {schools.map((school) => (
-                      <label key={school.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                        <Checkbox
-                          checked={(opt.recommended_school_ids || []).includes(school.id)}
-                          onCheckedChange={() => toggleOptionSchool(idx, school.id)}
-                        />
-                        <span className="text-[#060520]">{school.name}</span>
-                      </label>
-                    ))}
-                    {schools.length === 0 && (
-                      <p className="text-sm text-gray-500">No schools yet. Create schools first to recommend them.</p>
-                    )}
+                  <div className="pl-2 space-y-3">
+                    <div>
+                      <p className="text-xs font-medium text-gray-600 mb-1">Programs</p>
+                      <div className="flex flex-wrap gap-2">
+                        {schools.map((school) => (
+                          <label key={school.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                            <Checkbox
+                              checked={(opt.recommended_school_ids || []).includes(school.id)}
+                              onCheckedChange={() => toggleOptionSchool(idx, school.id)}
+                            />
+                            <span className="text-[#060520]">{school.name}</span>
+                          </label>
+                        ))}
+                        {schools.length === 0 && (
+                          <p className="text-sm text-gray-500">No programs yet. Create schools first.</p>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-600 mb-1">Courses (specific course to open)</p>
+                      <div className="flex flex-wrap gap-2">
+                        {courses.map((course) => {
+                          const school = schools.find((s) => s.id === course.school_id)
+                          return (
+                            <label key={course.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                              <Checkbox
+                                checked={(opt.recommended_course_ids || []).includes(course.id)}
+                                onCheckedChange={() => toggleOptionCourse(idx, course.id)}
+                              />
+                              <span className="text-[#060520]">
+                                {course.title}
+                                {school ? ` (${school.name})` : ""}
+                              </span>
+                            </label>
+                          )
+                        })}
+                        {courses.length === 0 && (
+                          <p className="text-sm text-gray-500">No courses yet. Create courses first.</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}

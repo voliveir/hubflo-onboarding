@@ -12,35 +12,52 @@ export const dynamic = "force-dynamic"
 type RouteContext = { params: Promise<{ id: string }> }
 
 /**
- * Compute recommended school IDs (flat) and by phase from onboarding questions and client responses.
- * Each question has a phase (1, 2, or 3); when the user's answer recommends schools, those go into that phase.
+ * Compute recommended school and course IDs (flat and by phase) from onboarding questions and client responses.
+ * Each question has a phase (1, 2, or 3); when the user's answer recommends schools/courses, those go into that phase.
  */
 function computeRecommendations(
   questions: UniversityOnboardingQuestion[],
   responses: Record<string, string | string[]>
-): { flat: string[]; byPhase: Record<string, string[]> } {
-  const byPhase: Record<string, string[]> = { "1": [], "2": [], "3": [] }
-  const allIds = new Set<string>()
+): {
+  schools: { flat: string[]; byPhase: Record<string, string[]> }
+  courses: { flat: string[]; byPhase: Record<string, string[]> }
+} {
+  const schoolByPhase: Record<string, string[]> = { "1": [], "2": [], "3": [] }
+  const courseByPhase: Record<string, string[]> = { "1": [], "2": [], "3": [] }
+  const allSchoolIds = new Set<string>()
+  const allCourseIds = new Set<string>()
 
   for (const q of questions) {
     const raw = responses[q.question_key]
     if (raw == null) continue
     const values = Array.isArray(raw) ? raw : [raw]
     const phaseKey = String(q.phase >= 1 && q.phase <= 3 ? q.phase : 1)
-    const phaseSet = new Set<string>(byPhase[phaseKey])
+    const schoolPhaseSet = new Set<string>(schoolByPhase[phaseKey])
+    const coursePhaseSet = new Set<string>(courseByPhase[phaseKey])
 
     for (const opt of q.options || []) {
-      if (values.includes(opt.value) && Array.isArray(opt.recommended_school_ids)) {
+      if (!values.includes(opt.value)) continue
+      if (Array.isArray(opt.recommended_school_ids)) {
         for (const id of opt.recommended_school_ids) {
-          allIds.add(id)
-          phaseSet.add(id)
+          allSchoolIds.add(id)
+          schoolPhaseSet.add(id)
+        }
+      }
+      if (Array.isArray(opt.recommended_course_ids)) {
+        for (const id of opt.recommended_course_ids) {
+          allCourseIds.add(id)
+          coursePhaseSet.add(id)
         }
       }
     }
-    byPhase[phaseKey] = Array.from(phaseSet)
+    schoolByPhase[phaseKey] = Array.from(schoolPhaseSet)
+    courseByPhase[phaseKey] = Array.from(coursePhaseSet)
   }
 
-  return { flat: Array.from(allIds), byPhase }
+  return {
+    schools: { flat: Array.from(allSchoolIds), byPhase: schoolByPhase },
+    courses: { flat: Array.from(allCourseIds), byPhase: courseByPhase },
+  }
 }
 
 /**
@@ -64,6 +81,8 @@ export async function GET(
             completed_at: onboarding.completed_at,
             recommended_school_ids: onboarding.recommended_school_ids,
             recommended_school_ids_by_phase: onboarding.recommended_school_ids_by_phase,
+            recommended_course_ids: onboarding.recommended_course_ids ?? [],
+            recommended_course_ids_by_phase: onboarding.recommended_course_ids_by_phase ?? undefined,
           }
         : null,
     })
@@ -98,22 +117,23 @@ export async function POST(
     }
 
     const questions = await getUniversityOnboardingQuestions()
-    const { flat: recommendedSchoolIds, byPhase: recommendedByPhase } = computeRecommendations(
-      questions,
-      responses
-    )
+    const { schools: schoolRecs, courses: courseRecs } = computeRecommendations(questions, responses)
 
     const onboarding = await upsertClientOnboarding(
       client.id,
       responses,
-      recommendedSchoolIds,
-      recommendedByPhase
+      schoolRecs.flat,
+      schoolRecs.byPhase,
+      courseRecs.flat,
+      courseRecs.byPhase
     )
 
     return NextResponse.json({
       completed: true,
       recommended_school_ids: onboarding.recommended_school_ids,
       recommended_school_ids_by_phase: onboarding.recommended_school_ids_by_phase,
+      recommended_course_ids: onboarding.recommended_course_ids,
+      recommended_course_ids_by_phase: onboarding.recommended_course_ids_by_phase,
     })
   } catch (error) {
     console.error("Error in POST /api/client/[id]/university/onboarding:", error)

@@ -200,6 +200,8 @@ export function UniversityClient({
   }
 
   const recommendedSchoolIds = onboarding?.recommended_school_ids ?? []
+  const recommendedCourseIds = onboarding?.recommended_course_ids ?? []
+  const hasRecommendations = recommendedSchoolIds.length > 0 || recommendedCourseIds.length > 0
   const showOnboardingForm =
     onboardingQuestions.length > 0 && (!onboarding?.completed_at || redoOnboarding)
 
@@ -503,10 +505,12 @@ export function UniversityClient({
         </PortalSection>
       )}
 
-      {/* Recommended for you – grouped by question phase (from onboarding form) */}
-      {recommendedSchoolIds.length > 0 && (() => {
+      {/* Recommended for you – grouped by question phase (programs and/or courses) */}
+      {hasRecommendations && (() => {
         const byPhaseFromQuestions = onboarding?.recommended_school_ids_by_phase
+        const courseByPhase = onboarding?.recommended_course_ids_by_phase
         const schoolMap = new Map(schools.map((s) => [s.id, s]))
+        const courseMap = new Map(courses.map((c) => [c.id, c]))
         const phaseConfig: Record<number, { title: string; subtitle: string }> = {
           1: {
             title: "Phase 1",
@@ -528,6 +532,13 @@ export function UniversityClient({
           }
           const recommendedSchools = schools.filter((s) => recommendedSchoolIds.includes(s.id))
           return recommendedSchools.filter((s) => (s.phase ?? 1) === phase)
+        }
+        const getCoursesForPhase = (phase: 1 | 2 | 3): UniversityCourse[] => {
+          if (courseByPhase) {
+            const ids = courseByPhase[String(phase)] ?? []
+            return ids.map((id) => courseMap.get(id)).filter(Boolean) as UniversityCourse[]
+          }
+          return courses.filter((c) => recommendedCourseIds.includes(c.id) && (schoolMap.get(c.school_id)?.phase ?? 1) === phase)
         }
         const renderSchoolCard = (school: UniversitySchool) => {
           const schoolCourses = courses.filter((c) => c.school_id === school.id)
@@ -599,6 +610,74 @@ export function UniversityClient({
             </Card>
           )
         }
+        const renderCourseCard = (course: UniversityCourse) => {
+          const school = schoolMap.get(course.school_id)
+          const courseCompleted = isCourseCompleted(course.id)
+          return (
+            <Card
+              key={course.id}
+              className={`${
+                courseCompleted
+                  ? "border-4 border-brand-gold bg-gradient-to-br from-brand-gold/10 to-transparent shadow-lg"
+                  : "border-2 border-brand-gold/50 hover:border-brand-gold bg-white"
+              } transition-all cursor-pointer group relative overflow-hidden`}
+              onClick={() => {
+                if (school) setSelectedSchool(school)
+                setSelectedCourse(course)
+                setViewMode("course")
+              }}
+            >
+              {courseCompleted && (
+                <div className="absolute top-4 right-4 z-10">
+                  <div className="bg-brand-gold rounded-full p-2 shadow-lg">
+                    <Award className="h-6 w-6 text-[#010124]" />
+                  </div>
+                </div>
+              )}
+              <CardHeader>
+                {course.image_url && (
+                  <div className="w-full h-32 bg-gray-100 rounded-lg mb-4 overflow-hidden">
+                    <img
+                      src={course.image_url}
+                      alt={course.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  </div>
+                )}
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <BookOpen className="h-5 w-5 text-brand-gold" />
+                      <CardTitle style={{ color: "#060520" }} className="text-lg">{course.title}</CardTitle>
+                    </div>
+                    {school && (
+                      <p className="text-xs text-gray-500">{school.name}</p>
+                    )}
+                    {course.estimated_duration_minutes != null && (
+                      <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {formatCourseDuration(course.estimated_duration_minutes)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  className="w-full bg-brand-gold hover:bg-brand-gold-hover text-[#010124]"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (school) setSelectedSchool(school)
+                    setSelectedCourse(course)
+                    setViewMode("course")
+                  }}
+                >
+                  {courseCompleted ? "Review" : "Open course"} <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </CardContent>
+            </Card>
+          )
+        }
         return (
           <PortalSection gradient={false} className="relative overflow-hidden bg-white">
             <div className="max-w-6xl mx-auto px-4">
@@ -614,7 +693,8 @@ export function UniversityClient({
 
               {([1, 2, 3] as const).map((phase) => {
                 const phaseSchools = getSchoolsForPhase(phase)
-                if (phaseSchools.length === 0) return null
+                const phaseCourses = getCoursesForPhase(phase)
+                if (phaseSchools.length === 0 && phaseCourses.length === 0) return null
                 const config = phaseConfig[phase]
                 return (
                   <div
@@ -632,9 +712,21 @@ export function UniversityClient({
                         <p className="text-sm text-gray-600 mt-0.5">{config.subtitle}</p>
                       </div>
                     </div>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {phaseSchools.map(renderSchoolCard)}
-                    </div>
+                    {phaseSchools.length > 0 && (
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                        {phaseSchools.map(renderSchoolCard)}
+                      </div>
+                    )}
+                    {phaseCourses.length > 0 && (
+                      <div className={phaseSchools.length > 0 ? "mt-6" : ""}>
+                        {phaseSchools.length > 0 && (
+                          <p className="text-sm font-medium text-gray-600 mb-3">Recommended courses</p>
+                        )}
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {phaseCourses.map(renderCourseCard)}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -779,7 +871,7 @@ export function UniversityClient({
       </PortalSection>
 
       {/* Redo onboarding – show at bottom only when no recommended section (link is in recommended section otherwise) */}
-      {onboarding?.completed_at && onboardingQuestions.length > 0 && recommendedSchoolIds.length === 0 && (
+      {onboarding?.completed_at && onboardingQuestions.length > 0 && !hasRecommendations && (
         <PortalSection gradient={false} className="relative overflow-hidden bg-gray-50/80">
           <div className="max-w-6xl mx-auto py-6 text-center">
             <Button

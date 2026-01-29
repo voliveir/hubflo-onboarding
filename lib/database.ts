@@ -3806,6 +3806,13 @@ export async function getClientOnboarding(clientId: string): Promise<UniversityC
         : data.recommended_school_ids_by_phase
           ? JSON.parse(data.recommended_school_ids_by_phase)
           : undefined,
+    recommended_course_ids: data.recommended_course_ids || [],
+    recommended_course_ids_by_phase:
+      typeof data.recommended_course_ids_by_phase === "object"
+        ? data.recommended_course_ids_by_phase
+        : data.recommended_course_ids_by_phase
+          ? JSON.parse(data.recommended_course_ids_by_phase)
+          : undefined,
   }
 }
 
@@ -3813,17 +3820,23 @@ export async function upsertClientOnboarding(
   clientId: string,
   responses: Record<string, string | string[]>,
   recommendedSchoolIds: string[],
-  recommendedSchoolIdsByPhase?: Record<string, string[]>
+  recommendedSchoolIdsByPhase?: Record<string, string[]>,
+  recommendedCourseIds: string[] = [],
+  recommendedCourseIdsByPhase?: Record<string, string[]>
 ): Promise<UniversityClientOnboarding> {
   const payload: Record<string, unknown> = {
     client_id: clientId,
     completed_at: new Date().toISOString(),
     responses,
     recommended_school_ids: recommendedSchoolIds,
+    recommended_course_ids: recommendedCourseIds,
     updated_at: new Date().toISOString(),
   }
   if (recommendedSchoolIdsByPhase) {
     payload.recommended_school_ids_by_phase = recommendedSchoolIdsByPhase
+  }
+  if (recommendedCourseIdsByPhase) {
+    payload.recommended_course_ids_by_phase = recommendedCourseIdsByPhase
   }
   const { data, error } = await supabase
     .from("university_client_onboarding")
@@ -3840,6 +3853,13 @@ export async function upsertClientOnboarding(
         ? data.recommended_school_ids_by_phase
         : data.recommended_school_ids_by_phase
           ? JSON.parse(data.recommended_school_ids_by_phase)
+          : undefined,
+    recommended_course_ids: data.recommended_course_ids || [],
+    recommended_course_ids_by_phase:
+      typeof data.recommended_course_ids_by_phase === "object"
+        ? data.recommended_course_ids_by_phase
+        : data.recommended_course_ids_by_phase
+          ? JSON.parse(data.recommended_course_ids_by_phase)
           : undefined,
   }
 }
