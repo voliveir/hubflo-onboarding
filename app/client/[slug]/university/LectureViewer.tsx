@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -18,6 +19,7 @@ import {
   XCircle,
   ArrowLeft,
   Clock,
+  BookOpen,
 } from "lucide-react"
 import type { UniversityLecture, UniversityQuiz } from "@/lib/types"
 import { toast } from "@/hooks/use-toast"
@@ -29,9 +31,11 @@ interface LectureViewerProps {
   courseId: string
   onBack: () => void
   onComplete: () => void
+  /** When true, render only the lecture content (no full-page chrome) for sidebar layout */
+  embeddedLayout?: boolean
 }
 
-export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete }: LectureViewerProps) {
+export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete, embeddedLayout = false }: LectureViewerProps) {
   const [progress, setProgress] = useState(0)
   const [isCompleted, setIsCompleted] = useState(false)
   const [quiz, setQuiz] = useState<UniversityQuiz | null>(null)
@@ -190,10 +194,10 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
     if (videoData.provider === "youtube") {
       const videoId = videoData.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1]
       return (
-        <div className="aspect-video w-full mb-6">
+        <div className="aspect-video w-full mb-6 rounded-2xl overflow-hidden border border-gray-200 shadow-md ring-1 ring-black/5">
           <iframe
             src={`https://www.youtube.com/embed/${videoId}`}
-            className="w-full h-full rounded-lg"
+            className="w-full h-full"
             allowFullScreen
             title={lecture.title}
           />
@@ -202,10 +206,10 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
     } else if (videoData.provider === "vimeo") {
       const videoId = videoData.url.match(/vimeo\.com\/(\d+)/)?.[1]
       return (
-        <div className="aspect-video w-full mb-6">
+        <div className="aspect-video w-full mb-6 rounded-2xl overflow-hidden border border-gray-200 shadow-md ring-1 ring-black/5">
           <iframe
             src={`https://player.vimeo.com/video/${videoId}`}
-            className="w-full h-full rounded-lg"
+            className="w-full h-full"
             allowFullScreen
             title={lecture.title}
           />
@@ -214,10 +218,10 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
     } else if (videoData.provider === "tella") {
       const embedUrl = videoData.url.replace("/video/", "/video/").replace(/\/$/, "") + "/embed"
       return (
-        <div className="aspect-video w-full mb-6">
+        <div className="aspect-video w-full mb-6 rounded-2xl overflow-hidden border border-gray-200 shadow-md ring-1 ring-black/5">
           <iframe
             src={embedUrl}
-            className="w-full h-full rounded-lg"
+            className="w-full h-full"
             allowFullScreen
             title={lecture.title}
           />
@@ -226,8 +230,8 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
     } else {
       // Generic video URL
       return (
-        <div className="aspect-video w-full bg-gray-100 rounded-lg flex items-center justify-center mb-6">
-          <video controls className="w-full h-full rounded-lg">
+        <div className="aspect-video w-full bg-gray-100 rounded-2xl flex items-center justify-center mb-6 border border-gray-200 shadow-sm overflow-hidden">
+          <video controls className="w-full h-full">
             <source src={videoData.url} type="video/mp4" />
             Your browser does not support the video tag.
           </video>
@@ -261,7 +265,7 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
         <>
           <style dangerouslySetInnerHTML={{__html: `
             .lecture-content img {
-              border-radius: 8px;
+              border-radius: 12px;
               box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
               margin: 1.5rem auto;
               max-width: 100%;
@@ -272,9 +276,97 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
               box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
               transition: box-shadow 0.2s ease-in-out;
             }
+            /* Section headings – gold accent like homepage */
+            .lecture-content h1, .lecture-content h2, .lecture-content h3 {
+              color: #060520 !important;
+              font-weight: 700;
+              margin-top: 1.75rem;
+              margin-bottom: 0.5rem;
+              padding-left: 0.75rem;
+              border-left: 4px solid #ecb22d;
+              line-height: 1.3;
+            }
+            .lecture-content h1 { font-size: 1.5rem; }
+            .lecture-content h2 { font-size: 1.25rem; }
+            .lecture-content h3 { font-size: 1.125rem; }
+            /* Section titles (e.g. "Client Onboarding") – gold pill style */
+            .lecture-content p + strong,
+            .lecture-content ul + strong,
+            .lecture-content p > strong:first-child:last-child {
+              display: inline-block;
+              color: #060520 !important;
+              font-weight: 700;
+              margin-top: 1.25rem;
+              margin-bottom: 0.35rem;
+              padding: 0.25rem 0.75rem;
+              background: rgba(236, 178, 45, 0.12);
+              border-radius: 9999px;
+              font-size: 0.9375rem;
+              border: 1px solid rgba(236, 178, 45, 0.25);
+            }
+            .lecture-content strong {
+              color: #060520 !important;
+            }
+            /* Lists – gold bullets, spacing */
+            .lecture-content ul {
+              list-style: none;
+              padding-left: 0;
+              margin: 0.5rem 0 1.25rem 0;
+            }
+            .lecture-content ul li {
+              position: relative;
+              padding-left: 1.5rem;
+              margin-bottom: 0.5rem;
+              color: #374151;
+              line-height: 1.5;
+            }
+            .lecture-content ul li::before {
+              content: "";
+              position: absolute;
+              left: 0;
+              top: 0.5em;
+              width: 6px;
+              height: 6px;
+              background: #ecb22d;
+              border-radius: 50%;
+            }
+            .lecture-content ol {
+              padding-left: 1.5rem;
+              margin: 0.5rem 0 1.25rem 0;
+            }
+            .lecture-content ol li {
+              margin-bottom: 0.5rem;
+              padding-left: 0.25rem;
+              color: #374151;
+              line-height: 1.5;
+            }
+            .lecture-content ol li::marker {
+              color: #ecb22d;
+              font-weight: 600;
+            }
+            /* Intro paragraph */
+            .lecture-content > p:first-child {
+              font-size: 1rem;
+              line-height: 1.6;
+              color: #4b5563;
+              margin-bottom: 1rem;
+            }
+            .lecture-content p {
+              color: #4b5563;
+              line-height: 1.6;
+              margin-bottom: 0.75rem;
+            }
+            .lecture-content a {
+              color: #ecb22d !important;
+              text-decoration: none;
+              font-weight: 500;
+            }
+            .lecture-content a:hover {
+              text-decoration: underline;
+            }
           `}} />
           <div 
-            className="lecture-content prose max-w-none prose-headings:text-[#060520] prose-p:text-gray-700 prose-strong:text-[#060520] prose-a:text-brand-gold prose-a:no-underline hover:prose-a:underline prose-ul:list-disc prose-ol:list-decimal prose-li:my-1"
+            className="lecture-content prose max-w-none prose-headings:text-[#060520] prose-p:text-gray-700 prose-strong:text-[#060520] prose-a:text-brand-gold prose-a:no-underline hover:prose-a:underline"
             dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
           />
         </>
@@ -302,19 +394,19 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
       const textData = contentData.text || (lecture.content_type === "text" ? contentData : null)
       
       return (
-        <div className="space-y-6">
+        <div className="space-y-8">
           <div>
-            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <Video className="h-5 w-5 text-brand-gold" />
-              Video Content
-            </h3>
+            <div className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-3 py-1.5 mb-4">
+              <Video className="h-4 w-4 text-brand-gold" />
+              <span className="text-brand-gold font-medium text-sm">Video Content</span>
+            </div>
             {renderVideo(videoData)}
           </div>
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <FileText className="h-5 w-5 text-brand-gold" />
-              Text Content
-            </h3>
+          <div className="border-t border-gray-100 pt-8">
+            <div className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-3 py-1.5 mb-4">
+              <FileText className="h-4 w-4 text-brand-gold" />
+              <span className="text-brand-gold font-medium text-sm">Text Content</span>
+            </div>
             <p className="text-sm text-gray-600 mb-4">For clients who prefer reading over watching the video:</p>
             {renderText(textData)}
           </div>
@@ -338,14 +430,14 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
       case "link":
         const linkData = lecture.content_data || {}
         return (
-          <Card>
+          <Card className="rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:border-brand-gold/30">
             <CardContent className="pt-6">
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold mb-2">{linkData.title || "External Link"}</h3>
+                  <h3 className="font-semibold mb-2 text-[#060520]">{linkData.title || "External Link"}</h3>
                   {linkData.description && <p className="text-gray-600 mb-4">{linkData.description}</p>}
                 </div>
-                <Button asChild>
+                <Button asChild className="rounded-2xl bg-brand-gold hover:bg-brand-gold-hover text-[#010124] font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
                   <a href={linkData.url} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Visit Link
@@ -359,18 +451,18 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
       case "download":
         const downloadData = lecture.content_data || {}
         return (
-          <Card>
+          <Card className="rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:border-brand-gold/30">
             <CardContent className="pt-6">
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold mb-2">{downloadData.file_name || "Download File"}</h3>
+                  <h3 className="font-semibold mb-2 text-[#060520]">{downloadData.file_name || "Download File"}</h3>
                   {downloadData.file_size && (
                     <p className="text-sm text-gray-500">
                       Size: {(downloadData.file_size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   )}
                 </div>
-                <Button asChild>
+                <Button asChild className="rounded-2xl bg-brand-gold hover:bg-brand-gold-hover text-[#010124] font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
                   <a href={downloadData.file_url} download>
                     <Download className="h-4 w-4 mr-2" />
                     Download
@@ -551,7 +643,7 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
               <Button
                 onClick={handleQuizSubmit}
                 disabled={loading || Object.keys(quizAnswers).length < quiz.questions.length}
-                className="bg-brand-gold hover:bg-brand-gold-hover text-[#010124]"
+                className="rounded-2xl bg-brand-gold hover:bg-brand-gold-hover text-[#010124] font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 px-6 py-3"
               >
                 {loading ? "Submitting..." : "Submit Quiz"}
               </Button>
@@ -564,88 +656,121 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete 
     }
   }
 
-  return (
-    <div className="min-h-screen">
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-        <Button 
-          variant="outline" 
-          onClick={onBack} 
-          className="mb-6 border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-[#010124] font-semibold"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Course
-        </Button>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  {(() => {
-                    const contentData = lecture.content_data || {}
-                    const hasVideo = contentData.video?.url || (lecture.content_type === "video" && contentData.url)
-                    const hasText = contentData.text?.content || (lecture.content_type === "text" && contentData.content)
-                    
-                    if (hasVideo && hasText) {
-                      return (
-                        <>
-                          <Video className="h-5 w-5 text-brand-gold" />
-                          <FileText className="h-5 w-5 text-brand-gold" />
-                        </>
-                      )
-                    } else if (lecture.content_type === "video") {
-                      return <Video className="h-5 w-5 text-brand-gold" />
-                    } else if (lecture.content_type === "text") {
-                      return <FileText className="h-5 w-5 text-brand-gold" />
-                    } else if (lecture.content_type === "quiz") {
-                      return <HelpCircle className="h-5 w-5 text-brand-gold" />
-                    } else if (lecture.content_type === "download") {
-                      return <Download className="h-5 w-5 text-brand-gold" />
-                    } else if (lecture.content_type === "link") {
-                      return <ExternalLink className="h-5 w-5 text-brand-gold" />
-                    }
-                    return null
-                  })()}
-                  <CardTitle style={{ color: '#060520' }}>{lecture.title}</CardTitle>
+  const contentCard = (
+    <motion.div
+      initial={embeddedLayout ? undefined : { opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: embeddedLayout ? 0 : 0.1 }}
+    >
+      <Card className="rounded-2xl border border-gray-200 shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-brand-gold/20 bg-white">
+            <CardHeader className="pt-6 pb-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  {/* Gold pill badge (homepage-style) */}
+                  <div className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-4 py-2 mb-4">
+                    <BookOpen className="h-4 w-4 text-brand-gold" />
+                    <span className="text-brand-gold font-medium text-sm">Lecture</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    {(() => {
+                      const contentData = lecture.content_data || {}
+                      const hasVideo = contentData.video?.url || (lecture.content_type === "video" && contentData.url)
+                      const hasText = contentData.text?.content || (lecture.content_type === "text" && contentData.content)
+                      if (hasVideo && hasText) {
+                        return (
+                          <>
+                            <Video className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                            <FileText className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                          </>
+                        )
+                      }
+                      if (lecture.content_type === "video") return <Video className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                      if (lecture.content_type === "text") return <FileText className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                      if (lecture.content_type === "quiz") return <HelpCircle className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                      if (lecture.content_type === "download") return <Download className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                      if (lecture.content_type === "link") return <ExternalLink className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                      return null
+                    })()}
+                    <CardTitle className="text-2xl font-bold" style={{ color: "#060520" }}>
+                      {lecture.title}
+                    </CardTitle>
+                  </div>
+                  {lecture.description && (
+                    <p className="text-gray-600 leading-relaxed">{lecture.description}</p>
+                  )}
                 </div>
-                {lecture.description && (
-                  <p className="text-gray-600">{lecture.description}</p>
+                {isCompleted && (
+                  <Badge className="bg-green-100 text-green-800 border-green-200 flex-shrink-0">
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Completed
+                  </Badge>
                 )}
               </div>
-              {isCompleted && (
-                <Badge className="bg-green-100 text-green-800">
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Completed
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {progress > 0 && progress < 100 && (
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Progress</span>
-                  <span>{progress}%</span>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-0">
+              {progress > 0 && progress < 100 && (
+                <div>
+                  <div className="flex justify-between text-sm mb-2 text-gray-600">
+                    <span>Progress</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <Progress value={progress} className="h-2" />
                 </div>
-                <Progress value={progress} className="h-2" />
-              </div>
-            )}
+              )}
 
-            {renderContent()}
+              {renderContent()}
 
-            {lecture.content_type !== "quiz" && !isCompleted && (
-              <div className="flex justify-end pt-4 border-t">
-                <Button
-                  onClick={handleMarkComplete}
-                  className="bg-brand-gold hover:bg-brand-gold-hover text-[#010124]"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Mark as Complete
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              {lecture.content_type !== "quiz" && !isCompleted && (
+                <div id="lecture-mark-complete" className="flex justify-end pt-6 border-t border-gray-100">
+                  <Button
+                    onClick={handleMarkComplete}
+                    className="rounded-2xl bg-brand-gold hover:bg-brand-gold-hover text-[#010124] font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 px-6 py-3"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Mark as Complete
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+    </motion.div>
+  )
+
+  if (embeddedLayout) {
+    return (
+      <div className="min-h-full bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          {contentCard}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen relative overflow-hidden" style={{ background: "#060520" }}>
+      {/* Sticky "Back to Course" bar – sits just below header */}
+      <div className="sticky top-16 z-20 w-full border-b border-brand-gold/30 bg-[#060520]/95 backdrop-blur-sm -mt-2">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center gap-3">
+          <Button
+            onClick={onBack}
+            className="rounded-2xl bg-brand-gold hover:bg-brand-gold-hover text-[#010124] font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 px-6 py-3 text-base flex-shrink-0"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Back to Course
+          </Button>
+          <span className="text-sm text-white/70">
+            Use this button to return to the course — the browser back button may leave University.
+          </span>
+        </div>
+      </div>
+
+      {/* Background gradient orbs (homepage-style) */}
+      <div className="absolute top-20 right-20 w-64 h-64 bg-brand-gold/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-20 left-20 w-48 h-48 bg-brand-gold/3 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute inset-0 gradient-portal opacity-30 pointer-events-none" />
+
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-10 pb-8 sm:pt-12 sm:pb-10 space-y-6">
+        {contentCard}
       </div>
     </div>
   )

@@ -82,8 +82,8 @@ export default async function UniversityPage({ params }: UniversityPageProps) {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="mt-24">
+      {/* Main Content – tighter top spacing so "Back to Course" sits closer to header */}
+      <div className="mt-16">
         <UniversityClient
           clientId={client.id}
           clientSlug={slug}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -74,6 +74,11 @@ export function UniversityClient({
   const progressMap = new Map(
     clientProgress.map(p => [p.lecture_id || p.course_id, p])
   )
+
+  // Scroll to top when entering University or switching to school/course view so the view doesn’t start mid-page
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" })
+  }, [viewMode, selectedCourse])
 
   // Fetch full course data with sections and lectures
   useEffect(() => {
@@ -915,11 +920,11 @@ function SchoolDetailView({
       <PortalSection gradient={false} className="relative overflow-hidden bg-white">
         <div className="max-w-6xl mx-auto">
           <Button
-            variant="ghost"
             onClick={onBack}
-            className="mb-6 text-brand-gold hover:text-brand-gold-hover"
+            className="mb-6 rounded-2xl bg-brand-gold hover:bg-brand-gold-hover text-[#010124] font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 px-6 py-3"
           >
-            ← Back to Programs
+            <ChevronLeft className="h-5 w-5 mr-2" />
+            Back to Programs
           </Button>
           
           <div className="mb-8">
@@ -1073,11 +1078,27 @@ function CourseDetailView({
   onBack: () => void
 }) {
   const [selectedLecture, setSelectedLecture] = useState<UniversityLecture | null>(null)
+  const userWentBackToListRef = useRef(false)
   const [localProgress, setLocalProgress] = useState<UniversityClientProgress[]>(() =>
     clientProgress.filter((p) => p.course_id === course.id)
   )
   const [fullCourse, setFullCourse] = useState<UniversityCourse | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Wire browser back button to "back to course" so clients don't leave University
+  useEffect(() => {
+    if (!selectedLecture) return
+    const url = typeof window !== "undefined" ? window.location.href : ""
+    window.history.pushState({ universityLecture: true }, "", url)
+    const handlePopState = () => setSelectedLecture(null)
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [selectedLecture])
+
+  // Scroll to top when opening a lecture so the view starts at the top, not mid-page
+  useEffect(() => {
+    if (selectedLecture) window.scrollTo({ top: 0, behavior: "auto" })
+  }, [selectedLecture])
 
   // Fetch full course data with sections and lectures
   useEffect(() => {
@@ -1114,6 +1135,13 @@ function CourseDetailView({
       allLectures.push(lecture)
     })
   })
+
+  // When entering a course, open the two-column layout with the first lecture (skip the list overview)
+  useEffect(() => {
+    if (loading || selectedLecture || userWentBackToListRef.current || !allLectures.length) return
+    const first = allLectures[0]
+    if (first) setSelectedLecture(first)
+  }, [loading, allLectures.length])
 
   // Check if course is completed
   const isCourseCompleted = () => {
@@ -1184,13 +1212,95 @@ function CourseDetailView({
 
   if (selectedLecture) {
     return (
-      <LectureViewer
-        lecture={selectedLecture}
-        clientId={clientId}
-        courseId={courseData.id}
-        onBack={() => setSelectedLecture(null)}
-        onComplete={handleLectureComplete}
-      />
+      <div className="min-h-screen flex flex-col bg-white">
+        {/* Thin top bar – back + Complete and continue (reference layout) */}
+        <header className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-brand-gold/30 bg-[#010124]">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              userWentBackToListRef.current = true
+              setSelectedLecture(null)
+            }}
+            className="text-white hover:bg-white/10 hover:text-white"
+          >
+            <ChevronLeft className="h-5 w-5 mr-1" />
+            Back to course
+          </Button>
+          <button
+            type="button"
+            onClick={() => document.getElementById("lecture-mark-complete")?.scrollIntoView({ behavior: "smooth" })}
+            className="text-sm text-brand-gold hover:text-brand-gold-hover font-medium"
+          >
+            Complete and continue →
+          </button>
+        </header>
+
+        <div className="flex flex-1 min-h-0">
+          {/* Left sidebar – course outline + progress */}
+          <aside className="w-72 lg:w-80 flex-shrink-0 bg-gray-100 border-r border-gray-200 flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-gray-200">
+              <h2 className="font-bold text-lg truncate" style={{ color: "#060520" }}>
+                {courseData.title}
+              </h2>
+              <p className="text-xs text-gray-500 mt-1 uppercase tracking-wide">
+                {courseProgress}% complete
+              </p>
+              <Progress value={courseProgress} className="h-2 mt-2" />
+            </div>
+            <nav className="flex-1 overflow-y-auto py-2">
+              {courseData.sections?.map((section) => (
+                <div key={section.id} className="mb-4">
+                  <h3 className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {section.title}
+                  </h3>
+                  {section.lectures?.map((lecture) => {
+                    const progress = localProgress.find((p) => p.lecture_id === lecture.id)
+                    const isCompleted = progress?.is_completed || false
+                    const isActive = selectedLecture?.id === lecture.id
+                    return (
+                      <button
+                        key={lecture.id}
+                        type="button"
+                        onClick={() => setSelectedLecture(lecture)}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
+                          isActive
+                            ? "bg-brand-gold/15 border-l-2 border-brand-gold font-medium text-[#060520]"
+                            : "hover:bg-gray-200/80 text-gray-700 border-l-2 border-transparent"
+                        }`}
+                      >
+                        {isCompleted ? (
+                          <CheckCircle className="h-4 w-4 flex-shrink-0 text-brand-gold" />
+                        ) : (
+                          <div className={`h-4 w-4 rounded-full border-2 flex-shrink-0 ${isActive ? "border-brand-gold bg-brand-gold/20" : "border-gray-400"}`} />
+                        )}
+                        {lecture.content_type === "video" && <Video className="h-4 w-4 text-brand-gold flex-shrink-0" />}
+                        {lecture.content_type === "text" && <FileText className="h-4 w-4 text-brand-gold flex-shrink-0" />}
+                        {lecture.content_type === "quiz" && <HelpCircle className="h-4 w-4 text-brand-gold flex-shrink-0" />}
+                        {lecture.content_type === "download" && <Download className="h-4 w-4 text-brand-gold flex-shrink-0" />}
+                        {lecture.content_type === "link" && <ExternalLink className="h-4 w-4 text-brand-gold flex-shrink-0" />}
+                        <span className="truncate flex-1">{lecture.title}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              ))}
+            </nav>
+          </aside>
+
+          {/* Right – lecture content */}
+          <main className="flex-1 min-w-0 overflow-auto bg-white">
+            <LectureViewer
+              lecture={selectedLecture}
+              clientId={clientId}
+              courseId={courseData.id}
+              onBack={() => setSelectedLecture(null)}
+              onComplete={handleLectureComplete}
+              embeddedLayout
+            />
+          </main>
+        </div>
+      </div>
     )
   }
 
@@ -1199,11 +1309,11 @@ function CourseDetailView({
       <PortalSection gradient={false} className="relative overflow-hidden bg-white">
         <div className="max-w-6xl mx-auto">
           <Button
-            variant="ghost"
             onClick={onBack}
-            className="mb-6 text-brand-gold hover:text-brand-gold-hover"
+            className="mb-6 rounded-2xl bg-brand-gold hover:bg-brand-gold-hover text-[#010124] font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 px-6 py-3"
           >
-            ← Back to Program
+            <ChevronLeft className="h-5 w-5 mr-2" />
+            Back to Programs
           </Button>
           
           <div className="mb-8">
