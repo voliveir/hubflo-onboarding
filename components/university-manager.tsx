@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -40,6 +41,10 @@ import {
   createUniversityQuiz,
   updateUniversityQuiz,
   deleteUniversityQuiz,
+  getUniversityOnboardingQuestionsAdmin,
+  createUniversityOnboardingQuestion,
+  updateUniversityOnboardingQuestion,
+  deleteUniversityOnboardingQuestion,
 } from "@/lib/database"
 import type {
   UniversitySchool,
@@ -47,6 +52,8 @@ import type {
   UniversitySection,
   UniversityLecture,
   UniversityQuiz,
+  UniversityOnboardingQuestion,
+  UniversityOnboardingQuestionOption,
 } from "@/lib/types"
 import {
   GraduationCap,
@@ -60,6 +67,7 @@ import {
   Video,
   Download,
   ExternalLink,
+  ListChecks,
 } from "lucide-react"
 
 export function UniversityManager() {
@@ -86,6 +94,9 @@ export function UniversityManager() {
   const [editingSection, setEditingSection] = useState<UniversitySection | null>(null)
   const [editingLecture, setEditingLecture] = useState<UniversityLecture | null>(null)
   const [editingQuiz, setEditingQuiz] = useState<UniversityQuiz | null>(null)
+  const [onboardingQuestions, setOnboardingQuestions] = useState<UniversityOnboardingQuestion[]>([])
+  const [isOnboardingDialogOpen, setIsOnboardingDialogOpen] = useState(false)
+  const [editingOnboardingQuestion, setEditingOnboardingQuestion] = useState<UniversityOnboardingQuestion | null>(null)
 
   useEffect(() => {
     loadData()
@@ -106,14 +117,16 @@ export function UniversityManager() {
   const loadData = async () => {
     try {
       setLoading(true)
-      const [schoolsData, coursesData, quizzesData] = await Promise.all([
+      const [schoolsData, coursesData, quizzesData, onboardingData] = await Promise.all([
         getUniversitySchools(),
         getUniversityCourses(),
         getUniversityQuizzes(),
+        getUniversityOnboardingQuestionsAdmin(),
       ])
       setSchools(schoolsData)
       setCourses(coursesData)
       setQuizzes(quizzesData)
+      setOnboardingQuestions(onboardingData)
     } catch (error) {
       console.error("Error loading data:", error)
       toast({
@@ -343,6 +356,41 @@ export function UniversityManager() {
     }
   }
 
+  const handleCreateOnboardingQuestion = async (data: Omit<UniversityOnboardingQuestion, "id" | "created_at" | "updated_at">) => {
+    try {
+      await createUniversityOnboardingQuestion(data)
+      await loadData()
+      setIsOnboardingDialogOpen(false)
+      toast({ title: "Success", description: "Onboarding question created" })
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to create question", variant: "destructive" })
+    }
+  }
+
+  const handleUpdateOnboardingQuestion = async (id: string, updates: Partial<UniversityOnboardingQuestion>) => {
+    try {
+      await updateUniversityOnboardingQuestion(id, updates)
+      await loadData()
+      setEditingOnboardingQuestion(null)
+      setIsOnboardingDialogOpen(false)
+      toast({ title: "Success", description: "Onboarding question updated" })
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update question", variant: "destructive" })
+    }
+  }
+
+  const handleDeleteOnboardingQuestion = async (id: string) => {
+    if (confirm("Are you sure you want to delete this onboarding question?")) {
+      try {
+        await deleteUniversityOnboardingQuestion(id)
+        await loadData()
+        toast({ title: "Success", description: "Onboarding question deleted" })
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to delete question", variant: "destructive" })
+      }
+    }
+  }
+
   const getContentTypeIcon = (type: string) => {
     switch (type) {
       case 'video': return <Video className="h-4 w-4" />
@@ -365,7 +413,7 @@ export function UniversityManager() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="schools" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="schools">
             <GraduationCap className="h-4 w-4 mr-2" />
             Schools
@@ -385,6 +433,10 @@ export function UniversityManager() {
           <TabsTrigger value="quizzes">
             <HelpCircle className="h-4 w-4 mr-2" />
             Quizzes
+          </TabsTrigger>
+          <TabsTrigger value="onboarding">
+            <ListChecks className="h-4 w-4 mr-2" />
+            Onboarding
           </TabsTrigger>
         </TabsList>
 
@@ -671,6 +723,60 @@ export function UniversityManager() {
             ))}
           </div>
         </TabsContent>
+
+        {/* Onboarding Tab - first-time form questions and recommended programs */}
+        <TabsContent value="onboarding" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold" style={{ color: '#060520' }}>Onboarding Questions</h2>
+            <Button onClick={() => { setEditingOnboardingQuestion(null); setIsOnboardingDialogOpen(true) }}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Question
+            </Button>
+          </div>
+          <p className="text-gray-600 max-w-2xl">
+            These questions are shown when a client enters Hubflo University for the first time. For each answer option you can assign which programs (schools) to recommend. Phase 1 = workspace &amp; Hubflo, Phase 2 = billing &amp; integrations, Phase 3 = everything else.
+          </p>
+          <div className="space-y-4">
+            {onboardingQuestions.map((q) => (
+              <Card key={q.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="outline">Phase {q.phase}</Badge>
+                        <Badge variant={q.is_active ? "default" : "secondary"}>{q.is_active ? "Active" : "Inactive"}</Badge>
+                        <span className="text-sm text-gray-500">Order: {q.sort_order}</span>
+                      </div>
+                      <CardTitle style={{ color: '#060520' }} className="text-lg">{q.title}</CardTitle>
+                      <CardDescription className="mt-1">{q.question_text}</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => { setEditingOnboardingQuestion(q); setIsOnboardingDialogOpen(true) }}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteOnboardingQuestion(q.id)}>
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 mb-2">Options → recommended programs:</p>
+                  <ul className="text-sm space-y-1">
+                    {(q.options || []).map((opt) => (
+                      <li key={opt.value}>
+                        <strong>{opt.label}</strong>
+                        {opt.recommended_school_ids?.length
+                          ? ` → ${opt.recommended_school_ids.length} program(s)`
+                          : " (none)"}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
       </Tabs>
 
       {/* School Dialog */}
@@ -718,6 +824,21 @@ export function UniversityManager() {
         courses={courses}
         onSubmit={editingQuiz ? (data) => handleUpdateQuiz(editingQuiz.id, data) : handleCreateQuiz}
       />
+
+      {/* Onboarding Question Dialog */}
+      <OnboardingQuestionDialog
+        open={isOnboardingDialogOpen}
+        onOpenChange={(open) => {
+          setIsOnboardingDialogOpen(open)
+          if (!open) setEditingOnboardingQuestion(null)
+        }}
+        question={editingOnboardingQuestion}
+        schools={schools}
+        onSubmit={editingOnboardingQuestion
+          ? (data) => handleUpdateOnboardingQuestion(editingOnboardingQuestion.id, data)
+          : handleCreateOnboardingQuestion
+        }
+      />
     </div>
   )
 }
@@ -739,6 +860,7 @@ function SchoolDialog({
     description: "",
     image_url: "",
     sort_order: 0,
+    phase: 1 as 1 | 2 | 3,
     is_active: true,
   })
 
@@ -749,6 +871,7 @@ function SchoolDialog({
         description: school.description || "",
         image_url: school.image_url || "",
         sort_order: school.sort_order,
+        phase: (school.phase ?? 1) as 1 | 2 | 3,
         is_active: school.is_active,
       })
     } else {
@@ -757,6 +880,7 @@ function SchoolDialog({
         description: "",
         image_url: "",
         sort_order: 0,
+        phase: 1,
         is_active: true,
       })
     }
@@ -804,6 +928,22 @@ function SchoolDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
+              <Label className="text-[#060520]">Phase (for recommended programs)</Label>
+              <Select
+                value={String(formData.phase)}
+                onValueChange={(v) => setFormData({ ...formData, phase: Number(v) as 1 | 2 | 3 })}
+              >
+                <SelectTrigger className="text-[#060520]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1" className="text-[#060520]">1 – Start (workspace & Hubflo)</SelectItem>
+                  <SelectItem value="2" className="text-[#060520]">2 – Middle (billing & integrations)</SelectItem>
+                  <SelectItem value="3" className="text-[#060520]">3 – End (automations & rest)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label className="text-[#060520]">Sort Order</Label>
               <Input
                 value={formData.sort_order}
@@ -812,13 +952,13 @@ function SchoolDialog({
                 className="text-[#060520] placeholder:text-gray-400"
               />
             </div>
-            <div className="flex items-center space-x-2 pt-8">
-              <Switch
-                checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-              />
-              <Label className="text-[#060520]">Active</Label>
-            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={formData.is_active}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+            />
+            <Label className="text-[#060520]">Active</Label>
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
@@ -1746,6 +1886,235 @@ function QuizDialog({
               Enter questions as JSON array. Each question needs: id, type, question, correct_answer, points. 
               For multiple_choice: include options array. Example: {`[{"id": "q1", "type": "multiple_choice", "question": "What is...?", "options": ["A", "B", "C"], "correct_answer": 0, "points": 10}]`}
             </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={formData.is_active}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+            />
+            <Label className="text-[#060520]">Active</Label>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Save</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function OnboardingQuestionDialog({
+  open,
+  onOpenChange,
+  question,
+  schools,
+  onSubmit,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  question: UniversityOnboardingQuestion | null
+  schools: UniversitySchool[]
+  onSubmit: (data: Omit<UniversityOnboardingQuestion, "id" | "created_at" | "updated_at">) => void
+}) {
+  const defaultOptions: UniversityOnboardingQuestionOption[] = [
+    { value: "yes", label: "Yes", recommended_school_ids: [] },
+    { value: "no", label: "No", recommended_school_ids: [] },
+  ]
+  const [formData, setFormData] = useState({
+    title: "",
+    question_text: "",
+    question_key: "",
+    input_type: "yes_no" as "yes_no" | "multi_choice",
+    options: defaultOptions,
+    phase: 1 as 1 | 2 | 3,
+    sort_order: 0,
+    is_active: true,
+  })
+
+  useEffect(() => {
+    if (question) {
+      setFormData({
+        title: question.title,
+        question_text: question.question_text,
+        question_key: question.question_key,
+        input_type: question.input_type,
+        options: (question.options && question.options.length) ? question.options : defaultOptions,
+        phase: question.phase as 1 | 2 | 3,
+        sort_order: question.sort_order,
+        is_active: question.is_active,
+      })
+    } else {
+      setFormData({
+        title: "",
+        question_text: "",
+        question_key: "",
+        input_type: "yes_no",
+        options: defaultOptions.map((o) => ({ ...o, recommended_school_ids: [] })),
+        phase: 1,
+        sort_order: 0,
+        is_active: true,
+      })
+    }
+  }, [question, open])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit(formData)
+  }
+
+  const setOptionRecommendedSchools = (optionIndex: number, schoolIds: string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      options: prev.options.map((opt, i) =>
+        i === optionIndex ? { ...opt, recommended_school_ids: schoolIds } : opt
+      ),
+    }))
+  }
+
+  const toggleOptionSchool = (optionIndex: number, schoolId: string) => {
+    const opt = formData.options[optionIndex]
+    const ids = opt.recommended_school_ids || []
+    const next = ids.includes(schoolId) ? ids.filter((id) => id !== schoolId) : [...ids, schoolId]
+    setOptionRecommendedSchools(optionIndex, next)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-[#060520]">
+            {question ? "Edit Onboarding Question" : "Create Onboarding Question"}
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            Shown when a client enters University for the first time. Set which programs to recommend per answer.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label className="text-[#060520]">Title (admin label)</Label>
+            <Input
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+              className="text-[#060520]"
+            />
+          </div>
+          <div>
+            <Label className="text-[#060520]">Question text (shown to client)</Label>
+            <Textarea
+              value={formData.question_text}
+              onChange={(e) => setFormData({ ...formData, question_text: e.target.value })}
+              required
+              rows={2}
+              className="text-[#060520]"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-[#060520]">Question key (unique slug)</Label>
+              <Input
+                value={formData.question_key}
+                onChange={(e) => setFormData({ ...formData, question_key: e.target.value })}
+                required
+                placeholder="e.g. first_time_hubflo"
+                className="text-[#060520]"
+                disabled={!!question}
+              />
+              {question && <p className="text-xs text-gray-500 mt-1">Key cannot be changed when editing</p>}
+            </div>
+            <div>
+              <Label className="text-[#060520]">Input type</Label>
+              <Select
+                value={formData.input_type}
+                onValueChange={(v: "yes_no" | "multi_choice") => setFormData({ ...formData, input_type: v })}
+              >
+                <SelectTrigger className="text-[#060520]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes_no" className="text-[#060520]">Yes / No</SelectItem>
+                  <SelectItem value="multi_choice" className="text-[#060520]">Multiple choice</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-[#060520]">Phase</Label>
+              <Select
+                value={String(formData.phase)}
+                onValueChange={(v) => setFormData({ ...formData, phase: Number(v) as 1 | 2 | 3 })}
+              >
+                <SelectTrigger className="text-[#060520]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1" className="text-[#060520]">1 – Workspace & Hubflo</SelectItem>
+                  <SelectItem value="2" className="text-[#060520]">2 – Billing & integrations</SelectItem>
+                  <SelectItem value="3" className="text-[#060520]">3 – Everything else</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-[#060520]">Sort order</Label>
+              <Input
+                type="number"
+                value={formData.sort_order}
+                onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
+                className="text-[#060520]"
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="text-[#060520]">Answer options → recommend programs</Label>
+            <p className="text-sm text-gray-500 mb-2">For each option, select which programs (schools) to recommend when the client chooses that answer.</p>
+            <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
+              {formData.options.map((opt, idx) => (
+                <div key={idx} className="space-y-2">
+                  <div className="flex gap-4 items-center">
+                    <Input
+                      value={opt.value}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          options: prev.options.map((o, i) => (i === idx ? { ...o, value: e.target.value } : o)),
+                        }))
+                      }
+                      placeholder="Value"
+                      className="w-24 text-[#060520]"
+                    />
+                    <Input
+                      value={opt.label}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          options: prev.options.map((o, i) => (i === idx ? { ...o, label: e.target.value } : o)),
+                        }))
+                      }
+                      placeholder="Label"
+                      className="flex-1 text-[#060520]"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2 pl-2">
+                    {schools.map((school) => (
+                      <label key={school.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={(opt.recommended_school_ids || []).includes(school.id)}
+                          onCheckedChange={() => toggleOptionSchool(idx, school.id)}
+                        />
+                        <span className="text-[#060520]">{school.name}</span>
+                      </label>
+                    ))}
+                    {schools.length === 0 && (
+                      <p className="text-sm text-gray-500">No schools yet. Create schools first to recommend them.</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <Switch

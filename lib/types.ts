@@ -810,6 +810,7 @@ export interface UniversitySchool {
   description?: string;
   image_url?: string;
   sort_order: number;
+  phase?: number; // 1 = start, 2 = middle, 3 = end (for recommended programs grouping)
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -918,4 +919,35 @@ export interface UniversityCertificate {
   created_at: string;
 }
 
+// University onboarding: questions and client responses for personalized recommendations
+export interface UniversityOnboardingQuestionOption {
+  value: string;
+  label: string;
+  recommended_school_ids: string[];
+}
 
+export interface UniversityOnboardingQuestion {
+  id: string;
+  title: string;
+  question_text: string;
+  question_key: string;
+  input_type: "yes_no" | "multi_choice";
+  options: UniversityOnboardingQuestionOption[];
+  phase: number;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UniversityClientOnboarding {
+  id: string;
+  client_id: string;
+  completed_at: string | null;
+  responses: Record<string, string | string[]>;
+  recommended_school_ids: string[];
+  /** Schools recommended per phase (from question phase when answered): "1" | "2" | "3" -> school ids */
+  recommended_school_ids_by_phase?: Record<string, string[]>;
+  created_at: string;
+  updated_at: string;
+}

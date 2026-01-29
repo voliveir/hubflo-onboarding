@@ -32,6 +32,8 @@ import type {
   UniversityClientProgress,
   UniversityQuizAttempt,
   UniversityCertificate,
+  UniversityOnboardingQuestion,
+  UniversityClientOnboarding,
 } from "./types"
 import { addDays, startOfDay, endOfDay, isWithinInterval, parseISO } from "date-fns"
 
@@ -3733,4 +3735,144 @@ export async function createClientCertificate(clientId: string, courseId: string
     .single()
   if (error) throw error
   return data
+}
+
+// ============================================================================
+// UNIVERSITY ONBOARDING
+// ============================================================================
+
+export async function getUniversityOnboardingQuestions(): Promise<UniversityOnboardingQuestion[]> {
+  const { data, error } = await supabase
+    .from("university_onboarding_questions")
+    .select("*")
+    .eq("is_active", true)
+    .order("phase", { ascending: true })
+    .order("sort_order", { ascending: true })
+  if (error) throw error
+  return (data || []).map((row: any) => ({
+    ...row,
+    options: Array.isArray(row.options) ? row.options : (row.options ? JSON.parse(row.options) : []),
+  }))
+}
+
+export async function getUniversityOnboardingQuestionsAdmin(): Promise<UniversityOnboardingQuestion[]> {
+  const { data, error } = await supabase
+    .from("university_onboarding_questions")
+    .select("*")
+    .order("phase", { ascending: true })
+    .order("sort_order", { ascending: true })
+  if (error) throw error
+  return (data || []).map((row: any) => ({
+    ...row,
+    options: Array.isArray(row.options) ? row.options : (row.options ? JSON.parse(row.options) : []),
+  }))
+}
+
+export async function getUniversityOnboardingQuestion(id: string): Promise<UniversityOnboardingQuestion | null> {
+  const { data, error } = await supabase
+    .from("university_onboarding_questions")
+    .select("*")
+    .eq("id", id)
+    .single()
+  if (error) {
+    if (error.code === "PGRST116") return null
+    throw error
+  }
+  if (!data) return null
+  return {
+    ...data,
+    options: Array.isArray(data.options) ? data.options : (data.options ? JSON.parse(data.options) : []),
+  }
+}
+
+export async function getClientOnboarding(clientId: string): Promise<UniversityClientOnboarding | null> {
+  const { data, error } = await supabase
+    .from("university_client_onboarding")
+    .select("*")
+    .eq("client_id", clientId)
+    .single()
+  if (error) {
+    if (error.code === "PGRST116") return null
+    throw error
+  }
+  if (!data) return null
+  return {
+    ...data,
+    responses: typeof data.responses === "object" ? data.responses : (data.responses ? JSON.parse(data.responses) : {}),
+    recommended_school_ids: data.recommended_school_ids || [],
+    recommended_school_ids_by_phase:
+      typeof data.recommended_school_ids_by_phase === "object"
+        ? data.recommended_school_ids_by_phase
+        : data.recommended_school_ids_by_phase
+          ? JSON.parse(data.recommended_school_ids_by_phase)
+          : undefined,
+  }
+}
+
+export async function upsertClientOnboarding(
+  clientId: string,
+  responses: Record<string, string | string[]>,
+  recommendedSchoolIds: string[],
+  recommendedSchoolIdsByPhase?: Record<string, string[]>
+): Promise<UniversityClientOnboarding> {
+  const payload: Record<string, unknown> = {
+    client_id: clientId,
+    completed_at: new Date().toISOString(),
+    responses,
+    recommended_school_ids: recommendedSchoolIds,
+    updated_at: new Date().toISOString(),
+  }
+  if (recommendedSchoolIdsByPhase) {
+    payload.recommended_school_ids_by_phase = recommendedSchoolIdsByPhase
+  }
+  const { data, error } = await supabase
+    .from("university_client_onboarding")
+    .upsert(payload, { onConflict: "client_id" })
+    .select()
+    .single()
+  if (error) throw error
+  return {
+    ...data,
+    responses: typeof data.responses === "object" ? data.responses : (data.responses ? JSON.parse(data.responses) : {}),
+    recommended_school_ids: data.recommended_school_ids || [],
+    recommended_school_ids_by_phase:
+      typeof data.recommended_school_ids_by_phase === "object"
+        ? data.recommended_school_ids_by_phase
+        : data.recommended_school_ids_by_phase
+          ? JSON.parse(data.recommended_school_ids_by_phase)
+          : undefined,
+  }
+}
+
+export async function createUniversityOnboardingQuestion(
+  q: Omit<UniversityOnboardingQuestion, "id" | "created_at" | "updated_at">
+): Promise<UniversityOnboardingQuestion> {
+  const { data, error } = await supabase
+    .from("university_onboarding_questions")
+    .insert([{ ...q, options: JSON.stringify(q.options) }])
+    .select()
+    .single()
+  if (error) throw error
+  return { ...data, options: data.options ?? q.options }
+}
+
+export async function updateUniversityOnboardingQuestion(
+  id: string,
+  updates: Partial<UniversityOnboardingQuestion>
+): Promise<UniversityOnboardingQuestion> {
+  const payload: any = { ...updates, updated_at: new Date().toISOString() }
+  if (Array.isArray(updates.options)) payload.options = JSON.stringify(updates.options)
+  const { data, error } = await supabase
+    .from("university_onboarding_questions")
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single()
+  if (error) throw error
+  return { ...data, options: Array.isArray(data.options) ? data.options : (data.options ? JSON.parse(data.options) : []) }
+}
+
+export async function deleteUniversityOnboardingQuestion(id: string): Promise<void> {
+  const { error } = await supabase.from("university_onboarding_questions").delete().eq("id", id)
+  if (error) throw error
 }

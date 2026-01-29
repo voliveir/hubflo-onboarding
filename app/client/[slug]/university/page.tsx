@@ -1,7 +1,15 @@
 export const dynamic = "force-dynamic"
 
 import { notFound } from "next/navigation"
-import { getClientBySlug, getUniversitySchools, getUniversityCourses, getClientUniversityProgress, getClientCertificates } from "@/lib/database"
+import {
+  getClientBySlug,
+  getUniversitySchools,
+  getUniversityCourses,
+  getClientUniversityProgress,
+  getClientCertificates,
+  getClientOnboarding,
+  getUniversityOnboardingQuestions,
+} from "@/lib/database"
 import { UniversityClient } from "./UniversityClient"
 import Image from "next/image"
 
@@ -26,11 +34,16 @@ export default async function UniversityPage({ params }: UniversityPageProps) {
     notFound()
   }
 
-  // Fetch University data
-  const schools = await getUniversitySchools()
-  const allCourses = await getUniversityCourses()
-  const clientProgress = await getClientUniversityProgress(client.id)
-  const certificates = await getClientCertificates(client.id)
+  // Fetch University data and onboarding (for first-time form and recommended programs)
+  const [schools, allCourses, clientProgress, certificates, onboarding, onboardingQuestions] =
+    await Promise.all([
+      getUniversitySchools(),
+      getUniversityCourses(),
+      getClientUniversityProgress(client.id),
+      getClientCertificates(client.id),
+      getClientOnboarding(client.id),
+      getUniversityOnboardingQuestions(),
+    ])
 
   // Create a progress map for quick lookup
   const progressMap = new Map(
@@ -73,11 +86,14 @@ export default async function UniversityPage({ params }: UniversityPageProps) {
       <div className="mt-24">
         <UniversityClient
           clientId={client.id}
+          clientSlug={slug}
           clientName={client.name}
           schools={schools}
           courses={allCourses}
           clientProgress={clientProgress}
           certificates={certificates}
+          onboarding={onboarding}
+          onboardingQuestions={onboardingQuestions}
         />
       </div>
     </div>

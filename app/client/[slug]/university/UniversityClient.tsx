@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -13,11 +14,13 @@ import {
   Clock,
   Award,
   ChevronRight,
+  ChevronLeft,
   FileText,
   Download,
   ExternalLink,
   Video,
   HelpCircle,
+  Sparkles,
 } from "lucide-react"
 import type {
   UniversitySchool,
@@ -25,6 +28,8 @@ import type {
   UniversityClientProgress,
   UniversityCertificate,
   UniversityLecture,
+  UniversityOnboardingQuestion,
+  UniversityClientOnboarding,
 } from "@/lib/types"
 import { PortalSection } from "@/components/ui/PortalSection"
 import { formatCourseDuration } from "@/lib/utils"
@@ -32,27 +37,38 @@ import { LectureViewer } from "./LectureViewer"
 
 interface UniversityClientProps {
   clientId: string
+  clientSlug: string
   clientName: string
   schools: UniversitySchool[]
   courses: UniversityCourse[]
   clientProgress: UniversityClientProgress[]
   certificates: UniversityCertificate[]
+  onboarding: UniversityClientOnboarding | null
+  onboardingQuestions: UniversityOnboardingQuestion[]
 }
 
 export function UniversityClient({
   clientId,
+  clientSlug,
   clientName,
   schools,
   courses,
   clientProgress,
   certificates,
+  onboarding,
+  onboardingQuestions,
 }: UniversityClientProps) {
+  const router = useRouter()
   const [selectedSchool, setSelectedSchool] = useState<UniversitySchool | null>(null)
   const [selectedCourse, setSelectedCourse] = useState<UniversityCourse | null>(null)
   const [viewMode, setViewMode] = useState<"overview" | "school" | "course">("overview")
   const [fullCoursesData, setFullCoursesData] = useState<Map<string, UniversityCourse>>(new Map())
   const [loadingCourses, setLoadingCourses] = useState(false)
   const [completedSchools, setCompletedSchools] = useState<UniversitySchool[]>([])
+  const [onboardingResponses, setOnboardingResponses] = useState<Record<string, string>>({})
+  const [onboardingSubmitting, setOnboardingSubmitting] = useState(false)
+  const [onboardingStep, setOnboardingStep] = useState(0)
+  const [redoOnboarding, setRedoOnboarding] = useState(false)
 
   // Create progress map
   const progressMap = new Map(
@@ -183,6 +199,136 @@ export function UniversityClient({
     return isCourseFullyCompleted(courseId)
   }
 
+  const recommendedSchoolIds = onboarding?.recommended_school_ids ?? []
+  const showOnboardingForm =
+    onboardingQuestions.length > 0 && (!onboarding?.completed_at || redoOnboarding)
+
+  const handleOnboardingSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault()
+    setOnboardingSubmitting(true)
+    try {
+      const res = await fetch(`/api/client/${clientSlug}/university/onboarding`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ responses: onboardingResponses }),
+      })
+      if (!res.ok) throw new Error("Failed to save")
+      setRedoOnboarding(false)
+      router.refresh()
+    } catch (err) {
+      console.error(err)
+      setOnboardingSubmitting(false)
+    }
+  }
+
+  // First-time entry: Typeform-style one-question-at-a-time onboarding
+  if (showOnboardingForm) {
+    const flatQuestions = [...onboardingQuestions].sort(
+      (a, b) => a.phase - b.phase || a.sort_order - b.sort_order
+    )
+    const totalSteps = flatQuestions.length
+    const currentQuestion = flatQuestions[onboardingStep]
+    const isLastStep = onboardingStep === totalSteps - 1
+    const progressPercent = totalSteps > 0 ? ((onboardingStep + 1) / totalSteps) * 100 : 0
+
+    const handleOptionSelect = (questionKey: string, value: string) => {
+      setOnboardingResponses((prev) => ({ ...prev, [questionKey]: value }))
+      if (!isLastStep) {
+        setTimeout(() => setOnboardingStep((s) => s + 1), 280)
+      }
+    }
+
+    return (
+      <div className="min-h-screen bg-[#060520] flex flex-col scroll-mt-32 mt-24">
+        {/* Progress bar */}
+        <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-white/10">
+          <div
+            className="h-full bg-brand-gold transition-all duration-500 ease-out"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
+        <div className="flex-1 flex flex-col justify-center px-6 py-16 sm:py-24 max-w-3xl mx-auto w-full">
+          {currentQuestion ? (
+            <div
+              key={currentQuestion.id}
+              className="animate-in fade-in slide-in-from-bottom-4 duration-300"
+            >
+              <p className="text-brand-gold/90 text-sm font-medium tracking-wide uppercase mb-6">
+                Question {onboardingStep + 1} of {totalSteps}
+              </p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-white leading-tight mb-12">
+                {currentQuestion.question_text}
+              </h2>
+
+              <div className="space-y-4">
+                {(currentQuestion.options || []).map((opt) => {
+                  const isSelected = onboardingResponses[currentQuestion.question_key] === opt.value
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => handleOptionSelect(currentQuestion.question_key, opt.value)}
+                      className={`w-full text-left px-6 py-5 rounded-2xl border-2 transition-all duration-200 text-lg font-medium flex items-center justify-between group ${
+                        isSelected
+                          ? "border-brand-gold bg-brand-gold/15 text-white shadow-lg shadow-brand-gold/20"
+                          : "border-white/20 bg-white/5 text-white/95 hover:border-white/40 hover:bg-white/10"
+                      }`}
+                    >
+                      <span>{opt.label}</span>
+                      {isSelected && <CheckCircle className="h-6 w-6 text-brand-gold flex-shrink-0" />}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="flex items-center justify-between mt-14">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setOnboardingStep((s) => Math.max(0, s - 1))}
+                  disabled={onboardingStep === 0}
+                  className="text-white/80 hover:text-white hover:bg-white/10 disabled:opacity-30"
+                >
+                  <ChevronLeft className="h-5 w-5 mr-1" />
+                  Back
+                </Button>
+                {isLastStep ? (
+                  <Button
+                    type="button"
+                    onClick={() => handleOnboardingSubmit()}
+                    disabled={onboardingSubmitting || !onboardingResponses[currentQuestion.question_key]}
+                    className="bg-brand-gold hover:bg-brand-gold-hover text-[#010124] font-semibold px-8 py-6 text-lg rounded-2xl disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    {onboardingSubmitting ? "Saving…" : "See my programs"}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={() => setOnboardingStep((s) => s + 1)}
+                    className="bg-white/10 hover:bg-white/20 text-white font-medium px-8 py-6 text-lg rounded-2xl border border-white/20"
+                  >
+                    Next
+                    <ChevronRight className="h-5 w-5 ml-1" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center text-white/80">
+              <p>No questions to show.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Subtle branding */}
+        <div className="pb-8 text-center">
+          <span className="text-white/40 text-sm">Hubflo University</span>
+        </div>
+      </div>
+    )
+  }
+
   // If no schools or courses exist, show coming soon
   if (schools.length === 0 && courses.length === 0) {
     return (
@@ -215,6 +361,7 @@ export function UniversityClient({
         getCourseProgress={getCourseProgress}
         isCourseCompleted={isCourseCompleted}
         onBack={() => {
+          router.refresh()
           setViewMode("overview")
           setSelectedSchool(null)
         }}
@@ -234,6 +381,7 @@ export function UniversityClient({
         clientId={clientId}
         clientProgress={clientProgress}
         onBack={() => {
+          router.refresh()
           if (selectedSchool) {
             setViewMode("school")
           } else {
@@ -247,9 +395,9 @@ export function UniversityClient({
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <PortalSection gradient={true} className="text-white scroll-mt-32 mt-40 bg-transparent relative overflow-hidden !py-24 min-h-[40vh]">
-        <div className="absolute inset-0 gradient-portal opacity-30" />
+      {/* Hero Section – same dark navy as header/badges (#010124) */}
+      <PortalSection gradient={false} className="text-white scroll-mt-32 mt-40 relative overflow-hidden !py-24 min-h-[40vh] !bg-[#010124]">
+        <div className="absolute inset-0 gradient-portal opacity-20" />
         <div className="relative z-10 text-center flex flex-col justify-center">
           <GraduationCap className="h-16 w-16 text-brand-gold mx-auto mb-6" />
           <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg" style={{textShadow: '0 2px 8px rgba(236, 178, 45, 0.33)'}}>
@@ -261,60 +409,46 @@ export function UniversityClient({
         </div>
       </PortalSection>
 
-      {/* Completed Programs Badges Section - Very Prominent */}
-      {completedSchools.length > 0 && (
-        <PortalSection gradient={false} className="relative overflow-hidden bg-gradient-to-br from-brand-gold/10 via-brand-gold/5 to-transparent border-y-4 border-brand-gold/30">
-          <div className="max-w-6xl mx-auto py-12">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center space-x-3 bg-brand-gold/20 border-2 border-brand-gold rounded-full px-8 py-3 mb-6 animate-pulse">
-                <Award className="h-6 w-6 text-brand-gold" />
-                <span className="text-brand-gold font-bold text-lg">Programs Completed!</span>
-                <Award className="h-6 w-6 text-brand-gold" />
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
-                🎉 Congratulations! 🎉
-              </h2>
-              <p className="text-xl text-white/90 max-w-2xl mx-auto">
-                You've completed all courses in {completedSchools.length} {completedSchools.length === 1 ? 'program' : 'programs'}!
-              </p>
-            </div>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-              {completedSchools.map((school) => {
-                const schoolCourses = courses.filter(c => c.school_id === school.id)
+      {/* Pokemon-style badge holder: all programs in a row, collected = gold, uncollected = black silhouette */}
+      {schools.length > 0 && (
+        <PortalSection gradient={false} className="relative overflow-hidden p-0">
+          <div className="w-full py-5" style={{ backgroundColor: "#010124" }}>
+            <div className="max-w-6xl mx-auto px-4">
+            <p className="text-white/70 text-sm font-medium text-center mb-4">Program badges</p>
+            <div className="flex flex-wrap items-end justify-center gap-6 sm:gap-8">
+              {schools.map((school) => {
+                const isCollected = isSchoolCompleted(school.id)
                 return (
-                  <Card
+                  <button
                     key={school.id}
-                    className="border-4 border-brand-gold bg-gradient-to-br from-brand-gold/20 to-brand-gold/5 shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer"
+                    type="button"
                     onClick={() => {
                       setSelectedSchool(school)
                       setViewMode("school")
                     }}
+                    title={school.name}
+                    className="group flex flex-col items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#010124] rounded-full"
                   >
-                    <CardHeader className="text-center pb-4">
-                      <div className="mx-auto mb-4 w-20 h-20 bg-brand-gold rounded-full flex items-center justify-center shadow-lg">
-                        <Award className="h-12 w-12 text-[#010124]" />
-                      </div>
-                      <CardTitle className="text-2xl font-bold mb-2" style={{ color: '#060520' }}>
-                        {school.name}
-                      </CardTitle>
-                      <Badge className="bg-brand-gold text-[#010124] text-sm px-4 py-1 mx-auto">
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Program Completed
-                      </Badge>
-                    </CardHeader>
-                    <CardContent className="text-center">
-                      <p className="text-sm text-gray-600 mb-2">
-                        {schoolCourses.length} {schoolCourses.length === 1 ? 'course' : 'courses'} completed
-                      </p>
-                      <div className="flex items-center justify-center space-x-2 text-brand-gold">
-                        <CheckCircle className="h-5 w-5" />
-                        <span className="font-semibold">100% Complete</span>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    <div
+                      className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center border-2 transition-all duration-200 hover:scale-110 ${
+                        isCollected
+                          ? "bg-brand-gold border-brand-gold shadow-lg shadow-brand-gold/30"
+                          : "bg-black/80 border-white/20 shadow-[0_0_12px_rgba(0,0,0,0.6)]"
+                      }`}
+                    >
+                      <Award
+                        className={`h-6 w-6 sm:h-7 sm:w-7 ${
+                          isCollected ? "text-[#010124]" : "text-white/25"
+                        }`}
+                      />
+                    </div>
+                    <span className="text-xs font-medium text-white/90 max-w-[5rem] sm:max-w-[6rem] truncate text-center leading-tight group-hover:text-white">
+                      {school.name}
+                    </span>
+                  </button>
                 )
               })}
+            </div>
             </div>
           </div>
         </PortalSection>
@@ -369,6 +503,158 @@ export function UniversityClient({
         </PortalSection>
       )}
 
+      {/* Recommended for you – grouped by question phase (from onboarding form) */}
+      {recommendedSchoolIds.length > 0 && (() => {
+        const byPhaseFromQuestions = onboarding?.recommended_school_ids_by_phase
+        const schoolMap = new Map(schools.map((s) => [s.id, s]))
+        const phaseConfig: Record<number, { title: string; subtitle: string }> = {
+          1: {
+            title: "Phase 1",
+            subtitle: "Set up your workspace & understand Hubflo",
+          },
+          2: {
+            title: "Phase 2",
+            subtitle: "Billing, SmartDocs & integrations",
+          },
+          3: {
+            title: "Phase 3",
+            subtitle: "Automations, Zapier & the rest",
+          },
+        }
+        const getSchoolsForPhase = (phase: 1 | 2 | 3): UniversitySchool[] => {
+          if (byPhaseFromQuestions) {
+            const ids = byPhaseFromQuestions[String(phase)] ?? []
+            return ids.map((id) => schoolMap.get(id)).filter(Boolean) as UniversitySchool[]
+          }
+          const recommendedSchools = schools.filter((s) => recommendedSchoolIds.includes(s.id))
+          return recommendedSchools.filter((s) => (s.phase ?? 1) === phase)
+        }
+        const renderSchoolCard = (school: UniversitySchool) => {
+          const schoolCourses = courses.filter((c) => c.school_id === school.id)
+          const totalCourses = schoolCourses.length
+          const completedCourses = schoolCourses.filter((c) => isCourseCompleted(c.id)).length
+          const isCompleted = isSchoolCompleted(school.id)
+          return (
+            <Card
+              key={school.id}
+              className={`${
+                isCompleted
+                  ? "border-4 border-brand-gold bg-gradient-to-br from-brand-gold/10 to-transparent shadow-lg"
+                  : "border-2 border-brand-gold/50 hover:border-brand-gold bg-white"
+              } transition-all cursor-pointer group relative overflow-hidden`}
+              onClick={() => {
+                setSelectedSchool(school)
+                setViewMode("school")
+              }}
+            >
+              {isCompleted && (
+                <div className="absolute top-4 right-4 z-10">
+                  <div className="bg-brand-gold rounded-full p-2 shadow-lg">
+                    <Award className="h-6 w-6 text-[#010124]" />
+                  </div>
+                </div>
+              )}
+              <CardHeader>
+                {school.image_url && (
+                  <div className="w-full h-40 bg-gray-100 rounded-lg mb-4 overflow-hidden">
+                    <img
+                      src={school.image_url}
+                      alt={school.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  </div>
+                )}
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <GraduationCap className="h-5 w-5 text-brand-gold" />
+                      <CardTitle style={{ color: "#060520" }}>{school.name}</CardTitle>
+                    </div>
+                    {school.description && (
+                      <CardDescription className="text-gray-600 line-clamp-2 mt-1">
+                        {school.description}
+                      </CardDescription>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Progress value={(completedCourses / totalCourses) * 100} className="h-2 mb-2" />
+                  <p className="text-sm text-gray-500">
+                    {completedCourses} of {totalCourses} courses completed
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  className="w-full bg-brand-gold hover:bg-brand-gold-hover text-[#010124]"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSelectedSchool(school)
+                    setViewMode("school")
+                  }}
+                >
+                  {isCompleted ? "Review" : "Continue"} <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </CardContent>
+            </Card>
+          )
+        }
+        return (
+          <PortalSection gradient={false} className="relative overflow-hidden bg-white">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="text-center mb-10 pt-4">
+                <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/30 rounded-full px-6 py-2 mb-4">
+                  <Sparkles className="h-4 w-4 text-brand-gold" />
+                  <span className="text-brand-gold font-medium text-sm">Recommended for you</span>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#060520" }}>
+                  Your implementation path
+                </h2>
+              </div>
+
+              {([1, 2, 3] as const).map((phase) => {
+                const phaseSchools = getSchoolsForPhase(phase)
+                if (phaseSchools.length === 0) return null
+                const config = phaseConfig[phase]
+                return (
+                  <div
+                    key={phase}
+                    className={`rounded-2xl border-2 border-brand-gold/20 bg-gray-50/80 p-6 sm:p-8 mb-8 last:mb-0 ${phase === 1 ? "" : "mt-10"}`}
+                  >
+                    <div className="flex items-center gap-4 mb-6">
+                      <span className="flex items-center justify-center w-12 h-12 rounded-full bg-brand-gold text-[#010124] font-bold text-xl shadow-md">
+                        {phase}
+                      </span>
+                      <div>
+                        <h3 className="text-xl md:text-2xl font-bold" style={{ color: "#060520" }}>
+                          {config.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-0.5">{config.subtitle}</p>
+                      </div>
+                    </div>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {phaseSchools.map(renderSchoolCard)}
+                    </div>
+                  </div>
+                )
+              })}
+
+              <div className="text-center pt-4 pb-6 mt-8">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setRedoOnboarding(true)}
+                  className="border-brand-gold text-brand-gold hover:bg-brand-gold/10 hover:text-brand-gold"
+                >
+                  Update my recommended programs
+                </Button>
+                <p className="text-xs text-gray-500 mt-2">Redo the short questionnaire to refresh your path</p>
+              </div>
+            </div>
+          </PortalSection>
+        )
+      })()}
+
       {/* Programs Section */}
       <PortalSection gradient={false} className="relative overflow-hidden bg-white">
         <div className="max-w-6xl mx-auto">
@@ -378,10 +664,12 @@ export function UniversityClient({
               <span className="text-brand-gold font-medium text-sm">Learning Path</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-bold mb-4" style={{ color: '#060520' }}>
-              Select a Program
+              {recommendedSchoolIds.length > 0 ? "All programs" : "Select a Program"}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Choose a program to explore available courses and start your learning journey
+              {recommendedSchoolIds.length > 0
+                ? "Explore all available programs"
+                : "Choose a program to explore available courses and start your learning journey"}
             </p>
           </div>
 
@@ -489,6 +777,23 @@ export function UniversityClient({
           )}
         </div>
       </PortalSection>
+
+      {/* Redo onboarding – show at bottom only when no recommended section (link is in recommended section otherwise) */}
+      {onboarding?.completed_at && onboardingQuestions.length > 0 && recommendedSchoolIds.length === 0 && (
+        <PortalSection gradient={false} className="relative overflow-hidden bg-gray-50/80">
+          <div className="max-w-6xl mx-auto py-6 text-center">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setRedoOnboarding(true)}
+              className="border-brand-gold text-brand-gold hover:bg-brand-gold/10 hover:text-brand-gold"
+            >
+              Update my recommended programs
+            </Button>
+            <p className="text-xs text-gray-500 mt-2">Redo the short questionnaire to refresh your path</p>
+          </div>
+        </PortalSection>
+      )}
     </div>
   )
 }
@@ -676,7 +981,9 @@ function CourseDetailView({
   onBack: () => void
 }) {
   const [selectedLecture, setSelectedLecture] = useState<UniversityLecture | null>(null)
-  const [localProgress, setLocalProgress] = useState<UniversityClientProgress[]>(clientProgress)
+  const [localProgress, setLocalProgress] = useState<UniversityClientProgress[]>(() =>
+    clientProgress.filter((p) => p.course_id === course.id)
+  )
   const [fullCourse, setFullCourse] = useState<UniversityCourse | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -727,31 +1034,33 @@ function CourseDetailView({
   }
 
   const handleLectureComplete = async () => {
-    // Refresh progress
+    // Refresh progress from server so progress bar and checkmarks update immediately
     const response = await fetch(`/api/university/progress?clientId=${clientId}&courseId=${course.id}`)
     if (response.ok) {
-      const data = await response.json()
-      setLocalProgress(data.data || [])
-    }
+      const json = await response.json()
+      const freshProgress = Array.isArray(json.data) ? json.data : []
+      setLocalProgress(freshProgress)
 
-    // Check if course is now completed
-    if (isCourseCompleted()) {
-      // Check if certificate already exists
-      const certResponse = await fetch(`/api/university/certificate?clientId=${clientId}`)
-      if (certResponse.ok) {
-        const certData = await certResponse.json()
-        const hasCertificate = certData.data?.some((c: any) => c.course_id === course.id)
-        
-        if (!hasCertificate) {
-          // Generate certificate
-          await fetch("/api/university/certificate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              clientId,
-              courseId: course.id,
-            }),
-          })
+      // Use fresh data for completion check (state won't have updated yet)
+      const allComplete =
+        allLectures.length > 0 &&
+        allLectures.every((lecture) => {
+          const p = freshProgress.find((r: UniversityClientProgress) => r.lecture_id === lecture.id)
+          return p?.is_completed === true
+        })
+
+      if (allComplete) {
+        const certResponse = await fetch(`/api/university/certificate?clientId=${clientId}`)
+        if (certResponse.ok) {
+          const certData = await certResponse.json()
+          const hasCertificate = certData.data?.some((c: any) => c.course_id === course.id)
+          if (!hasCertificate) {
+            await fetch("/api/university/certificate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ clientId, courseId: course.id }),
+            })
+          }
         }
       }
     }
