@@ -334,11 +334,19 @@ export default async function ClientPage({ params }: ClientPageProps) {
             <GraduationCap className="h-4 w-4 text-brand-gold" />
             <span className="text-brand-gold font-medium text-sm">Your learning path</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-bold mb-8" style={{ color: "#060520" }}>
-            Hubflo University
-          </h2>
-          <p className="text-xl max-w-3xl mx-auto leading-relaxed" style={{ color: "#64748b" }}>
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-4">
+            <h2 className="text-3xl md:text-5xl font-bold" style={{ color: "#060520" }}>
+              Hubflo University
+            </h2>
+            <span className="inline-flex items-center rounded-full bg-amber-100 border border-amber-300 px-4 py-1.5 text-sm font-medium text-amber-800">
+              Coming Soon — Preview Available
+            </span>
+          </div>
+          <p className="text-xl max-w-3xl mx-auto leading-relaxed mb-2" style={{ color: "#64748b" }}>
             Learn everything you need to know about Hubflo through our comprehensive educational platform. Access courses, tutorials, quizzes, and earn certificates as you progress.
+          </p>
+          <p className="text-sm text-gray-500 max-w-2xl mx-auto">
+            We&apos;re still building this out. Feel free to explore — your feedback helps us improve.
           </p>
         </div>
 
