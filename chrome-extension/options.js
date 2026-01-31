@@ -2,7 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Load saved settings
-  const result = await chrome.storage.sync.get(['apiUrl', 'autoAuth']);
+  const result = await chrome.storage.sync.get(['apiUrl', 'autoAuth', 'autoTrack']);
   if (result.apiUrl) {
     document.getElementById('apiUrl').value = result.apiUrl;
   }
@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     // Default to true
     document.getElementById('autoAuth').checked = true;
+  }
+  if (result.autoTrack !== undefined) {
+    document.getElementById('autoTrack').checked = result.autoTrack;
+  } else {
+    document.getElementById('autoTrack').checked = false;
   }
 
   // Save button
@@ -23,6 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function saveSettings() {
   const apiUrl = document.getElementById('apiUrl').value.trim();
   const autoAuth = document.getElementById('autoAuth').checked;
+  const autoTrack = document.getElementById('autoTrack').checked;
   
   if (!apiUrl) {
     showStatus('error', 'Please enter an API URL');
@@ -37,7 +43,7 @@ async function saveSettings() {
     return;
   }
 
-  await chrome.storage.sync.set({ apiUrl, autoAuth });
+  await chrome.storage.sync.set({ apiUrl, autoAuth, autoTrack });
   showStatus('success', 'Settings saved successfully!');
 }
 

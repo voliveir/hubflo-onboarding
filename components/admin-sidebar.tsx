@@ -36,6 +36,8 @@ const navigation = [
     children: [
       { name: "Analytics Dashboard", href: "/admin/analytics" },
       { name: "Time Tracking", href: "/admin/analytics/time-tracking" },
+      { name: "Activity Timeline", href: "/admin/activity-timeline" },
+      { name: "Activity List", href: "/admin/activity-list" },
     ] as NavChild[],
   },
   // {
@@ -108,7 +110,7 @@ const navigation = [
 
 export function AdminSidebar() {
   const pathname = usePathname()
-  const [expandedItems, setExpandedItems] = useState<string[]>(["Clients"])
+  const [expandedItems, setExpandedItems] = useState<string[]>(["Clients", "Analytics"])
 
   const toggleExpanded = (name: string) => {
     setExpandedItems((prev) => (prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name]))
