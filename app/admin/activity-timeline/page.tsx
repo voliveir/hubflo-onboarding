@@ -296,6 +296,28 @@ export default function ActivityTimelinePage() {
     }
   }
 
+  const bulkHide = async (hidden: boolean) => {
+    if (selectedIds.size === 0) return
+    setUpdatingId("bulk-hide")
+    try {
+      await Promise.all(
+        [...selectedIds].map((id) =>
+          fetch(`/api/browser-activity/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ is_hidden: hidden }),
+          })
+        )
+      )
+      setSelectedIds(new Set())
+      await loadData()
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
   const ungroup = async (groupId: string) => {
     setUpdatingId(groupId)
     try {
@@ -431,6 +453,30 @@ export default function ActivityTimelinePage() {
                       · {activities.length} activit{activities.length === 1 ? "y" : "ies"}
                     </span>
                   </div>
+                  {selectedIds.size >= 1 && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => bulkHide(true)}
+                        disabled={!!updatingId}
+                        title="Hide selected from timeline"
+                      >
+                        <EyeOff className="h-4 w-4 mr-2" />
+                        Hide {selectedIds.size}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => bulkHide(false)}
+                        disabled={!!updatingId}
+                        title="Unhide selected"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Unhide {selectedIds.size}
+                      </Button>
+                    </>
+                  )}
                   {selectedIds.size >= 2 && (
                     <Button
                       size="sm"

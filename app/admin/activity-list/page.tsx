@@ -280,6 +280,28 @@ export default function ActivityListPage() {
     }
   }
 
+  const bulkHide = async (hidden: boolean) => {
+    if (selectedIds.size === 0) return
+    setUpdatingId("bulk-hide")
+    try {
+      await Promise.all(
+        [...selectedIds].map((id) =>
+          fetch(`/api/browser-activity/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ is_hidden: hidden }),
+          })
+        )
+      )
+      setSelectedIds(new Set())
+      await loadData()
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
   const assignActivityClient = async (activityId: string, clientId: string | null) => {
     setUpdatingId(activityId)
     try {
@@ -367,6 +389,30 @@ export default function ActivityListPage() {
                     <span className="font-semibold text-sm">{Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m</span>
                     <span className="text-xs text-gray-600">· {activities.length} activities</span>
                   </div>
+                  {selectedIds.size >= 1 && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => bulkHide(true)}
+                        disabled={!!updatingId}
+                        title="Hide selected from timeline"
+                      >
+                        <EyeOff className="h-4 w-4 mr-2" />
+                        Hide {selectedIds.size}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => bulkHide(false)}
+                        disabled={!!updatingId}
+                        title="Unhide selected"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Unhide {selectedIds.size}
+                      </Button>
+                    </>
+                  )}
                   {selectedIds.size >= 2 && (
                     <Button
                       size="sm"
