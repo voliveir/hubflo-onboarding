@@ -50,7 +50,10 @@ import {
   ChevronRight as ChevronRightIcon,
   EyeOff,
   Eye,
+  Briefcase,
+  Calendar,
 } from "lucide-react"
+import { getWorkHoursSeconds } from "@/lib/workHours"
 import Link from "next/link"
 
 interface BrowserActivity {
@@ -168,7 +171,26 @@ export default function ActivityListPage() {
   }
 
   const ungroupedActivities = activities.filter((a) => !a.group_id)
-  const totalMinutes = activities.reduce((s, a) => s + Math.round(a.duration_seconds / 60), 0)
+
+  const dedupeKey = (a: BrowserActivity) =>
+    `${a.started_at}|${a.duration_seconds}|${a.url || ""}|${a.domain || ""}`
+
+  const dedupedUngrouped = React.useMemo(() => {
+    const byKey = new Map<string, BrowserActivity[]>()
+    for (const a of ungroupedActivities) {
+      const key = dedupeKey(a)
+      if (!byKey.has(key)) byKey.set(key, [])
+      byKey.get(key)!.push(a)
+    }
+    return Array.from(byKey.values())
+      .map((activities) => ({ activities }))
+      .sort((x, y) => new Date(x.activities[0].started_at).getTime() - new Date(y.activities[0].started_at).getTime())
+  }, [ungroupedActivities])
+
+  const totalMinutes = dedupedUngrouped.reduce(
+    (s, row) => s + Math.round(row.activities[0].duration_seconds / 60),
+    0
+  )
   const isToday = selectedDate === getTodayLocal()
 
   const goToPreviousDay = () => {
@@ -192,11 +214,64 @@ export default function ActivityListPage() {
     })
   }
 
+  const toggleSelectDedupedRow = (ids: string[]) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      const allSelected = ids.every((id) => next.has(id))
+      if (allSelected) ids.forEach((id) => next.delete(id))
+      else ids.forEach((id) => next.add(id))
+      return next
+    })
+  }
+
   const selectAllUngrouped = () => {
-    if (selectedIds.size === ungroupedActivities.length) {
+    const allIds = ungroupedActivities.map((a) => a.id)
+    if (allIds.length > 0 && selectedIds.size === allIds.length) {
       setSelectedIds(new Set())
     } else {
-      setSelectedIds(new Set(ungroupedActivities.map((a) => a.id)))
+      setSelectedIds(new Set(allIds))
+    }
+  }
+
+  const assignActivityIdsClient = async (activityIds: string[], clientId: string | null) => {
+    if (activityIds.length === 0) return
+    setUpdatingId(activityIds[0])
+    try {
+      await Promise.all(
+        activityIds.map((id) =>
+          fetch(`/api/browser-activity/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ client_id: clientId }),
+          })
+        )
+      )
+      await loadData()
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const hideActivityIds = async (activityIds: string[], hidden: boolean) => {
+    if (activityIds.length === 0) return
+    setUpdatingId(activityIds[0])
+    try {
+      await Promise.all(
+        activityIds.map((id) =>
+          fetch(`/api/browser-activity/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ is_hidden: hidden }),
+          })
+        )
+      )
+      await loadData()
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
     }
   }
 
@@ -229,6 +304,22 @@ export default function ActivityListPage() {
         setGroupClientId(null)
         await loadData()
       }
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const renameGroup = async (groupId: string, name: string | null) => {
+    setUpdatingId(groupId)
+    try {
+      const res = await fetch(`/api/activity-groups/${groupId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name || null }),
+      })
+      if (res.ok) await loadData()
     } catch {
       // ignore
     } finally {
@@ -328,12 +419,12 @@ export default function ActivityListPage() {
         <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="container mx-auto px-6 py-8">
             <div className="mb-6">
-              <div className="inline-flex items-center gap-2 mb-4">
-                <Link
-                  href="/admin/activity-timeline"
-                  className="text-sm text-brand-gold hover:underline"
-                >
+              <div className="inline-flex items-center gap-4 mb-4">
+                <Link href="/admin/activity-timeline" className="text-sm text-brand-gold hover:underline">
                   ← Timeline view
+                </Link>
+                <Link href="/admin/analytics/activity" className="text-sm text-brand-gold hover:underline">
+                  Activity analytics →
                 </Link>
               </div>
               <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-4">
@@ -387,7 +478,14 @@ export default function ActivityListPage() {
                   <div className="flex items-center gap-2 px-4 py-2 bg-brand-gold/10 rounded-lg">
                     <Clock className="h-4 w-4 text-brand-gold" />
                     <span className="font-semibold text-sm">{Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m</span>
-                    <span className="text-xs text-gray-600">· {activities.length} activities</span>
+                    <span className="text-xs text-gray-600">
+                      · {dedupedUngrouped.length} row{dedupedUngrouped.length === 1 ? "" : "s"}
+                      {ungroupedActivities.length > dedupedUngrouped.length && (
+                        <span className="text-gray-500" title="Duplicates merged (same start + duration + URL)">
+                          {" "}({ungroupedActivities.length} raw)
+                        </span>
+                      )}
+                    </span>
                   </div>
                   {selectedIds.size >= 1 && (
                     <>
@@ -465,27 +563,39 @@ export default function ActivityListPage() {
                       <TableHead className="font-semibold">Duration</TableHead>
                       <TableHead className="font-semibold">Page / URL</TableHead>
                       <TableHead className="font-semibold">Domain</TableHead>
+                      <TableHead className="font-semibold w-20">Work hours</TableHead>
                       <TableHead className="font-semibold">Client</TableHead>
                       <TableHead className="font-semibold w-24">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {/* Ungrouped activities */}
-                    {ungroupedActivities
-                      .sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime())
-                      .map((a) => (
-                        <TableRow key={a.id} className={`hover:bg-gray-50/50 ${a.is_hidden ? "bg-amber-50/50" : ""}`}>
+                    {/* Ungrouped activities (deduped by start + duration + url) */}
+                    {dedupedUngrouped.map((row) => {
+                      const a = row.activities[0]
+                      const ids = row.activities.map((x) => x.id)
+                      const allSelected = ids.every((id) => selectedIds.has(id))
+                      const rowKey = `dedupe-${a.id}`
+                      const isHidden = a.is_hidden
+                      return (
+                        <TableRow key={rowKey} className={`hover:bg-gray-50/50 ${isHidden ? "bg-amber-50/50" : ""}`}>
                           <TableCell>
                             <input
                               type="checkbox"
-                              checked={selectedIds.has(a.id)}
-                              onChange={() => toggleSelect(a.id)}
+                              checked={allSelected}
+                              onChange={() => toggleSelectDedupedRow(ids)}
                               className="rounded border-gray-300"
                             />
                           </TableCell>
                           <TableCell className="font-mono text-sm">{formatTime(a.started_at)}</TableCell>
                           <TableCell className="font-mono text-sm">{formatTime(a.ended_at)}</TableCell>
-                          <TableCell className="font-medium">{formatDuration(a.duration_seconds)}</TableCell>
+                          <TableCell className="font-medium">
+                            {formatDuration(a.duration_seconds)}
+                            {row.activities.length > 1 && (
+                              <span className="ml-1 text-xs text-gray-500" title={`${row.activities.length} duplicate entries merged`}>
+                                ×{row.activities.length}
+                              </span>
+                            )}
+                          </TableCell>
                           <TableCell>
                             <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-brand-gold hover:underline truncate block max-w-xs" title={a.url}>
                               {a.page_title || a.domain || a.url}
@@ -493,7 +603,22 @@ export default function ActivityListPage() {
                           </TableCell>
                           <TableCell className="text-gray-600">{a.domain || "—"}</TableCell>
                           <TableCell>
-                            <Popover open={!!openCombos[a.id]} onOpenChange={(o) => setOpenCombos((p) => ({ ...p, [a.id]: o }))}>
+                            {(() => {
+                              const workSec = getWorkHoursSeconds(a.started_at, a.ended_at)
+                              const isWork = workSec >= a.duration_seconds / 2
+                              return (
+                                <span
+                                  className={`inline-flex items-center gap-1 text-xs ${isWork ? "text-green-700" : "text-gray-500"}`}
+                                  title={isWork ? "Work hours (9–5 Mon–Fri)" : "Outside work hours"}
+                                >
+                                  {isWork ? <Briefcase className="h-3.5 w-3.5" /> : <Calendar className="h-3.5 w-3.5" />}
+                                  {isWork ? "Work" : "Outside"}
+                                </span>
+                              )
+                            })()}
+                          </TableCell>
+                          <TableCell>
+                            <Popover open={!!openCombos[rowKey]} onOpenChange={(o) => setOpenCombos((p) => ({ ...p, [rowKey]: o }))}>
                               <PopoverTrigger asChild>
                                 <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={!!updatingId}>
                                   {getClientName(a.client_id)}
@@ -506,12 +631,12 @@ export default function ActivityListPage() {
                                   <CommandList>
                                     <CommandEmpty>No client found</CommandEmpty>
                                     <CommandGroup>
-                                      <CommandItem value="No client" onSelect={() => { assignActivityClient(a.id, null); setOpenCombos((p) => ({ ...p, [a.id]: false })) }}>
+                                      <CommandItem value="No client" onSelect={() => { assignActivityIdsClient(ids, null); setOpenCombos((p) => ({ ...p, [rowKey]: false })) }}>
                                         <Check className="mr-2 h-4 w-4" />
                                         No client
                                       </CommandItem>
                                       {clients.map((c) => (
-                                        <CommandItem key={c.id} value={c.name} onSelect={() => { assignActivityClient(a.id, c.id); setOpenCombos((p) => ({ ...p, [a.id]: false })) }}>
+                                        <CommandItem key={c.id} value={c.name} onSelect={() => { assignActivityIdsClient(ids, c.id); setOpenCombos((p) => ({ ...p, [rowKey]: false })) }}>
                                           <Check className="mr-2 h-4 w-4" />
                                           {c.name}
                                         </CommandItem>
@@ -527,16 +652,17 @@ export default function ActivityListPage() {
                               variant="ghost"
                               size="sm"
                               className="h-7 text-xs"
-                              onClick={() => toggleHide(a.id, !a.is_hidden)}
+                              onClick={() => hideActivityIds(ids, !isHidden)}
                               disabled={!!updatingId}
-                              title={a.is_hidden ? "Unhide" : "Hide from timeline"}
+                              title={isHidden ? "Unhide" : "Hide from timeline"}
                             >
-                              {a.is_hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                              {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                             </Button>
-                            {a.is_hidden && <span className="text-xs text-amber-600 ml-1">Hidden</span>}
+                            {isHidden && <span className="text-xs text-amber-600 ml-1">Hidden</span>}
                           </TableCell>
                         </TableRow>
-                      ))}
+                      )
+                    })}
                     {/* Groups */}
                     {groups
                       .sort((a, b) =>
@@ -559,9 +685,40 @@ export default function ActivityListPage() {
                               <TableCell className="font-mono text-sm">{end ? formatTime(end) : "—"}</TableCell>
                               <TableCell className="font-medium">{formatDuration(totalSec)}</TableCell>
                               <TableCell>
-                                <span className="inline-flex items-center gap-1 text-sm">
-                                  <Layers className="h-4 w-4 text-brand-gold" />
-                                  Group · {g.activities.length} activities
+                                {(() => {
+                                  const workSec = g.activities.reduce(
+                                    (s, a) => s + getWorkHoursSeconds(a.started_at, a.ended_at),
+                                    0
+                                  )
+                                  const isWork = workSec >= totalSec / 2
+                                  return (
+                                    <span className={`text-xs ${isWork ? "text-green-700" : "text-gray-500"}`}>
+                                      {isWork ? "Work" : "Outside"}
+                                    </span>
+                                  )
+                                })()}
+                              </TableCell>
+                              <TableCell>
+                                <span className="inline-flex items-center gap-2">
+                                  <Layers className="h-4 w-4 text-brand-gold shrink-0" />
+                                  <Input
+                                    placeholder={`Group · ${g.activities.length} activities`}
+                                    value={g.name ?? ""}
+                                    onChange={(e) =>
+                                      setGroups((prev) =>
+                                        prev.map((gr) => (gr.id === g.id ? { ...gr, name: e.target.value || null } : gr))
+                                      )
+                                    }
+                                    onBlur={() => {
+                                      const trimmed = (g.name ?? "").trim() || null
+                                      renameGroup(g.id, trimmed)
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") (e.target as HTMLInputElement).blur()
+                                    }}
+                                    className="h-8 w-48 text-sm"
+                                    disabled={!!updatingId}
+                                  />
                                 </span>
                               </TableCell>
                               <TableCell>—</TableCell>
@@ -610,6 +767,17 @@ export default function ActivityListPage() {
                                   </a>
                                 </TableCell>
                                 <TableCell className="text-xs text-gray-500">{a.domain || "—"}</TableCell>
+                                <TableCell>
+                                  {(() => {
+                                    const workSec = getWorkHoursSeconds(a.started_at, a.ended_at)
+                                    const isWork = workSec >= a.duration_seconds / 2
+                                    return (
+                                      <span className={`text-xs ${isWork ? "text-green-600" : "text-gray-500"}`}>
+                                        {isWork ? "Work" : "Outside"}
+                                      </span>
+                                    )
+                                  })()}
+                                </TableCell>
                                 <TableCell></TableCell>
                                 <TableCell>
                                   <Button

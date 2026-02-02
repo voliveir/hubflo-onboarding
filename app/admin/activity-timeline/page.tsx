@@ -36,7 +36,10 @@ import {
   Ungroup,
   EyeOff,
   Eye,
+  Briefcase,
+  Calendar,
 } from "lucide-react"
+import { getWorkHoursSeconds } from "@/lib/workHours"
 
 interface BrowserActivity {
   id: string
@@ -94,35 +97,6 @@ function getMinutesFromMidnight(isoString: string) {
   return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60
 }
 
-const MIN_BLOCK_HEIGHT = 48
-
-type TimelineItem = { type: "activity"; activity: BrowserActivity } | { type: "group"; group: ActivityGroup }
-
-function computeLanes(items: TimelineItem[]) {
-  const lanes: number[] = []
-  const result: { item: TimelineItem; lane: number; startMin: number; endMin: number }[] = []
-  for (const item of items) {
-    const startMin = item.type === "activity"
-      ? getMinutesFromMidnight(item.activity.started_at)
-      : Math.min(...item.group.activities.map((a) => getMinutesFromMidnight(a.started_at)))
-    const endMin = item.type === "activity"
-      ? startMin + item.activity.duration_seconds / 60
-      : Math.max(...item.group.activities.map((a) => getMinutesFromMidnight(a.started_at) + a.duration_seconds / 60))
-
-    let lane = 0
-    while (lane < lanes.length && lanes[lane] > startMin) lane++
-    lanes[lane] = endMin
-    result.push({ item, lane, startMin, endMin })
-  }
-  return { items: result, maxLanes: lanes.length }
-}
-
-const ZOOM_CONFIG = {
-  15: { pxPerHour: 72, labelsPerHour: 4 },
-  30: { pxPerHour: 56, labelsPerHour: 2 },
-  60: { pxPerHour: 48, labelsPerHour: 1 },
-} as const
-
 export default function ActivityTimelinePage() {
   const [selectedDate, setSelectedDate] = useState(getTodayLocal)
   const [activities, setActivities] = useState<BrowserActivity[]>([])
@@ -136,7 +110,6 @@ export default function ActivityTimelinePage() {
   const [selectedGroup, setSelectedGroup] = useState<ActivityGroup | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [showHidden, setShowHidden] = useState(false)
-  const [zoomMinutes, setZoomMinutes] = useState<15 | 30 | 60>(30)
 
   useEffect(() => {
     loadClients()
@@ -209,17 +182,16 @@ export default function ActivityTimelinePage() {
   const goToToday = () => setSelectedDate(getTodayLocal())
 
   const ungroupedActivities = activities.filter((a) => !a.group_id)
-  const timelineItems: TimelineItem[] = [
-    ...ungroupedActivities.map((a) => ({ type: "activity" as const, activity: a })),
-    ...groups.map((g) => ({ type: "group" as const, group: g })),
-  ].sort((a, b) => {
-    const startA = a.type === "activity" ? getMinutesFromMidnight(a.activity.started_at) : Math.min(...a.group.activities.map((x) => getMinutesFromMidnight(x.started_at)))
-    const startB = b.type === "activity" ? getMinutesFromMidnight(b.activity.started_at) : Math.min(...b.group.activities.map((x) => getMinutesFromMidnight(x.started_at)))
+  const groupsSorted = [...groups].sort((a, b) => {
+    const startA = Math.min(...a.activities.map((x) => getMinutesFromMidnight(x.started_at)))
+    const startB = Math.min(...b.activities.map((x) => getMinutesFromMidnight(x.started_at)))
     return startA - startB
   })
 
-  const totalMinutes =
-    activities.reduce((sum, a) => sum + Math.round(a.duration_seconds / 60), 0)
+  const totalGroupMinutes = groupsSorted.reduce(
+    (sum, g) => sum + Math.round(g.activities.reduce((s, a) => s + a.duration_seconds, 0) / 60),
+    0
+  )
   const isToday = selectedDate === getTodayLocal()
 
   const toggleSelect = (id: string) => {
@@ -241,6 +213,26 @@ export default function ActivityTimelinePage() {
         body: JSON.stringify({ activity_ids: [...selectedIds] }),
       })
       if (res.ok) await loadData()
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const renameGroup = async (groupId: string, name: string | null) => {
+    setUpdatingId(groupId)
+    try {
+      const res = await fetch(`/api/activity-groups/${groupId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name || null }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, name: data.name ?? name } : g)))
+        setSelectedGroup((s) => (s?.id === groupId ? { ...s, name: data.name ?? name ?? s.name } : s))
+      }
     } catch {
       // ignore
     } finally {
@@ -353,14 +345,6 @@ export default function ActivityTimelinePage() {
     }
   }
 
-  const { pxPerHour, labelsPerHour } = ZOOM_CONFIG[zoomMinutes]
-  const hoursHeight = 24 * pxPerHour
-  const timeLabels = Array.from({ length: 24 * labelsPerHour }, (_, i) => {
-    const h = Math.floor(i / labelsPerHour)
-    const m = (i % labelsPerHour) * (60 / labelsPerHour)
-    return { h, m }
-  })
-
   return (
     <PasswordProtection>
       <div className="flex h-screen bg-white">
@@ -369,12 +353,12 @@ export default function ActivityTimelinePage() {
           <div className="container mx-auto px-6 py-8">
             {/* Header */}
             <div className="mb-6">
-              <div className="inline-flex items-center gap-2 mb-4">
-                <Link
-                  href="/admin/activity-list"
-                  className="text-sm text-brand-gold hover:underline"
-                >
+              <div className="inline-flex items-center gap-4 mb-4">
+                <Link href="/admin/activity-list" className="text-sm text-brand-gold hover:underline">
                   List view →
+                </Link>
+                <Link href="/admin/analytics/activity" className="text-sm text-brand-gold hover:underline">
+                  Activity analytics →
                 </Link>
               </div>
               <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-4">
@@ -412,18 +396,6 @@ export default function ActivityTimelinePage() {
                   Today
                 </Button>
               )}
-              <div className="flex items-center gap-2">
-                <Label className="text-xs text-gray-500">Zoom</Label>
-                <select
-                  value={zoomMinutes}
-                  onChange={(e) => setZoomMinutes(Number(e.target.value) as 15 | 30 | 60)}
-                  className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm"
-                >
-                  <option value={15}>15 min</option>
-                  <option value={30}>30 min</option>
-                  <option value={60}>60 min</option>
-                </select>
-              </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -442,54 +414,22 @@ export default function ActivityTimelinePage() {
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               </Button>
-              {activities.length > 0 && (
+              {groupsSorted.length > 0 && (
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2 px-4 py-2 bg-brand-gold/10 rounded-lg">
                     <Clock className="h-4 w-4 text-brand-gold" />
                     <span className="font-semibold text-sm" style={{ color: "#060520" }}>
-                      {Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m
+                      {Math.floor(totalGroupMinutes / 60)}h {totalGroupMinutes % 60}m
                     </span>
                     <span className="text-xs text-gray-600">
-                      · {activities.length} activit{activities.length === 1 ? "y" : "ies"}
+                      · {groupsSorted.length} group{groupsSorted.length === 1 ? "" : "s"}
                     </span>
                   </div>
-                  {selectedIds.size >= 1 && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => bulkHide(true)}
-                        disabled={!!updatingId}
-                        title="Hide selected from timeline"
-                      >
-                        <EyeOff className="h-4 w-4 mr-2" />
-                        Hide {selectedIds.size}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => bulkHide(false)}
-                        disabled={!!updatingId}
-                        title="Unhide selected"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Unhide {selectedIds.size}
-                      </Button>
-                    </>
-                  )}
-                  {selectedIds.size >= 2 && (
-                    <Button
-                      size="sm"
-                      onClick={createGroup}
-                      disabled={!!updatingId}
-                      className="bg-brand-gold text-[#010124] hover:bg-brand-gold/90"
-                    >
-                      <Layers className="h-4 w-4 mr-2" />
-                      Group {selectedIds.size} selected
-                    </Button>
-                  )}
                 </div>
               )}
+              <p className="text-xs text-gray-500">
+                To group or hide activities, use <Link href="/admin/activity-list" className="text-brand-gold hover:underline">List view</Link>.
+              </p>
             </div>
 
             {/* Main content: Memory Aid + Detail panel */}
@@ -507,132 +447,77 @@ export default function ActivityTimelinePage() {
                       Try again
                     </Button>
                   </div>
-                ) : timelineItems.length === 0 ? (
+                ) : groupsSorted.length === 0 ? (
                   <div className="p-16 text-center">
-                    <Globe className="h-14 w-14 mx-auto text-gray-300 mb-4" />
+                    <Layers className="h-14 w-14 mx-auto text-gray-300 mb-4" />
                     <h3 className="font-semibold mb-2" style={{ color: "#060520" }}>
-                      No activity recorded for this date
+                      No groups for this date
                     </h3>
                     <p className="text-gray-600 text-sm max-w-md mx-auto mb-6">
-                      Install the Hubflo Chrome extension and enable automatic tracking.
-                      Activity is captured as you browse — no manual timers needed.
+                      This timeline shows only grouped activities. Use List view to select activities and group them into projects.
                     </p>
-                    <div className="inline-flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg text-left max-w-md mx-auto">
-                      <Info className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                      <p className="text-sm text-amber-800">
-                        Stay on a site 3+ seconds, then switch tabs. View Admin → Analytics → Activity Timeline.
-                      </p>
-                    </div>
+                    <Link href="/admin/activity-list">
+                      <Button variant="outline" className="text-brand-gold border-brand-gold/50 hover:bg-brand-gold/10">
+                        Open List view
+                      </Button>
+                    </Link>
                   </div>
                 ) : (
-                  <div className="flex">
-                    {/* Time scale */}
-                    <div
-                      className="shrink-0 border-r border-gray-200 bg-gray-50/80 py-4"
-                      style={{ width: 52 }}
-                    >
-                      {timeLabels.map(({ h, m }) => (
-                        <div
-                          key={`${h}-${m}`}
-                          className="text-xs text-gray-500 font-mono pl-2 pr-2"
-                          style={{ height: pxPerHour / labelsPerHour }}
-                        >
-                          {h.toString().padStart(2, "0")}:{m.toString().padStart(2, "0")}
-                        </div>
-                      ))}
-                    </div>
-                    {/* Activity & group blocks */}
-                    <div
-                      className="relative flex-1 min-h-0 overflow-auto py-4 px-4"
-                      style={{ minHeight: hoursHeight }}
-                    >
-                      {(() => {
-                        const { items, maxLanes } = computeLanes(timelineItems)
-                        const laneWidthPct = maxLanes > 0 ? (96 / maxLanes) - 0.5 : 96
-                        return items.map(({ item, lane, startMin, endMin }) => {
-                          const rangeMin = endMin - startMin
-                          const totalSec = item.type === "activity"
-                            ? item.activity.duration_seconds
-                            : item.group.activities.reduce((s, a) => s + a.duration_seconds, 0)
-                          const topPx = (startMin / 1440) * hoursHeight
-                          const heightPx = Math.max(MIN_BLOCK_HEIGHT, (rangeMin / 1440) * hoursHeight)
-                          const leftPct = 2 + lane * (96 / Math.max(1, maxLanes))
-                          const isActivity = item.type === "activity"
-                          const act = isActivity ? item.activity : null
-                          const grp = !isActivity ? item.group : null
-                          const id = isActivity ? act!.id : grp!.id
-                          const isSelected = isActivity
-                            ? selectedActivity?.id === act!.id
-                            : selectedGroup?.id === grp!.id
-                          const isChecked = isActivity && selectedIds.has(act!.id)
+                  <div className="overflow-y-auto py-4 px-4 space-y-3">
+                    {groupsSorted.map((grp) => {
+                      const totalSec = grp.activities.reduce((s, a) => s + a.duration_seconds, 0)
+                      const workSec = grp.activities.reduce(
+                        (s, a) => s + getWorkHoursSeconds(a.started_at, a.ended_at),
+                        0
+                      )
+                      const isWorkHours = workSec >= totalSec / 2
+                      const isSelected = selectedGroup?.id === grp.id
 
-                          return (
-                            <button
-                              key={id}
-                              type="button"
-                              onClick={() => {
-                                if (isActivity) {
-                                  setSelectedActivity(act!)
-                                  setSelectedGroup(null)
-                                } else {
-                                  setSelectedGroup(grp!)
-                                  setSelectedActivity(null)
-                                }
-                              }}
-                              className={`absolute rounded-lg border text-left transition-all flex items-center gap-3 px-3 py-2 ${
-                                isSelected
-                                  ? "border-brand-gold bg-brand-gold/10 shadow-md"
-                                  : (isActivity && act!.is_hidden)
-                                    ? "border-amber-200 bg-amber-50/80 opacity-75"
-                                    : "border-gray-200 bg-white hover:border-brand-gold/50 hover:bg-gray-50"
-                              }`}
-                              style={{
-                                top: topPx,
-                                left: `${leftPct}%`,
-                                width: `${laneWidthPct}%`,
-                                height: heightPx,
-                                minHeight: MIN_BLOCK_HEIGHT,
-                              }}
-                            >
-                              {isActivity && (
-                                <input
-                                  type="checkbox"
-                                  checked={isChecked}
-                                  onChange={(e) => {
-                                    e.stopPropagation()
-                                    toggleSelect(act!.id)
-                                  }}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="shrink-0 rounded border-gray-300"
-                                />
-                              )}
-                              <div className="shrink-0 w-8 h-8 rounded-lg bg-brand-gold/20 flex items-center justify-center">
-                                {isActivity ? (
-                                  <Globe className="h-4 w-4 text-brand-gold" />
-                                ) : (
-                                  <Layers className="h-4 w-4 text-brand-gold" />
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm truncate" style={{ color: "#060520" }}>
-                                  {isActivity
-                                    ? act!.page_title || act!.domain || "Untitled"
-                                    : `Group · ${grp!.activities.length} activities`}
-                                </p>
-                                <p className="text-xs text-gray-500 truncate">
-                                  {isActivity
-                                    ? `${formatTime(act!.started_at)} – ${formatTime(act!.ended_at)}`
-                                    : `${formatTime(grp!.activities[0]?.started_at || "")} – ${formatTime(grp!.activities[grp!.activities.length - 1]?.ended_at || "")}`}
-                                </p>
-                              </div>
-                              <span className="shrink-0 text-xs font-medium text-gray-600">
-                                {formatDuration(totalSec)}
-                              </span>
-                            </button>
-                          )
-                        })
-                      })()}
-                    </div>
+                      return (
+                        <button
+                          key={grp.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedGroup(grp)
+                            setSelectedActivity(null)
+                          }}
+                          className={`w-full rounded-lg border text-left transition-all flex items-center gap-3 px-4 py-3 ${
+                            isSelected
+                              ? "border-brand-gold bg-brand-gold/10 shadow-md"
+                              : "border-gray-200 bg-white hover:border-brand-gold/50 hover:bg-gray-50"
+                          }`}
+                        >
+                          <div className="shrink-0 w-10 h-10 rounded-lg bg-brand-gold/20 flex items-center justify-center">
+                            <Layers className="h-5 w-5 text-brand-gold" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate" style={{ color: "#060520" }}>
+                              {grp.name
+                                ? `${grp.name} · ${grp.activities.length}`
+                                : `Group · ${grp.activities.length} activities`}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {formatTime(grp.activities[0]?.started_at || "")} – {formatTime(grp.activities[grp.activities.length - 1]?.ended_at || "")}
+                            </p>
+                          </div>
+                          <span className="shrink-0 text-sm font-medium text-gray-600">
+                            {formatDuration(totalSec)}
+                          </span>
+                          <span
+                            className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded ${
+                              isWorkHours ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                            }`}
+                            title={isWorkHours ? "Work hours (9–5 Mon–Fri)" : "Outside work hours"}
+                          >
+                            {isWorkHours ? (
+                              <Briefcase className="h-3 w-3 inline" />
+                            ) : (
+                              <Calendar className="h-3 w-3 inline" />
+                            )}
+                          </span>
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </Card>
@@ -650,12 +535,33 @@ export default function ActivityTimelinePage() {
                   <p className="text-xs text-gray-500 mt-0.5">
                     {selectedGroup
                       ? "Grouped activities — assign to client to log time"
-                      : "Click an activity to view and assign. Check to group."}
+                      : "Click a group to view details and assign to a client."}
                   </p>
                 </div>
                 <div className="p-4 overflow-auto" style={{ maxHeight: 520 }}>
                   {selectedGroup ? (
                     <div className="space-y-4">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Group name</p>
+                        <Input
+                          placeholder="e.g. Client research"
+                          value={selectedGroup.name ?? ""}
+                          onChange={(e) =>
+                            setSelectedGroup((s) => (s ? { ...s, name: e.target.value || null } : s))
+                          }
+                          onBlur={() => {
+                            const trimmed = (selectedGroup.name ?? "").trim() || null
+                            renameGroup(selectedGroup.id, trimmed)
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.currentTarget.blur()
+                            }
+                          }}
+                          className="h-9 text-sm"
+                          disabled={!!updatingId}
+                        />
+                      </div>
                       <div>
                         <p className="text-xs text-gray-500 mb-1">Total duration</p>
                         <p className="text-sm font-medium">

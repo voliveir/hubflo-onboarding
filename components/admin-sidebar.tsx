@@ -36,6 +36,7 @@ const navigation = [
     children: [
       { name: "Analytics Dashboard", href: "/admin/analytics" },
       { name: "Time Tracking", href: "/admin/analytics/time-tracking" },
+      { name: "Activity Analytics", href: "/admin/analytics/activity" },
       { name: "Activity Timeline", href: "/admin/activity-timeline" },
       { name: "Activity List", href: "/admin/activity-list" },
     ] as NavChild[],
