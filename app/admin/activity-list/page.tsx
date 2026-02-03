@@ -560,7 +560,8 @@ export default function ActivityListPage() {
                       </TableHead>
                       <TableHead className="font-semibold">Start</TableHead>
                       <TableHead className="font-semibold">End</TableHead>
-                      <TableHead className="font-semibold">Duration</TableHead>
+                      <TableHead className="font-semibold" title="Total time from start to end (matches the clock)">Span</TableHead>
+                      <TableHead className="font-semibold" title="Time actually recorded on tab(s)">Tracked</TableHead>
                       <TableHead className="font-semibold">Page / URL</TableHead>
                       <TableHead className="font-semibold">Domain</TableHead>
                       <TableHead className="font-semibold w-20">Work hours</TableHead>
@@ -588,7 +589,10 @@ export default function ActivityListPage() {
                           </TableCell>
                           <TableCell className="font-mono text-sm">{formatTime(a.started_at)}</TableCell>
                           <TableCell className="font-mono text-sm">{formatTime(a.ended_at)}</TableCell>
-                          <TableCell className="font-medium">
+                          <TableCell className="font-medium" title="Total time from start to end">
+                            {formatDuration(Math.round((new Date(a.ended_at).getTime() - new Date(a.started_at).getTime()) / 1000))}
+                          </TableCell>
+                          <TableCell className="font-medium text-gray-600" title="Time recorded on tab(s)">
                             {formatDuration(a.duration_seconds)}
                             {row.activities.length > 1 && (
                               <span className="ml-1 text-xs text-gray-500" title={`${row.activities.length} duplicate entries merged`}>
@@ -669,9 +673,10 @@ export default function ActivityListPage() {
                         new Date(a.activities[0]?.started_at || 0).getTime() - new Date(b.activities[0]?.started_at || 0).getTime()
                       )
                       .map((g) => {
-                        const totalSec = g.activities.reduce((s, a) => s + a.duration_seconds, 0)
+                        const trackedSec = g.activities.reduce((s, a) => s + a.duration_seconds, 0)
                         const start = g.activities[0]?.started_at
                         const end = g.activities[g.activities.length - 1]?.ended_at
+                        const spanSec = start && end ? Math.round((new Date(end).getTime() - new Date(start).getTime()) / 1000) : 0
                         const isExpanded = expandedGroups.has(g.id)
                         return (
                           <React.Fragment key={g.id}>
@@ -683,14 +688,19 @@ export default function ActivityListPage() {
                               </TableCell>
                               <TableCell className="font-mono text-sm">{start ? formatTime(start) : "—"}</TableCell>
                               <TableCell className="font-mono text-sm">{end ? formatTime(end) : "—"}</TableCell>
-                              <TableCell className="font-medium">{formatDuration(totalSec)}</TableCell>
+                              <TableCell className="font-medium" title="Total time from start to end">
+                                {formatDuration(spanSec)}
+                              </TableCell>
+                              <TableCell className="font-medium text-gray-600" title="Time recorded on tab(s)">
+                                {formatDuration(trackedSec)}
+                              </TableCell>
                               <TableCell>
                                 {(() => {
                                   const workSec = g.activities.reduce(
                                     (s, a) => s + getWorkHoursSeconds(a.started_at, a.ended_at),
                                     0
                                   )
-                                  const isWork = workSec >= totalSec / 2
+                                  const isWork = workSec >= trackedSec / 2
                                   return (
                                     <span className={`text-xs ${isWork ? "text-green-700" : "text-gray-500"}`}>
                                       {isWork ? "Work" : "Outside"}
@@ -755,12 +765,15 @@ export default function ActivityListPage() {
                                 </Button>
                               </TableCell>
                             </TableRow>
-                            {isExpanded && g.activities.map((a) => (
+                            {isExpanded && g.activities.map((a) => {
+                              const spanSec = Math.round((new Date(a.ended_at).getTime() - new Date(a.started_at).getTime()) / 1000)
+                              return (
                               <TableRow key={a.id} className={`bg-gray-50/50 ${a.is_hidden ? "opacity-60" : ""}`}>
                                 <TableCell className="pl-12"></TableCell>
                                 <TableCell className="font-mono text-xs text-gray-600">{formatTime(a.started_at)}</TableCell>
                                 <TableCell className="font-mono text-xs text-gray-600">{formatTime(a.ended_at)}</TableCell>
-                                <TableCell className="text-xs">{formatDuration(a.duration_seconds)}</TableCell>
+                                <TableCell className="text-xs">{formatDuration(spanSec)}</TableCell>
+                                <TableCell className="text-xs text-gray-600">{formatDuration(a.duration_seconds)}</TableCell>
                                 <TableCell>
                                   <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-brand-gold hover:underline text-xs truncate block max-w-xs">
                                     {a.page_title || a.domain || a.url}
@@ -792,7 +805,7 @@ export default function ActivityListPage() {
                                   </Button>
                                 </TableCell>
                               </TableRow>
-                            ))}
+                            )})}
                           </React.Fragment>
                         )
                       })}
