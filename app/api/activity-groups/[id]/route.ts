@@ -18,7 +18,7 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await request.json()
-    const { client_id, add_activity_ids, remove_activity_ids, name } = body
+    const { client_id, add_activity_ids, remove_activity_ids, name, category } = body
 
     const { data: group, error: fetchError } = await supabase
       .from("activity_groups")
@@ -85,6 +85,10 @@ export async function PATCH(
 
     if (name !== undefined) {
       await supabase.from("activity_groups").update({ name: name === "" ? null : name }).eq("id", id)
+    }
+
+    if (category !== undefined) {
+      await supabase.from("activity_groups").update({ category: category === "" ? null : category }).eq("id", id)
     }
 
     const { data: updated } = await supabase

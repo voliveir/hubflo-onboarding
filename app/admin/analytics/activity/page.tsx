@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Clock, Briefcase, Calendar, ArrowLeft } from "lucide-react"
 import { getWorkHoursSeconds, WORK_HOURS_LABEL } from "@/lib/workHours"
+import { isNonWorkCategory } from "@/lib/activityCategories"
 
 interface BrowserActivity {
   id: string
@@ -24,6 +25,7 @@ interface BrowserActivity {
 interface ActivityGroup {
   id: string
   client_id: string | null
+  category?: string | null
   activities: { started_at: string; ended_at: string; duration_seconds: number }[]
 }
 
@@ -84,10 +86,12 @@ function computeByClient(
   for (const g of groups) {
     const cid = g.client_id
     const totalSec = g.activities.reduce((s, a) => s + a.duration_seconds, 0)
-    const workSec = g.activities.reduce(
+    const rawWorkSec = g.activities.reduce(
       (s, a) => s + getWorkHoursSeconds(a.started_at, a.ended_at),
       0
     )
+    // Lunch/break categories don't count as work hours
+    const workSec = isNonWorkCategory(g.category) ? 0 : rawWorkSec
     const existing = byClient.get(cid) ?? { totalSeconds: 0, workSeconds: 0 }
     byClient.set(cid, {
       totalSeconds: existing.totalSeconds + totalSec,
@@ -113,6 +117,7 @@ export default function ActivityAnalyticsPage() {
   const [groups, setGroups] = useState<ActivityGroup[]>([])
   const [prevActivities, setPrevActivities] = useState<BrowserActivity[]>([])
   const [prevGroups, setPrevGroups] = useState<ActivityGroup[]>([])
+  const [manualBlocks, setManualBlocks] = useState<{ started_at: string; ended_at: string; category: string }[]>([])
   const [clients, setClients] = useState<{ id: string; name: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -128,15 +133,17 @@ export default function ActivityAnalyticsPage() {
     const loadCurrent = Promise.all([
       fetch(`/api/browser-activity?start_date=${encodeURIComponent(startISO)}&end_date=${encodeURIComponent(endISO)}`),
       fetch(`/api/activity-groups?start_date=${encodeURIComponent(startISO)}&end_date=${encodeURIComponent(endISO)}`),
+      fetch(`/api/manual-time-blocks?start_date=${encodeURIComponent(startISO)}&end_date=${encodeURIComponent(endISO)}`),
       fetch("/api/clients-list"),
-    ]).then(async ([actRes, grpRes, clientsRes]) => {
+    ]).then(async ([actRes, grpRes, blocksRes, clientsRes]) => {
       if (!actRes.ok) throw new Error("Failed to load activity")
-      const [actData, grpData, clientsData] = await Promise.all([
+      const [actData, grpData, blocksData, clientsData] = await Promise.all([
         actRes.json(),
         grpRes.json(),
+        blocksRes.ok ? blocksRes.json() : [],
         clientsRes.ok ? clientsRes.json() : [],
       ])
-      return { actData, grpData, clientsData }
+      return { actData, grpData, blocksData, clientsData }
     })
     const loadPrev = compareWeeks
       ? Promise.all([
@@ -153,6 +160,7 @@ export default function ActivityAnalyticsPage() {
         if (cancelled) return
         setActivities(Array.isArray(current.actData) ? current.actData : [])
         setGroups(Array.isArray(current.grpData) ? current.grpData : [])
+        setManualBlocks(Array.isArray(current.blocksData) ? current.blocksData : [])
         setClients(Array.isArray(current.clientsData) ? current.clientsData : [])
         setPrevActivities(Array.isArray(prev.prevActData) ? prev.prevActData : [])
         setPrevGroups(Array.isArray(prev.prevGrpData) ? prev.prevGrpData : [])
@@ -185,7 +193,15 @@ export default function ActivityAnalyticsPage() {
     }),
     { totalSeconds: 0, workSeconds: 0 }
   )
-  const outsideSeconds = totals.totalSeconds - totals.workSeconds
+  const manualBlocksSeconds = manualBlocks.reduce(
+    (sum, b) => sum + Math.round((new Date(b.ended_at).getTime() - new Date(b.started_at).getTime()) / 1000),
+    0
+  )
+  const totalsWithBlocks = {
+    totalSeconds: totals.totalSeconds + manualBlocksSeconds,
+    workSeconds: totals.workSeconds,
+  }
+  const outsideSeconds = totalsWithBlocks.totalSeconds - totalsWithBlocks.workSeconds
   const prevOutsideSeconds = prevTotals.totalSeconds - prevTotals.workSeconds
 
   const rows = Array.from(byClient.entries())
@@ -200,6 +216,18 @@ export default function ActivityAnalyticsPage() {
       }
     })
     .sort((a, b) => (a.clientId === null ? 1 : b.clientId === null ? -1 : b.totalSeconds - a.totalSeconds))
+
+  const LUNCH_BLOCKS_ID = "__lunch_blocks__"
+  if (manualBlocksSeconds > 0) {
+    rows.push({
+      clientId: LUNCH_BLOCKS_ID as unknown as null,
+      name: "Lunch & breaks",
+      totalSeconds: manualBlocksSeconds,
+      workSeconds: 0,
+      prevTotalSeconds: 0,
+      prevWorkSeconds: 0,
+    })
+  }
 
   return (
     <PasswordProtection>
@@ -282,15 +310,15 @@ export default function ActivityAnalyticsPage() {
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wide">Total time</p>
                         <p className="text-2xl font-bold" style={{ color: "#060520" }}>
-                          {formatHours(totals.totalSeconds)}
+                          {formatHours(totalsWithBlocks.totalSeconds)}
                           {compareWeeks && (
                             <span
                               className={`ml-2 text-sm font-normal ${
-                                totals.totalSeconds >= prevTotals.totalSeconds ? "text-green-600" : "text-gray-500"
+                                totalsWithBlocks.totalSeconds >= prevTotals.totalSeconds ? "text-green-600" : "text-gray-500"
                               }`}
                               title={`Previous week: ${formatHours(prevTotals.totalSeconds)}`}
                             >
-                              ({formatDelta(totals.totalSeconds - prevTotals.totalSeconds)})
+                              ({formatDelta(totalsWithBlocks.totalSeconds - prevTotals.totalSeconds)})
                             </span>
                           )}
                         </p>
@@ -351,7 +379,7 @@ export default function ActivityAnalyticsPage() {
                       By client
                     </h2>
                     <p className="text-sm text-gray-500">
-                      Work hours = 9–5 Mon–Fri. Hidden activities excluded.
+                      Work hours = 9–5 Mon–Fri. Groups marked Lunch/break excluded from work. Hidden activities excluded.
                       {compareWeeks && " Deltas vs previous week in parentheses."}
                       {rows.some((r) => r.clientId !== null) && " Click a client to see that week’s activity in List view."}
                     </p>
@@ -377,7 +405,9 @@ export default function ActivityAnalyticsPage() {
                           rows.map((row) => (
                             <tr key={row.clientId ?? "unassigned"} className="border-b border-gray-100 hover:bg-gray-50/50">
                               <td className="py-3 px-4 font-medium">
-                                {row.clientId === null ? (
+                                {row.name === "Lunch & breaks" ? (
+                                  <span className="text-gray-600">Lunch & breaks</span>
+                                ) : row.clientId === null ? (
                                   <span className="text-gray-500">Unassigned</span>
                                 ) : (
                                   <Link

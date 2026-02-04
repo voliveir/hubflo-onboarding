@@ -55,6 +55,7 @@ import {
   Calendar,
 } from "lucide-react"
 import { getWorkHoursSeconds } from "@/lib/workHours"
+import { ACTIVITY_GROUP_CATEGORIES, getCategoryLabel } from "@/lib/activityCategories"
 import Link from "next/link"
 
 interface BrowserActivity {
@@ -76,6 +77,7 @@ interface ActivityGroup {
   client_id: string | null
   time_entry_id: string | null
   name: string | null
+  category?: string | null
   activities: BrowserActivity[]
 }
 
@@ -348,6 +350,22 @@ export default function ActivityListPage() {
     }
   }
 
+  const updateGroupCategory = async (groupId: string, category: string | null) => {
+    setUpdatingId(groupId)
+    try {
+      const res = await fetch(`/api/activity-groups/${groupId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category: category || null }),
+      })
+      if (res.ok) await loadData()
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
   const assignGroupClient = async (groupId: string, clientId: string | null) => {
     setUpdatingId(groupId)
     try {
@@ -601,6 +619,7 @@ export default function ActivityListPage() {
                       <TableHead className="font-semibold">Page / URL</TableHead>
                       <TableHead className="font-semibold">Domain</TableHead>
                       <TableHead className="font-semibold w-20">Work hours</TableHead>
+                      <TableHead className="font-semibold w-28">Category</TableHead>
                       <TableHead className="font-semibold">Client</TableHead>
                       <TableHead className="font-semibold w-24">Actions</TableHead>
                     </TableRow>
@@ -657,6 +676,7 @@ export default function ActivityListPage() {
                               )
                             })()}
                           </TableCell>
+                          <TableCell className="text-gray-400 text-xs">—</TableCell>
                           <TableCell>
                             <Popover open={!!openCombos[rowKey]} onOpenChange={(o) => setOpenCombos((p) => ({ ...p, [rowKey]: o }))}>
                               <PopoverTrigger asChild>
@@ -731,20 +751,6 @@ export default function ActivityListPage() {
                                 {formatDuration(trackedSec)}
                               </TableCell>
                               <TableCell>
-                                {(() => {
-                                  const workSec = g.activities.reduce(
-                                    (s, a) => s + getWorkHoursSeconds(a.started_at, a.ended_at),
-                                    0
-                                  )
-                                  const isWork = workSec >= trackedSec / 2
-                                  return (
-                                    <span className={`text-xs ${isWork ? "text-green-700" : "text-gray-500"}`}>
-                                      {isWork ? "Work" : "Outside"}
-                                    </span>
-                                  )
-                                })()}
-                              </TableCell>
-                              <TableCell>
                                 <span className="inline-flex items-center gap-2">
                                   <Layers className="h-4 w-4 text-brand-gold shrink-0" />
                                   <Input
@@ -768,6 +774,35 @@ export default function ActivityListPage() {
                                 </span>
                               </TableCell>
                               <TableCell>—</TableCell>
+                              <TableCell>
+                                {(() => {
+                                  const workSec = g.activities.reduce(
+                                    (s, a) => s + getWorkHoursSeconds(a.started_at, a.ended_at),
+                                    0
+                                  )
+                                  const isWork = workSec >= trackedSec / 2
+                                  return (
+                                    <span className={`text-xs ${isWork ? "text-green-700" : "text-gray-500"}`}>
+                                      {isWork ? "Work" : "Outside"}
+                                    </span>
+                                  )
+                                })()}
+                              </TableCell>
+                              <TableCell>
+                                <select
+                                  value={g.category ?? ""}
+                                  onChange={(e) => updateGroupCategory(g.id, e.target.value || null)}
+                                  className="h-8 rounded border border-gray-200 bg-white px-2 text-xs w-full max-w-[140px]"
+                                  disabled={!!updatingId}
+                                  title="Category"
+                                >
+                                  {ACTIVITY_GROUP_CATEGORIES.map((c) => (
+                                    <option key={c.value || "none"} value={c.value}>
+                                      {c.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </TableCell>
                               <TableCell>
                                 <Popover open={!!openCombos[`g-${g.id}`]} onOpenChange={(o) => setOpenCombos((p) => ({ ...p, [`g-${g.id}`]: o }))}>
                                   <PopoverTrigger asChild>
@@ -827,6 +862,7 @@ export default function ActivityListPage() {
                                     )
                                   })()}
                                 </TableCell>
+                                <TableCell className="text-gray-400 text-xs">—</TableCell>
                                 <TableCell></TableCell>
                                 <TableCell>
                                   <Button

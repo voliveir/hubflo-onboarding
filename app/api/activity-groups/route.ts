@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     const groupById = new Map((groupRows || []).map((g) => [g.id, g]))
     const groupMap = new Map<
       string,
-      { id: string; client_id: string | null; time_entry_id: string | null; name: string | null; activities: any[] }
+      { id: string; client_id: string | null; time_entry_id: string | null; name: string | null; category: string | null; activities: any[] }
     >()
 
     for (const a of activities || []) {
@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
           client_id: g?.client_id ?? null,
           time_entry_id: g?.time_entry_id ?? null,
           name: g?.name ?? null,
+          category: g?.category ?? null,
           activities: [],
         })
       }

@@ -38,8 +38,23 @@ import {
   Eye,
   Briefcase,
   Calendar,
+  Coffee,
+  Trash2,
 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { getWorkHoursSeconds } from "@/lib/workHours"
+import {
+  ACTIVITY_GROUP_CATEGORIES,
+  getCategoryLabel,
+  getCategoryColor,
+  MANUAL_BLOCK_CATEGORIES,
+} from "@/lib/activityCategories"
 
 interface BrowserActivity {
   id: string
@@ -61,7 +76,16 @@ interface ActivityGroup {
   client_id: string | null
   time_entry_id: string | null
   name: string | null
+  category?: string | null
   activities: BrowserActivity[]
+}
+
+interface ManualTimeBlock {
+  id: string
+  started_at: string
+  ended_at: string
+  category: string
+  label: string | null
 }
 
 function formatTime(isoString: string) {
@@ -114,6 +138,18 @@ function getGroupBarPosition(grp: ActivityGroup): { leftPercent: number; widthPe
   }
 }
 
+function getManualBlockBarPosition(block: ManualTimeBlock): { leftPercent: number; widthPercent: number } {
+  const startMin = getMinutesFromMidnight(block.started_at)
+  const endMin = getMinutesFromMidnight(block.ended_at)
+  const blockStart = Math.max(startMin, TIMELINE_DAY_START_MIN)
+  const blockEnd = Math.min(endMin, TIMELINE_DAY_END_MIN)
+  const widthMin = Math.max(0, blockEnd - blockStart)
+  return {
+    leftPercent: ((blockStart - TIMELINE_DAY_START_MIN) / TIMELINE_DAY_SPAN_MIN) * 100,
+    widthPercent: (widthMin / TIMELINE_DAY_SPAN_MIN) * 100,
+  }
+}
+
 export default function ActivityTimelinePage() {
   const [selectedDate, setSelectedDate] = useState(getTodayLocal)
   const [activities, setActivities] = useState<BrowserActivity[]>([])
@@ -127,6 +163,12 @@ export default function ActivityTimelinePage() {
   const [selectedGroup, setSelectedGroup] = useState<ActivityGroup | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [showHidden, setShowHidden] = useState(false)
+  const [manualBlocks, setManualBlocks] = useState<ManualTimeBlock[]>([])
+  const [selectedBlock, setSelectedBlock] = useState<ManualTimeBlock | null>(null)
+  const [addBlockDialogOpen, setAddBlockDialogOpen] = useState(false)
+  const [addBlockStart, setAddBlockStart] = useState("12:00")
+  const [addBlockEnd, setAddBlockEnd] = useState("13:00")
+  const [addBlockCategory, setAddBlockCategory] = useState("lunch")
 
   useEffect(() => {
     loadClients()
@@ -153,13 +195,15 @@ export default function ActivityTimelinePage() {
     setError(null)
     setSelectedActivity(null)
     setSelectedGroup(null)
+    setSelectedBlock(null)
     setSelectedIds(new Set())
     try {
       const { startISO, endISO } = getLocalDayRange(selectedDate)
       const hiddenParam = showHidden ? "&include_hidden=true" : ""
-      const [actRes, grpRes] = await Promise.all([
+      const [actRes, grpRes, blocksRes] = await Promise.all([
         fetch(`/api/browser-activity?start_date=${encodeURIComponent(startISO)}&end_date=${encodeURIComponent(endISO)}${hiddenParam}`),
         fetch(`/api/activity-groups?start_date=${encodeURIComponent(startISO)}&end_date=${encodeURIComponent(endISO)}${hiddenParam}`),
+        fetch(`/api/manual-time-blocks?start_date=${encodeURIComponent(startISO)}&end_date=${encodeURIComponent(endISO)}`),
       ])
       if (!actRes.ok) {
         const err = await actRes.json()
@@ -169,10 +213,13 @@ export default function ActivityTimelinePage() {
       setActivities(Array.isArray(actData) ? actData : [])
       const grpData = await grpRes.json()
       setGroups(Array.isArray(grpData) ? grpData : [])
+      const blocksData = blocksRes.ok ? await blocksRes.json() : []
+      setManualBlocks(Array.isArray(blocksData) ? blocksData : [])
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load activity")
       setActivities([])
       setGroups([])
+      setManualBlocks([])
     } finally {
       setLoading(false)
     }
@@ -277,6 +324,26 @@ export default function ActivityTimelinePage() {
     }
   }
 
+  const updateGroupCategory = async (groupId: string, category: string | null) => {
+    setUpdatingId(groupId)
+    try {
+      const res = await fetch(`/api/activity-groups/${groupId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category: category || null }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, category: data.category ?? category } : g)))
+        setSelectedGroup((s) => (s?.id === groupId ? { ...s, category: data.category ?? category ?? s.category } : s))
+      }
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
   const toggleHide = async (activityId: string, hidden: boolean) => {
     setUpdatingId(activityId)
     try {
@@ -332,6 +399,48 @@ export default function ActivityTimelinePage() {
     try {
       const res = await fetch(`/api/activity-groups/${groupId}`, { method: "DELETE" })
       if (res.ok) await loadData()
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const createManualBlock = async () => {
+    const [y, m, d] = selectedDate.split("-").map(Number)
+    const startDate = new Date(y, m - 1, d, ...addBlockStart.split(":").map(Number), 0, 0)
+    const endDate = new Date(y, m - 1, d, ...addBlockEnd.split(":").map(Number), 0, 0)
+    if (endDate.getTime() <= startDate.getTime()) return
+    setUpdatingId("add-block")
+    try {
+      const res = await fetch("/api/manual-time-blocks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          started_at: startDate.toISOString(),
+          ended_at: endDate.toISOString(),
+          category: addBlockCategory,
+        }),
+      })
+      if (res.ok) {
+        setAddBlockDialogOpen(false)
+        await loadData()
+      }
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const deleteManualBlock = async (blockId: string) => {
+    setUpdatingId(blockId)
+    try {
+      const res = await fetch(`/api/manual-time-blocks/${blockId}`, { method: "DELETE" })
+      if (res.ok) {
+        setSelectedBlock(null)
+        await loadData()
+      }
     } catch {
       // ignore
     } finally {
@@ -444,6 +553,15 @@ export default function ActivityTimelinePage() {
                   </div>
                 </div>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAddBlockDialogOpen(true)}
+                className="border-gray-300"
+              >
+                <Coffee className="h-4 w-4 mr-2" />
+                Add lunch / block
+              </Button>
               <p className="text-xs text-gray-500">
                 To group or hide activities, use <Link href="/admin/activity-list" className="text-brand-gold hover:underline">List view</Link>.
               </p>
@@ -464,32 +582,63 @@ export default function ActivityTimelinePage() {
                       Try again
                     </Button>
                   </div>
-                ) : groupsSorted.length === 0 ? (
+                ) : groupsSorted.length === 0 && manualBlocks.length === 0 ? (
                   <div className="p-16 text-center">
                     <Layers className="h-14 w-14 mx-auto text-gray-300 mb-4" />
                     <h3 className="font-semibold mb-2" style={{ color: "#060520" }}>
-                      No groups for this date
+                      No groups or blocks for this date
                     </h3>
                     <p className="text-gray-600 text-sm max-w-md mx-auto mb-6">
-                      This timeline shows only grouped activities. Use List view to select activities and group them into projects.
+                      Use List view to group activities, or add a lunch/break block below.
                     </p>
-                    <Link href="/admin/activity-list">
-                      <Button variant="outline" className="text-brand-gold border-brand-gold/50 hover:bg-brand-gold/10">
-                        Open List view
+                    <div className="flex flex-wrap justify-center gap-3">
+                      <Link href="/admin/activity-list">
+                        <Button variant="outline" className="text-brand-gold border-brand-gold/50 hover:bg-brand-gold/10">
+                          Open List view
+                        </Button>
+                      </Link>
+                      <Button variant="outline" onClick={() => setAddBlockDialogOpen(true)}>
+                        <Coffee className="h-4 w-4 mr-2" />
+                        Add lunch block
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 ) : (
                   <>
-                    {/* Visual timeline bar: 6am–10pm, click block to select group */}
+                    {/* Visual timeline bar: 6am–10pm, groups (gold) + manual blocks (gray) */}
                     <div className="px-4 pt-4 pb-2 border-b border-gray-100">
                       <div className="flex items-center gap-2 mb-1.5">
                         <span className="text-[10px] text-gray-500 font-mono">6am</span>
                         <div className="flex-1 relative h-8 rounded-lg bg-gray-100 overflow-hidden">
+                          {manualBlocks.map((block) => {
+                            const { leftPercent, widthPercent } = getManualBlockBarPosition(block)
+                            if (widthPercent <= 0) return null
+                            const isSelected = selectedBlock?.id === block.id
+                            return (
+                              <button
+                                key={block.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedBlock(block)
+                                  setSelectedGroup(null)
+                                  setSelectedActivity(null)
+                                }}
+                                className="absolute top-0.5 bottom-0.5 rounded-md transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
+                                style={{
+                                  left: `${leftPercent}%`,
+                                  width: `${widthPercent}%`,
+                                  backgroundColor: isSelected ? "rgb(107 114 128)" : "rgba(107, 114, 128, 0.5)",
+                                  minWidth: 4,
+                                }}
+                                title={getCategoryLabel(block.category, MANUAL_BLOCK_CATEGORIES) || block.category}
+                              />
+                            )
+                          })}
                           {groupsSorted.map((grp) => {
                             const { leftPercent, widthPercent } = getGroupBarPosition(grp)
                             if (widthPercent <= 0) return null
                             const isSelected = selectedGroup?.id === grp.id
+                            const color = getCategoryColor(grp.category)
                             return (
                               <button
                                 key={grp.id}
@@ -497,22 +646,23 @@ export default function ActivityTimelinePage() {
                                 onClick={() => {
                                   setSelectedGroup(grp)
                                   setSelectedActivity(null)
+                                  setSelectedBlock(null)
                                 }}
-                                className="absolute top-0.5 bottom-0.5 rounded-md transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-1"
+                                className="absolute top-0.5 bottom-0.5 rounded-md transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-1"
                                 style={{
                                   left: `${leftPercent}%`,
                                   width: `${widthPercent}%`,
-                                  backgroundColor: isSelected ? "var(--brand-gold, #d4af37)" : "rgba(212, 175, 55, 0.5)",
+                                  backgroundColor: isSelected ? color.bar : color.barMuted,
                                   minWidth: 4,
                                 }}
-                                title={grp.name ?? `Group · ${grp.activities.length} activities`}
+                                title={`${grp.name ?? "Group"}${grp.category ? ` · ${getCategoryLabel(grp.category, ACTIVITY_GROUP_CATEGORIES)}` : ""}`}
                               />
                             )
                           })}
                         </div>
                         <span className="text-[10px] text-gray-500 font-mono">10pm</span>
                       </div>
-                      <p className="text-[10px] text-gray-500">Click a block to select that group</p>
+                      <p className="text-[10px] text-gray-500">Bar color = category (Call=blue, Prep=amber, Lunch=gray, etc.) · Gray = lunch/break blocks</p>
                     </div>
                     <div className="overflow-y-auto py-4 px-4 space-y-3">
                     {groupsSorted.map((grp) => {
@@ -523,6 +673,7 @@ export default function ActivityTimelinePage() {
                       )
                       const isWorkHours = workSec >= totalSec / 2
                       const isSelected = selectedGroup?.id === grp.id
+                      const color = getCategoryColor(grp.category)
 
                       return (
                         <button
@@ -531,15 +682,25 @@ export default function ActivityTimelinePage() {
                           onClick={() => {
                             setSelectedGroup(grp)
                             setSelectedActivity(null)
+                            setSelectedBlock(null)
                           }}
                           className={`w-full rounded-lg border text-left transition-all flex items-center gap-3 px-4 py-3 ${
-                            isSelected
-                              ? "border-brand-gold bg-brand-gold/10 shadow-md"
-                              : "border-gray-200 bg-white hover:border-brand-gold/50 hover:bg-gray-50"
+                            isSelected ? "shadow-md" : "border-gray-200 bg-white hover:bg-gray-50"
                           }`}
+                          style={
+                            isSelected
+                              ? { borderColor: color.border, backgroundColor: color.bg }
+                              : undefined
+                          }
                         >
-                          <div className="shrink-0 w-10 h-10 rounded-lg bg-brand-gold/20 flex items-center justify-center">
-                            <Layers className="h-5 w-5 text-brand-gold" />
+                          <div
+                            className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+                            style={{
+                              backgroundColor: color.barMuted,
+                              color: color.bar,
+                            }}
+                          >
+                            <Layers className="h-5 w-5" style={{ color: color.bar }} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate" style={{ color: "#060520" }}>
@@ -569,6 +730,49 @@ export default function ActivityTimelinePage() {
                         </button>
                       )
                     })}
+                    {manualBlocks.length > 0 && (
+                      <>
+                        <p className="text-xs font-medium text-gray-500 px-1 pt-2 pb-1">Lunch / breaks</p>
+                        {manualBlocks.map((block) => {
+                          const dur = Math.round(
+                            (new Date(block.ended_at).getTime() - new Date(block.started_at).getTime()) / 1000
+                          )
+                          const isSelected = selectedBlock?.id === block.id
+                          return (
+                            <button
+                              key={block.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedBlock(block)
+                                setSelectedGroup(null)
+                                setSelectedActivity(null)
+                              }}
+                              className={`w-full rounded-lg border text-left transition-all flex items-center gap-3 px-4 py-3 ${
+                                isSelected
+                                  ? "border-gray-400 bg-gray-100 shadow-md"
+                                  : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                              }`}
+                            >
+                              <div className="shrink-0 w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                                <Coffee className="h-5 w-5 text-gray-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate" style={{ color: "#060520" }}>
+                                  {getCategoryLabel(block.category, MANUAL_BLOCK_CATEGORIES) || block.category}
+                                  {block.label ? ` · ${block.label}` : ""}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate">
+                                  {formatTime(block.started_at)} – {formatTime(block.ended_at)}
+                                </p>
+                              </div>
+                              <span className="shrink-0 text-sm font-medium text-gray-600">
+                                {formatDuration(dur)}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </>
+                    )}
                   </div>
                   </>
                 )}
@@ -577,21 +781,64 @@ export default function ActivityTimelinePage() {
               {/* Detail panel */}
               <Card
                 className={`w-80 shrink-0 rounded-xl border border-gray-200 shadow-sm overflow-hidden transition-all ${
-                  selectedActivity || selectedGroup ? "opacity-100" : "opacity-60"
+                  selectedActivity || selectedGroup || selectedBlock ? "opacity-100" : "opacity-60"
                 }`}
               >
                 <div className="p-4 border-b border-gray-200 bg-gray-50/80">
                   <h3 className="font-semibold text-sm" style={{ color: "#060520" }}>
-                    {selectedGroup ? "Group details" : "Activity details"}
+                    {selectedBlock ? "Block details" : selectedGroup ? "Group details" : "Activity details"}
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    {selectedGroup
-                      ? "Grouped activities — assign to client to log time"
-                      : "Click a group to view details and assign to a client."}
+                    {selectedBlock
+                      ? "Lunch, break, or other non-browsing time"
+                      : selectedGroup
+                        ? "Grouped activities — assign to client to log time"
+                        : "Click a group or block to view details."}
                   </p>
                 </div>
                 <div className="p-4 overflow-auto" style={{ maxHeight: 520 }}>
-                  {selectedGroup ? (
+                  {selectedBlock ? (
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Time</p>
+                        <p className="text-sm font-medium">
+                          {formatTime(selectedBlock.started_at)} – {formatTime(selectedBlock.ended_at)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Duration</p>
+                        <p className="text-sm font-medium">
+                          {formatDuration(
+                            Math.round(
+                              (new Date(selectedBlock.ended_at).getTime() - new Date(selectedBlock.started_at).getTime()) / 1000
+                            )
+                          )}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Category</p>
+                        <p className="text-sm font-medium">
+                          {getCategoryLabel(selectedBlock.category, MANUAL_BLOCK_CATEGORIES) || selectedBlock.category}
+                        </p>
+                      </div>
+                      {selectedBlock.label && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Label</p>
+                          <p className="text-sm">{selectedBlock.label}</p>
+                        </div>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                        onClick={() => deleteManualBlock(selectedBlock.id)}
+                        disabled={!!updatingId}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete block
+                      </Button>
+                    </div>
+                  ) : selectedGroup ? (
                     <div className="space-y-4">
                       <div>
                         <p className="text-xs text-gray-500 mb-1">Group name</p>
@@ -619,6 +866,25 @@ export default function ActivityTimelinePage() {
                         <p className="text-sm font-medium">
                           {formatDuration(selectedGroup.activities.reduce((s, a) => s + a.duration_seconds, 0))}
                         </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Category</p>
+                        <select
+                          value={selectedGroup.category ?? ""}
+                          onChange={(e) => {
+                            const val = e.target.value || null
+                            setSelectedGroup((s) => (s ? { ...s, category: val } : s))
+                            updateGroupCategory(selectedGroup.id, val)
+                          }}
+                          className="w-full h-9 rounded-md border border-gray-200 bg-white px-3 text-sm"
+                          disabled={!!updatingId}
+                        >
+                          {ACTIVITY_GROUP_CATEGORIES.map((c) => (
+                            <option key={c.value || "none"} value={c.value}>
+                              {c.label}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 mb-2">Contains ({selectedGroup.activities.length})</p>
@@ -827,7 +1093,7 @@ export default function ActivityTimelinePage() {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                       <Zap className="h-10 w-10 text-gray-300 mb-3" />
-                      <p className="text-sm text-gray-500">Select an activity or group. Check activities to group them together.</p>
+                      <p className="text-sm text-gray-500">Select a group or block. Use List view to group activities.</p>
                     </div>
                   )}
                 </div>
@@ -836,6 +1102,65 @@ export default function ActivityTimelinePage() {
           </div>
         </main>
       </div>
+
+      <Dialog open={addBlockDialogOpen} onOpenChange={setAddBlockDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add lunch or break block</DialogTitle>
+            <DialogDescription>
+              Add a block of time with no browser activity (e.g. lunch, break). Uses the selected day.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-gray-500">Start time</Label>
+                <Input
+                  type="time"
+                  value={addBlockStart}
+                  onChange={(e) => setAddBlockStart(e.target.value)}
+                  className="mt-1 h-9"
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500">End time</Label>
+                <Input
+                  type="time"
+                  value={addBlockEnd}
+                  onChange={(e) => setAddBlockEnd(e.target.value)}
+                  className="mt-1 h-9"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-gray-500">Category</Label>
+              <select
+                value={addBlockCategory}
+                onChange={(e) => setAddBlockCategory(e.target.value)}
+                className="mt-1 w-full h-9 rounded-md border border-gray-200 bg-white px-3 text-sm"
+              >
+                {MANUAL_BLOCK_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setAddBlockDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={createManualBlock}
+                disabled={!!updatingId || addBlockStart >= addBlockEnd}
+                className="bg-brand-gold text-[#010124] hover:bg-brand-gold/90"
+              >
+                {updatingId === "add-block" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add block"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </PasswordProtection>
   )
 }
