@@ -97,6 +97,23 @@ function getMinutesFromMidnight(isoString: string) {
   return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60
 }
 
+// Visual bar: 6am–10pm = 360–1320 minutes from midnight
+const TIMELINE_DAY_START_MIN = 6 * 60
+const TIMELINE_DAY_END_MIN = 22 * 60
+const TIMELINE_DAY_SPAN_MIN = TIMELINE_DAY_END_MIN - TIMELINE_DAY_START_MIN
+
+function getGroupBarPosition(grp: ActivityGroup): { leftPercent: number; widthPercent: number } {
+  const startMin = Math.min(...grp.activities.map((a) => getMinutesFromMidnight(a.started_at)))
+  const endMin = Math.max(...grp.activities.map((a) => getMinutesFromMidnight(a.ended_at)))
+  const blockStart = Math.max(startMin, TIMELINE_DAY_START_MIN)
+  const blockEnd = Math.min(endMin, TIMELINE_DAY_END_MIN)
+  const widthMin = Math.max(0, blockEnd - blockStart)
+  return {
+    leftPercent: ((blockStart - TIMELINE_DAY_START_MIN) / TIMELINE_DAY_SPAN_MIN) * 100,
+    widthPercent: (widthMin / TIMELINE_DAY_SPAN_MIN) * 100,
+  }
+}
+
 export default function ActivityTimelinePage() {
   const [selectedDate, setSelectedDate] = useState(getTodayLocal)
   const [activities, setActivities] = useState<BrowserActivity[]>([])
@@ -463,7 +480,41 @@ export default function ActivityTimelinePage() {
                     </Link>
                   </div>
                 ) : (
-                  <div className="overflow-y-auto py-4 px-4 space-y-3">
+                  <>
+                    {/* Visual timeline bar: 6am–10pm, click block to select group */}
+                    <div className="px-4 pt-4 pb-2 border-b border-gray-100">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[10px] text-gray-500 font-mono">6am</span>
+                        <div className="flex-1 relative h-8 rounded-lg bg-gray-100 overflow-hidden">
+                          {groupsSorted.map((grp) => {
+                            const { leftPercent, widthPercent } = getGroupBarPosition(grp)
+                            if (widthPercent <= 0) return null
+                            const isSelected = selectedGroup?.id === grp.id
+                            return (
+                              <button
+                                key={grp.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedGroup(grp)
+                                  setSelectedActivity(null)
+                                }}
+                                className="absolute top-0.5 bottom-0.5 rounded-md transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-1"
+                                style={{
+                                  left: `${leftPercent}%`,
+                                  width: `${widthPercent}%`,
+                                  backgroundColor: isSelected ? "var(--brand-gold, #d4af37)" : "rgba(212, 175, 55, 0.5)",
+                                  minWidth: 4,
+                                }}
+                                title={grp.name ?? `Group · ${grp.activities.length} activities`}
+                              />
+                            )
+                          })}
+                        </div>
+                        <span className="text-[10px] text-gray-500 font-mono">10pm</span>
+                      </div>
+                      <p className="text-[10px] text-gray-500">Click a block to select that group</p>
+                    </div>
+                    <div className="overflow-y-auto py-4 px-4 space-y-3">
                     {groupsSorted.map((grp) => {
                       const totalSec = grp.activities.reduce((s, a) => s + a.duration_seconds, 0)
                       const workSec = grp.activities.reduce(
@@ -519,6 +570,7 @@ export default function ActivityTimelinePage() {
                       )
                     })}
                   </div>
+                  </>
                 )}
               </Card>
 

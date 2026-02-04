@@ -59,50 +59,19 @@ function getThisWeekStartLocal(): string {
   return `${mon.getFullYear()}-${String(mon.getMonth() + 1).padStart(2, "0")}-${String(mon.getDate()).padStart(2, "0")}`
 }
 
-export default function ActivityAnalyticsPage() {
-  const [weekStart, setWeekStart] = useState(getThisWeekStartLocal())
-  const [activities, setActivities] = useState<BrowserActivity[]>([])
-  const [groups, setGroups] = useState<ActivityGroup[]>([])
-  const [clients, setClients] = useState<{ id: string; name: string }[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+function getPreviousWeekStart(weekStart: string): string {
+  const [y, m, d] = weekStart.split("-").map(Number)
+  const mon = new Date(y, m - 1, d)
+  mon.setDate(mon.getDate() - 7)
+  return `${mon.getFullYear()}-${String(mon.getMonth() + 1).padStart(2, "0")}-${String(mon.getDate()).padStart(2, "0")}`
+}
 
-  const { startISO, endISO, label } = getWeekRangeLocal(weekStart)
-
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    setError(null)
-    Promise.all([
-      fetch(`/api/browser-activity?start_date=${encodeURIComponent(startISO)}&end_date=${encodeURIComponent(endISO)}`),
-      fetch(`/api/activity-groups?start_date=${encodeURIComponent(startISO)}&end_date=${encodeURIComponent(endISO)}`),
-      fetch("/api/clients-list"),
-    ])
-      .then(([actRes, grpRes, clientsRes]) => {
-        if (cancelled) return
-        if (!actRes.ok) throw new Error("Failed to load activity")
-        return Promise.all([actRes.json(), grpRes.json(), clientsRes.ok ? clientsRes.json() : []])
-      })
-      .then(([actData, grpData, clientsData]) => {
-        if (cancelled) return
-        setActivities(Array.isArray(actData) ? actData : [])
-        setGroups(Array.isArray(grpData) ? grpData : [])
-        setClients(Array.isArray(clientsData) ? clientsData : [])
-      })
-      .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load")
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [startISO, endISO])
-
-  const ungrouped = activities.filter((a) => !a.group_id && !a.is_hidden)
+function computeByClient(
+  activities: BrowserActivity[],
+  groups: ActivityGroup[]
+): Map<string | null, { totalSeconds: number; workSeconds: number }> {
   const byClient = new Map<string | null, { totalSeconds: number; workSeconds: number }>()
-
+  const ungrouped = activities.filter((a) => !a.group_id && !a.is_hidden)
   for (const a of ungrouped) {
     const cid = a.client_id
     const workSec = getWorkHoursSeconds(a.started_at, a.ended_at)
@@ -112,7 +81,6 @@ export default function ActivityAnalyticsPage() {
       workSeconds: existing.workSeconds + workSec,
     })
   }
-
   for (const g of groups) {
     const cid = g.client_id
     const totalSec = g.activities.reduce((s, a) => s + a.duration_seconds, 0)
@@ -126,6 +94,82 @@ export default function ActivityAnalyticsPage() {
       workSeconds: existing.workSeconds + workSec,
     })
   }
+  return byClient
+}
+
+function formatDelta(deltaSeconds: number): string {
+  if (deltaSeconds === 0) return "0"
+  const sign = deltaSeconds > 0 ? "+" : ""
+  const h = Math.floor(Math.abs(deltaSeconds) / 3600)
+  const m = Math.round((Math.abs(deltaSeconds) % 3600) / 60)
+  if (h === 0) return `${sign}${m}m`
+  return m > 0 ? `${sign}${h}h ${m}m` : `${sign}${h}h`
+}
+
+export default function ActivityAnalyticsPage() {
+  const [weekStart, setWeekStart] = useState(getThisWeekStartLocal())
+  const [compareWeeks, setCompareWeeks] = useState(false)
+  const [activities, setActivities] = useState<BrowserActivity[]>([])
+  const [groups, setGroups] = useState<ActivityGroup[]>([])
+  const [prevActivities, setPrevActivities] = useState<BrowserActivity[]>([])
+  const [prevGroups, setPrevGroups] = useState<ActivityGroup[]>([])
+  const [clients, setClients] = useState<{ id: string; name: string }[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const { startISO, endISO, label } = getWeekRangeLocal(weekStart)
+  const prevWeekStart = getPreviousWeekStart(weekStart)
+  const { startISO: prevStartISO, endISO: prevEndISO, label: prevLabel } = getWeekRangeLocal(prevWeekStart)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    const loadCurrent = Promise.all([
+      fetch(`/api/browser-activity?start_date=${encodeURIComponent(startISO)}&end_date=${encodeURIComponent(endISO)}`),
+      fetch(`/api/activity-groups?start_date=${encodeURIComponent(startISO)}&end_date=${encodeURIComponent(endISO)}`),
+      fetch("/api/clients-list"),
+    ]).then(async ([actRes, grpRes, clientsRes]) => {
+      if (!actRes.ok) throw new Error("Failed to load activity")
+      const [actData, grpData, clientsData] = await Promise.all([
+        actRes.json(),
+        grpRes.json(),
+        clientsRes.ok ? clientsRes.json() : [],
+      ])
+      return { actData, grpData, clientsData }
+    })
+    const loadPrev = compareWeeks
+      ? Promise.all([
+          fetch(`/api/browser-activity?start_date=${encodeURIComponent(prevStartISO)}&end_date=${encodeURIComponent(prevEndISO)}`),
+          fetch(`/api/activity-groups?start_date=${encodeURIComponent(prevStartISO)}&end_date=${encodeURIComponent(prevEndISO)}`),
+        ]).then(async ([actRes, grpRes]) => {
+          const [prevActData, prevGrpData] = await Promise.all([actRes.json(), grpRes.json()])
+          return { prevActData, prevGrpData }
+        })
+      : Promise.resolve({ prevActData: [], prevGrpData: [] })
+
+    Promise.all([loadCurrent, loadPrev])
+      .then(([current, prev]) => {
+        if (cancelled) return
+        setActivities(Array.isArray(current.actData) ? current.actData : [])
+        setGroups(Array.isArray(current.grpData) ? current.grpData : [])
+        setClients(Array.isArray(current.clientsData) ? current.clientsData : [])
+        setPrevActivities(Array.isArray(prev.prevActData) ? prev.prevActData : [])
+        setPrevGroups(Array.isArray(prev.prevGrpData) ? prev.prevGrpData : [])
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load")
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [startISO, endISO, compareWeeks, prevStartISO, prevEndISO])
+
+  const byClient = computeByClient(activities, groups)
+  const prevByClient = compareWeeks ? computeByClient(prevActivities, prevGroups) : new Map<string | null, { totalSeconds: number; workSeconds: number }>()
 
   const totals = Array.from(byClient.entries()).reduce(
     (acc, [, v]) => ({
@@ -134,14 +178,27 @@ export default function ActivityAnalyticsPage() {
     }),
     { totalSeconds: 0, workSeconds: 0 }
   )
+  const prevTotals = Array.from(prevByClient.entries()).reduce(
+    (acc, [, v]) => ({
+      totalSeconds: acc.totalSeconds + v.totalSeconds,
+      workSeconds: acc.workSeconds + v.workSeconds,
+    }),
+    { totalSeconds: 0, workSeconds: 0 }
+  )
   const outsideSeconds = totals.totalSeconds - totals.workSeconds
+  const prevOutsideSeconds = prevTotals.totalSeconds - prevTotals.workSeconds
 
   const rows = Array.from(byClient.entries())
-    .map(([clientId, v]) => ({
-      clientId,
-      name: clientId ? clients.find((c) => c.id === clientId)?.name ?? "Unknown" : "Unassigned",
-      ...v,
-    }))
+    .map(([clientId, v]) => {
+      const prev = prevByClient.get(clientId) ?? { totalSeconds: 0, workSeconds: 0 }
+      return {
+        clientId,
+        name: clientId ? clients.find((c) => c.id === clientId)?.name ?? "Unknown" : "Unassigned",
+        ...v,
+        prevTotalSeconds: prev.totalSeconds,
+        prevWorkSeconds: prev.workSeconds,
+      }
+    })
     .sort((a, b) => (a.clientId === null ? 1 : b.clientId === null ? -1 : b.totalSeconds - a.totalSeconds))
 
   return (
@@ -183,6 +240,20 @@ export default function ActivityAnalyticsPage() {
               <Button variant="outline" size="sm" onClick={() => setWeekStart(getThisWeekStartLocal())}>
                 This week
               </Button>
+              <label className="flex items-center gap-2 cursor-pointer pb-2">
+                <input
+                  type="checkbox"
+                  checked={compareWeeks}
+                  onChange={(e) => setCompareWeeks(e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                <span className="text-sm text-gray-600">Compare to previous week</span>
+              </label>
+              {compareWeeks && (
+                <p className="text-xs text-gray-500 pb-2" title={prevLabel}>
+                  vs {prevLabel}
+                </p>
+              )}
             </div>
 
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/80 px-4 py-2 text-sm text-amber-800">
@@ -212,6 +283,16 @@ export default function ActivityAnalyticsPage() {
                         <p className="text-xs text-gray-500 uppercase tracking-wide">Total time</p>
                         <p className="text-2xl font-bold" style={{ color: "#060520" }}>
                           {formatHours(totals.totalSeconds)}
+                          {compareWeeks && (
+                            <span
+                              className={`ml-2 text-sm font-normal ${
+                                totals.totalSeconds >= prevTotals.totalSeconds ? "text-green-600" : "text-gray-500"
+                              }`}
+                              title={`Previous week: ${formatHours(prevTotals.totalSeconds)}`}
+                            >
+                              ({formatDelta(totals.totalSeconds - prevTotals.totalSeconds)})
+                            </span>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -225,6 +306,16 @@ export default function ActivityAnalyticsPage() {
                         <p className="text-xs text-gray-500 uppercase tracking-wide">Work hours</p>
                         <p className="text-2xl font-bold text-green-700">
                           {formatHours(totals.workSeconds)}
+                          {compareWeeks && (
+                            <span
+                              className={`ml-2 text-sm font-normal ${
+                                totals.workSeconds >= prevTotals.workSeconds ? "text-green-600" : "text-gray-500"
+                              }`}
+                              title={`Previous week: ${formatHours(prevTotals.workSeconds)}`}
+                            >
+                              ({formatDelta(totals.workSeconds - prevTotals.workSeconds)})
+                            </span>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -238,6 +329,16 @@ export default function ActivityAnalyticsPage() {
                         <p className="text-xs text-gray-500 uppercase tracking-wide">Outside work hours</p>
                         <p className="text-2xl font-bold text-gray-700">
                           {formatHours(outsideSeconds)}
+                          {compareWeeks && (
+                            <span
+                              className={`ml-2 text-sm font-normal ${
+                                outsideSeconds >= prevOutsideSeconds ? "text-gray-600" : "text-gray-500"
+                              }`}
+                              title={`Previous week: ${formatHours(prevOutsideSeconds)}`}
+                            >
+                              ({formatDelta(outsideSeconds - prevOutsideSeconds)})
+                            </span>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -251,6 +352,8 @@ export default function ActivityAnalyticsPage() {
                     </h2>
                     <p className="text-sm text-gray-500">
                       Work hours = 9–5 Mon–Fri. Hidden activities excluded.
+                      {compareWeeks && " Deltas vs previous week in parentheses."}
+                      {rows.some((r) => r.clientId !== null) && " Click a client to see that week’s activity in List view."}
                     </p>
                   </div>
                   <div className="overflow-x-auto">
@@ -277,17 +380,47 @@ export default function ActivityAnalyticsPage() {
                                 {row.clientId === null ? (
                                   <span className="text-gray-500">Unassigned</span>
                                 ) : (
-                                  row.name
+                                  <Link
+                                    href={`/admin/activity-list?date=${weekStart}&client_id=${encodeURIComponent(row.clientId)}`}
+                                    className="text-brand-gold hover:underline"
+                                  >
+                                    {row.name}
+                                  </Link>
                                 )}
                               </td>
                               <td className="text-right py-3 px-4 text-green-700">
                                 {formatHours(row.workSeconds)}
+                                {compareWeeks && (
+                                  <span
+                                    className={`ml-1 text-xs ${
+                                      row.workSeconds >= row.prevWorkSeconds ? "text-green-600" : "text-gray-500"
+                                    }`}
+                                    title={`Prev: ${formatHours(row.prevWorkSeconds)}`}
+                                  >
+                                    ({formatDelta(row.workSeconds - row.prevWorkSeconds)})
+                                  </span>
+                                )}
                               </td>
                               <td className="text-right py-3 px-4 text-gray-600">
                                 {formatHours(row.totalSeconds - row.workSeconds)}
+                                {compareWeeks && (
+                                  <span className="ml-1 text-xs text-gray-500" title={`Prev: ${formatHours(row.prevTotalSeconds - row.prevWorkSeconds)}`}>
+                                    ({formatDelta((row.totalSeconds - row.workSeconds) - (row.prevTotalSeconds - row.prevWorkSeconds))})
+                                  </span>
+                                )}
                               </td>
                               <td className="text-right py-3 px-4 font-medium">
                                 {formatHours(row.totalSeconds)}
+                                {compareWeeks && (
+                                  <span
+                                    className={`ml-1 text-xs ${
+                                      row.totalSeconds >= row.prevTotalSeconds ? "text-gray-700" : "text-gray-500"
+                                    }`}
+                                    title={`Prev: ${formatHours(row.prevTotalSeconds)}`}
+                                  >
+                                    ({formatDelta(row.totalSeconds - row.prevTotalSeconds)})
+                                  </span>
+                                )}
                               </td>
                             </tr>
                           ))

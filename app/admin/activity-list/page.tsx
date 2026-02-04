@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { PasswordProtection } from "@/components/password-protection"
@@ -108,7 +109,11 @@ function getLocalDayRange(dateStr: string) {
 }
 
 export default function ActivityListPage() {
-  const [selectedDate, setSelectedDate] = useState(getTodayLocal)
+  const searchParams = useSearchParams()
+  const dateFromUrl = searchParams.get("date")
+  const clientIdFromUrl = searchParams.get("client_id")
+
+  const [selectedDate, setSelectedDate] = useState(() => dateFromUrl || getTodayLocal())
   const [activities, setActivities] = useState<BrowserActivity[]>([])
   const [groups, setGroups] = useState<ActivityGroup[]>([])
   const [clients, setClients] = useState<{ id: string; name: string }[]>([])
@@ -121,6 +126,13 @@ export default function ActivityListPage() {
   const [openCombos, setOpenCombos] = useState<Record<string, boolean>>({})
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [showHidden, setShowHidden] = useState(false)
+
+  // Sync date from URL when navigating (e.g. drill-down from analytics)
+  useEffect(() => {
+    if (dateFromUrl && /^\d{4}-\d{2}-\d{2}$/.test(dateFromUrl)) {
+      setSelectedDate(dateFromUrl)
+    }
+  }, [dateFromUrl])
 
   useEffect(() => {
     loadClients()
@@ -170,7 +182,15 @@ export default function ActivityListPage() {
     }
   }
 
-  const ungroupedActivities = activities.filter((a) => !a.group_id)
+  // When drill-down from analytics: show only this client's activity for the day
+  const filteredActivities = clientIdFromUrl
+    ? activities.filter((a) => a.client_id === clientIdFromUrl)
+    : activities
+  const filteredGroups = clientIdFromUrl
+    ? groups.filter((g) => g.client_id === clientIdFromUrl)
+    : groups
+
+  const ungroupedActivities = filteredActivities.filter((a) => !a.group_id)
 
   const dedupeKey = (a: BrowserActivity) =>
     `${a.started_at}|${a.duration_seconds}|${a.url || ""}|${a.domain || ""}`
@@ -192,6 +212,7 @@ export default function ActivityListPage() {
     0
   )
   const isToday = selectedDate === getTodayLocal()
+  const filterClientName = clientIdFromUrl ? clients.find((c) => c.id === clientIdFromUrl)?.name ?? null : null
 
   const goToPreviousDay = () => {
     const [y, m, d] = selectedDate.split("-").map(Number)
@@ -436,6 +457,21 @@ export default function ActivityListPage() {
               <p className="text-gray-600">
                 Spreadsheet view — select activities to group into a project and assign to a client
               </p>
+              {clientIdFromUrl && (
+                <div className="mt-3 rounded-lg border border-brand-gold/30 bg-brand-gold/5 px-4 py-2 text-sm">
+                  <span className="text-gray-700">Showing only </span>
+                  <span className="font-medium" style={{ color: "#060520" }}>
+                    {filterClientName ?? "this client"}
+                  </span>
+                  <span className="text-gray-700"> · </span>
+                  <Link
+                    href={`/admin/activity-list?date=${selectedDate}`}
+                    className="text-brand-gold hover:underline"
+                  >
+                    Clear filter
+                  </Link>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-4 mb-6">
@@ -668,7 +704,7 @@ export default function ActivityListPage() {
                       )
                     })}
                     {/* Groups */}
-                    {groups
+                    {filteredGroups
                       .sort((a, b) =>
                         new Date(a.activities[0]?.started_at || 0).getTime() - new Date(b.activities[0]?.started_at || 0).getTime()
                       )
