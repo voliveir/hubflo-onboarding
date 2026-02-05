@@ -847,12 +847,35 @@ export interface UniversitySection {
   lectures?: UniversityLecture[];
 }
 
+/** Hotspot for clickthrough demo: percentage-based rect (0–100). target_step_id = next step id or "complete" to finish. */
+export interface ClickthroughDemoHotspot {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  target_step_id: string; // step id to go to, or "complete" to end and mark lecture complete
+  hint?: string;
+}
+
+/** Single step in a clickthrough demo (Figma-style interactive prototype). */
+export interface ClickthroughDemoStep {
+  id: string;
+  image_url: string;
+  title?: string;
+  description?: string;
+  hotspots: ClickthroughDemoHotspot[];
+}
+
+export interface ClickthroughDemoContentData {
+  steps: ClickthroughDemoStep[];
+}
+
 export interface UniversityLecture {
   id: string;
   section_id: string;
   title: string;
   description?: string;
-  content_type: 'video' | 'text' | 'quiz' | 'download' | 'link';
+  content_type: 'video' | 'text' | 'quiz' | 'download' | 'link' | 'clickthrough_demo';
   content_data: any; // JSONB - flexible structure based on content_type
   sort_order: number;
   is_active: boolean;

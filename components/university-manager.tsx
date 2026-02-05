@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { toast } from "@/hooks/use-toast"
 import { formatCourseDuration } from "@/lib/utils"
+import { ClickthroughDemoEditor } from "@/components/ClickthroughDemoEditor"
 import {
   getUniversitySchools,
   createUniversitySchool,
@@ -68,6 +69,7 @@ import {
   Download,
   ExternalLink,
   ListChecks,
+  MousePointerClick,
 } from "lucide-react"
 
 export function UniversityManager() {
@@ -398,6 +400,7 @@ export function UniversityManager() {
       case 'quiz': return <HelpCircle className="h-4 w-4" />
       case 'download': return <Download className="h-4 w-4" />
       case 'link': return <ExternalLink className="h-4 w-4" />
+      case 'clickthrough_demo': return <MousePointerClick className="h-4 w-4" />
       default: return <FileText className="h-4 w-4" />
     }
   }
@@ -654,7 +657,7 @@ export function UniversityManager() {
                           {hasBoth ? (
                             <Badge variant="outline">Video + Text</Badge>
                           ) : (
-                            <Badge variant="outline">{lecture.content_type}</Badge>
+                            <Badge variant="outline">{lecture.content_type === "clickthrough_demo" ? "Labs demo" : lecture.content_type}</Badge>
                           )}
                           {hasVideo && !hasBoth && <Badge variant="secondary" className="text-xs">Video</Badge>}
                           {hasText && !hasBoth && <Badge variant="secondary" className="text-xs">Text</Badge>}
@@ -1303,7 +1306,7 @@ function LectureDialog({
     section_id: "",
     title: "",
     description: "",
-    content_type: "video" as "video" | "text" | "quiz" | "download" | "link",
+    content_type: "video" as "video" | "text" | "quiz" | "download" | "link" | "clickthrough_demo",
     content_data: {} as any,
     sort_order: 0,
     is_active: true,
@@ -1413,8 +1416,9 @@ function LectureDialog({
     }
   }, [lecture, open, sectionId, sections])
 
-  // Update content_data when video URL or text content changes
+  // Update content_data when video URL or text content changes (only for video/text lectures)
   useEffect(() => {
+    if (formData.content_type === "clickthrough_demo") return
     const newContentData: any = {}
     
     if (hasVideo && videoUrl) {
@@ -1444,7 +1448,7 @@ function LectureDialog({
       content_type: newContentType,
       content_data: Object.keys(newContentData).length > 0 ? newContentData : {},
     }))
-  }, [videoUrl, textContent, textFormat, hasVideo, hasText])
+  }, [videoUrl, textContent, textFormat, hasVideo, hasText, formData.content_type])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -1493,9 +1497,15 @@ function LectureDialog({
           <div>
             <Label className="text-[#060520]">Content Type</Label>
             <Select value={formData.content_type} onValueChange={(value: any) => {
-              // Only allow changing to quiz, download, or link - video/text are controlled by toggles
+              // Only allow changing to quiz, download, link, or clickthrough_demo - video/text are controlled by toggles
               if (value === "quiz" || value === "download" || value === "link") {
                 setFormData({ ...formData, content_type: value, content_data: {} })
+                setHasVideo(false)
+                setHasText(false)
+                setVideoUrl("")
+                setTextContent("")
+              } else if (value === "clickthrough_demo") {
+                setFormData({ ...formData, content_type: value, content_data: { steps: [] } })
                 setHasVideo(false)
                 setHasText(false)
                 setVideoUrl("")
@@ -1510,6 +1520,7 @@ function LectureDialog({
                 <SelectItem value="quiz" className="text-[#060520]">Quiz</SelectItem>
                 <SelectItem value="download" className="text-[#060520]">Download</SelectItem>
                 <SelectItem value="link" className="text-[#060520]">Link</SelectItem>
+                <SelectItem value="clickthrough_demo" className="text-[#060520]">Labs – Click-through demo</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-gray-500 mt-1">
@@ -1620,6 +1631,16 @@ function LectureDialog({
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Click-through demo (Labs) – visual step + hotspot editor */}
+          {formData.content_type === "clickthrough_demo" && (
+            <div className="space-y-2 border rounded-lg p-4 bg-amber-50/30 border-amber-200">
+              <ClickthroughDemoEditor
+                value={formData.content_data?.steps ? { steps: formData.content_data.steps } : { steps: [] }}
+                onChange={(data) => setFormData({ ...formData, content_data: data })}
+              />
             </div>
           )}
 

@@ -21,6 +21,7 @@ import {
   Video,
   HelpCircle,
   Sparkles,
+  MousePointerClick,
 } from "lucide-react"
 import type {
   UniversitySchool,
@@ -1279,6 +1280,7 @@ function CourseDetailView({
                         {lecture.content_type === "quiz" && <HelpCircle className="h-4 w-4 text-brand-gold flex-shrink-0" />}
                         {lecture.content_type === "download" && <Download className="h-4 w-4 text-brand-gold flex-shrink-0" />}
                         {lecture.content_type === "link" && <ExternalLink className="h-4 w-4 text-brand-gold flex-shrink-0" />}
+                        {lecture.content_type === "clickthrough_demo" && <MousePointerClick className="h-4 w-4 text-brand-gold flex-shrink-0" />}
                         <span className="truncate flex-1">{lecture.title}</span>
                       </button>
                     )
@@ -1376,6 +1378,7 @@ function CourseDetailView({
                                 {lecture.content_type === 'quiz' && <HelpCircle className="h-5 w-5 text-brand-gold" />}
                                 {lecture.content_type === 'download' && <Download className="h-5 w-5 text-brand-gold" />}
                                 {lecture.content_type === 'link' && <ExternalLink className="h-5 w-5 text-brand-gold" />}
+                                {lecture.content_type === 'clickthrough_demo' && <MousePointerClick className="h-5 w-5 text-brand-gold" />}
                                 
                                 <div className="flex-1">
                                   <h4 className="font-medium" style={{ color: '#060520' }}>

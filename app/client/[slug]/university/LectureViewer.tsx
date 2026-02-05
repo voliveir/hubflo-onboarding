@@ -20,10 +20,12 @@ import {
   ArrowLeft,
   Clock,
   BookOpen,
+  MousePointerClick,
 } from "lucide-react"
 import type { UniversityLecture, UniversityQuiz } from "@/lib/types"
 import { toast } from "@/hooks/use-toast"
 import DOMPurify from "dompurify"
+import { ClickthroughDemo } from "@/components/ClickthroughDemo"
 
 interface LectureViewerProps {
   lecture: UniversityLecture
@@ -44,6 +46,9 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
   const [quizResults, setQuizResults] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [timeSpent, setTimeSpent] = useState(0)
+
+  // Normalize so "clickthrough demo" / variants from DB or API are supported
+  const contentType = (lecture.content_type ?? "").toString().replace(/\s+/g, "_").toLowerCase() || lecture.content_type
 
   useEffect(() => {
     // Start tracking time
@@ -383,15 +388,15 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
 
   const renderContent = () => {
     const contentData = lecture.content_data || {}
-    
+
     // Check for new structure with both video and text
-    const hasVideo = contentData.video?.url || (lecture.content_type === "video" && contentData.url)
-    const hasText = contentData.text?.content || (lecture.content_type === "text" && contentData.content)
+    const hasVideo = contentData.video?.url || (contentType === "video" && contentData.url)
+    const hasText = contentData.text?.content || (contentType === "text" && contentData.content)
     
     // If both video and text are present, render both
     if (hasVideo && hasText) {
-      const videoData = contentData.video || (lecture.content_type === "video" ? contentData : null)
-      const textData = contentData.text || (lecture.content_type === "text" ? contentData : null)
+      const videoData = contentData.video || (contentType === "video" ? contentData : null)
+      const textData = contentData.text || (contentType === "text" ? contentData : null)
       
       return (
         <div className="space-y-8">
@@ -415,7 +420,7 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
     }
     
     // Legacy single content type rendering
-    switch (lecture.content_type) {
+    switch (contentType) {
       case "video":
         const videoData = contentData.video || contentData
         if (videoData.url) {
@@ -471,6 +476,17 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
               </div>
             </CardContent>
           </Card>
+        )
+
+      case "clickthrough_demo":
+        return (
+          <ClickthroughDemo
+            contentData={contentData as { steps: Array<{ id: string; image_url: string; title?: string; description?: string; hotspots: Array<{ x: number; y: number; width: number; height: number; target_step_id: string; hint?: string }> }> }}
+            onComplete={() => {
+              updateProgress(100, true)
+              onComplete()
+            }}
+          />
         )
 
       case "quiz":
@@ -652,6 +668,18 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
         )
 
       default:
+        // Fallback: if content has steps array, treat as clickthrough_demo (e.g. DB constraint not yet migrated)
+        if (contentData?.steps && Array.isArray(contentData.steps)) {
+          return (
+            <ClickthroughDemo
+              contentData={contentData as { steps: Array<{ id: string; image_url: string; title?: string; description?: string; hotspots: Array<{ x: number; y: number; width: number; height: number; target_step_id: string; hint?: string }> }> }}
+              onComplete={() => {
+                updateProgress(100, true)
+                onComplete()
+              }}
+            />
+          )
+        }
         return <p className="text-gray-500">Content type not supported</p>
     }
   }
@@ -674,8 +702,8 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     {(() => {
                       const contentData = lecture.content_data || {}
-                      const hasVideo = contentData.video?.url || (lecture.content_type === "video" && contentData.url)
-                      const hasText = contentData.text?.content || (lecture.content_type === "text" && contentData.content)
+                      const hasVideo = contentData.video?.url || (contentType === "video" && contentData.url)
+                      const hasText = contentData.text?.content || (contentType === "text" && contentData.content)
                       if (hasVideo && hasText) {
                         return (
                           <>
@@ -684,11 +712,12 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
                           </>
                         )
                       }
-                      if (lecture.content_type === "video") return <Video className="h-5 w-5 text-brand-gold flex-shrink-0" />
-                      if (lecture.content_type === "text") return <FileText className="h-5 w-5 text-brand-gold flex-shrink-0" />
-                      if (lecture.content_type === "quiz") return <HelpCircle className="h-5 w-5 text-brand-gold flex-shrink-0" />
-                      if (lecture.content_type === "download") return <Download className="h-5 w-5 text-brand-gold flex-shrink-0" />
-                      if (lecture.content_type === "link") return <ExternalLink className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                      if (contentType === "video") return <Video className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                      if (contentType === "text") return <FileText className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                      if (contentType === "quiz") return <HelpCircle className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                      if (contentType === "download") return <Download className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                      if (contentType === "link") return <ExternalLink className="h-5 w-5 text-brand-gold flex-shrink-0" />
+                      if (contentType === "clickthrough_demo") return <MousePointerClick className="h-5 w-5 text-brand-gold flex-shrink-0" />
                       return null
                     })()}
                     <CardTitle className="text-2xl font-bold" style={{ color: "#060520" }}>
@@ -720,7 +749,7 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
 
               {renderContent()}
 
-              {lecture.content_type !== "quiz" && !isCompleted && (
+              {contentType !== "quiz" && contentType !== "clickthrough_demo" && !isCompleted && (
                 <div id="lecture-mark-complete" className="flex justify-end pt-6 border-t border-gray-100">
                   <Button
                     onClick={handleMarkComplete}
