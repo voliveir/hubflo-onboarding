@@ -78,6 +78,7 @@ interface ActivityGroup {
   time_entry_id: string | null
   name: string | null
   category?: string | null
+  client_label?: string | null
   activities: BrowserActivity[]
 }
 
@@ -124,6 +125,7 @@ export default function ActivityListPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [groupDialogOpen, setGroupDialogOpen] = useState(false)
   const [groupClientId, setGroupClientId] = useState<string | null>(null)
+  const [groupClientLabel, setGroupClientLabel] = useState("")
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [openCombos, setOpenCombos] = useState<Record<string, boolean>>({})
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
@@ -308,7 +310,9 @@ export default function ActivityListPage() {
   }
 
   const createGroupAndAssign = async () => {
-    if (selectedIds.size < 2 || !groupClientId) return
+    const useLabel = groupClientLabel.trim()
+    if (selectedIds.size < 2) return
+    if (!groupClientId && !useLabel) return
     setUpdatingId("group")
     try {
       const createRes = await fetch("/api/activity-groups", {
@@ -318,13 +322,22 @@ export default function ActivityListPage() {
       })
       if (createRes.ok) {
         const grp = await createRes.json()
-        await fetch(`/api/activity-groups/${grp.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ client_id: groupClientId }),
-        })
+        if (groupClientId) {
+          await fetch(`/api/activity-groups/${grp.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ client_id: groupClientId }),
+          })
+        } else {
+          await fetch(`/api/activity-groups/${grp.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ client_id: null, client_label: useLabel || null }),
+          })
+        }
         setGroupDialogOpen(false)
         setGroupClientId(null)
+        setGroupClientLabel("")
         await loadData()
       }
     } catch {
@@ -373,6 +386,22 @@ export default function ActivityListPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ client_id: clientId || null }),
+      })
+      if (res.ok) await loadData()
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const assignGroupClientLabel = async (groupId: string, label: string | null) => {
+    setUpdatingId(groupId)
+    try {
+      const res = await fetch(`/api/activity-groups/${groupId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client_id: null, client_label: label || null }),
       })
       if (res.ok) await loadData()
     } catch {
@@ -450,6 +479,9 @@ export default function ActivityListPage() {
 
   const getClientName = (id: string | null) =>
     id ? clients.find((c) => c.id === id)?.name || "—" : "—"
+
+  const getGroupClientDisplay = (g: ActivityGroup) =>
+    g.client_id ? getClientName(g.client_id) : g.client_label ? `${g.client_label} (not in list)` : "—"
 
   return (
     <PasswordProtection>
@@ -807,7 +839,7 @@ export default function ActivityListPage() {
                                 <Popover open={!!openCombos[`g-${g.id}`]} onOpenChange={(o) => setOpenCombos((p) => ({ ...p, [`g-${g.id}`]: o }))}>
                                   <PopoverTrigger asChild>
                                     <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={!!updatingId}>
-                                      {getClientName(g.client_id)}
+                                      {getGroupClientDisplay(g)}
                                       <ChevronsUpDown className="ml-1 h-3 w-3" />
                                     </Button>
                                   </PopoverTrigger>
@@ -816,17 +848,38 @@ export default function ActivityListPage() {
                                       <CommandInput placeholder="Search client..." />
                                       <CommandList>
                                         <CommandGroup>
-                                          <CommandItem value="No client" onSelect={() => { assignGroupClient(g.id, null); setOpenCombos((p) => ({ ...p, [`g-${g.id}`]: false })) }}>
-                                            <Check className="mr-2 h-4 w-4" /> No client
+                                          <CommandItem value="No client" onSelect={() => { assignGroupClientLabel(g.id, null); setOpenCombos((p) => ({ ...p, [`g-${g.id}`]: false })) }}>
+                                            <Check className={`mr-2 h-4 w-4 ${!g.client_id && !g.client_label ? "opacity-100" : "opacity-0"}`} /> No client
                                           </CommandItem>
                                           {clients.map((c) => (
                                             <CommandItem key={c.id} value={c.name} onSelect={() => { assignGroupClient(g.id, c.id); setOpenCombos((p) => ({ ...p, [`g-${g.id}`]: false })) }}>
-                                              <Check className="mr-2 h-4 w-4" /> {c.name}
+                                              <Check className={`mr-2 h-4 w-4 ${g.client_id === c.id ? "opacity-100" : "opacity-0"}`} /> {c.name}
                                             </CommandItem>
                                           ))}
                                         </CommandGroup>
                                       </CommandList>
                                     </Command>
+                                    <div className="border-t border-gray-200 p-2">
+                                      <p className="text-[10px] text-gray-500 mb-1">Client work (not in list)</p>
+                                      <Input
+                                        placeholder="e.g. Capital Q"
+                                        value={g.client_label ?? ""}
+                                        onChange={(e) =>
+                                          setGroups((prev) =>
+                                            prev.map((gr) => (gr.id === g.id ? { ...gr, client_label: e.target.value || null } : gr))
+                                          )
+                                        }
+                                        onBlur={() => {
+                                          const trimmed = (g.client_label ?? "").trim() || null
+                                          assignGroupClientLabel(g.id, trimmed)
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === "Enter") (e.target as HTMLInputElement).blur()
+                                        }}
+                                        className="h-7 text-xs"
+                                        disabled={!!updatingId}
+                                      />
+                                    </div>
                                   </PopoverContent>
                                 </Popover>
                               </TableCell>
@@ -889,17 +942,29 @@ export default function ActivityListPage() {
         </main>
       </div>
 
-      <Dialog open={groupDialogOpen} onOpenChange={setGroupDialogOpen}>
+      <Dialog
+        open={groupDialogOpen}
+        onOpenChange={(open) => {
+          setGroupDialogOpen(open)
+          if (!open) {
+            setGroupClientLabel("")
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Group and assign to client</DialogTitle>
             <DialogDescription>
-              Combine {selectedIds.size} activities into one project and assign to a client. A single time entry will be created for the total duration.
+              {groupClientLabel.trim() ? (
+                <>Combine {selectedIds.size} activities into one project with a client label. No time entry is created.</>
+              ) : (
+                <>Combine {selectedIds.size} activities into one project and assign to a client. A single time entry will be created for the total duration.</>
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>Client</Label>
+              <Label>Client (from list)</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-between mt-2">
@@ -911,7 +976,7 @@ export default function ActivityListPage() {
                   <Command>
                     <CommandInput placeholder="Type to search clients..." />
                     <CommandList>
-                      <CommandEmpty>No client found</CommandEmpty>
+                      <CommandEmpty>No client found — use the field below if they're not in the list.</CommandEmpty>
                       <CommandGroup>
                         {clients.map((c) => (
                           <CommandItem
@@ -919,6 +984,7 @@ export default function ActivityListPage() {
                             value={c.name}
                             onSelect={() => {
                               setGroupClientId(c.id)
+                              setGroupClientLabel("")
                             }}
                           >
                             <Check className={`mr-2 h-4 w-4 ${groupClientId === c.id ? "opacity-100" : "opacity-0"}`} />
@@ -931,11 +997,24 @@ export default function ActivityListPage() {
                 </PopoverContent>
               </Popover>
             </div>
+            <div>
+              <Label>Or: Client not in list?</Label>
+              <Input
+                placeholder="e.g. Sedaghat, Acme Corp"
+                value={groupClientLabel}
+                onChange={(e) => {
+                  setGroupClientLabel(e.target.value)
+                  if (e.target.value.trim()) setGroupClientId(null)
+                }}
+                className="mt-2"
+              />
+              <p className="text-xs text-gray-500 mt-1">No time entry created; label only. Use for clients not yet in Hubflo.</p>
+            </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setGroupDialogOpen(false)}>Cancel</Button>
               <Button
                 onClick={createGroupAndAssign}
-                disabled={!groupClientId || !!updatingId}
+                disabled={(!groupClientId && !groupClientLabel.trim()) || !!updatingId}
                 className="bg-brand-gold text-[#010124] hover:bg-brand-gold/90"
               >
                 {updatingId ? <Loader2 className="h-4 w-4 animate-spin" /> : <Layers className="h-4 w-4 mr-2" />}

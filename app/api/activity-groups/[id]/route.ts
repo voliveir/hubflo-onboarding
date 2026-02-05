@@ -18,7 +18,7 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await request.json()
-    const { client_id, add_activity_ids, remove_activity_ids, name, category } = body
+    const { client_id, client_label, add_activity_ids, remove_activity_ids, name, category } = body
 
     const { data: group, error: fetchError } = await supabase
       .from("activity_groups")
@@ -77,10 +77,17 @@ export async function PATCH(
         if (entry) timeEntryId = entry.id
       }
 
-      await supabase
-        .from("activity_groups")
-        .update({ client_id: client_id || null, time_entry_id: timeEntryId })
-        .eq("id", id)
+      // When assigning a real client, clear client_label; when clearing client, preserve client_label if sent separately
+      const updatePayload: { client_id: string | null; time_entry_id: string | null; client_label?: string | null } = {
+        client_id: client_id || null,
+        time_entry_id: timeEntryId,
+      }
+      if (client_id) updatePayload.client_label = null
+      await supabase.from("activity_groups").update(updatePayload).eq("id", id)
+    }
+
+    if (client_label !== undefined) {
+      await supabase.from("activity_groups").update({ client_label: client_label === "" ? null : client_label }).eq("id", id)
     }
 
     if (name !== undefined) {

@@ -77,6 +77,7 @@ interface ActivityGroup {
   time_entry_id: string | null
   name: string | null
   category?: string | null
+  client_label?: string | null
   activities: BrowserActivity[]
 }
 
@@ -311,6 +312,26 @@ export default function ActivityTimelinePage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ client_id: clientId || null }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, ...data } : g)))
+        setSelectedGroup((s) => (s?.id === groupId ? { ...s, ...data } : s))
+      }
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const assignGroupClientLabel = async (groupId: string, label: string | null) => {
+    setUpdatingId(groupId)
+    try {
+      const res = await fetch(`/api/activity-groups/${groupId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client_id: null, client_label: label || null }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -934,7 +955,9 @@ export default function ActivityTimelinePage() {
                             >
                               {selectedGroup.client_id
                                 ? clients.find((c) => c.id === selectedGroup.client_id)?.name || "Unknown"
-                                : "No client"}
+                                : selectedGroup.client_label
+                                  ? `${selectedGroup.client_label} (not in list)`
+                                  : "No client"}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
@@ -947,11 +970,11 @@ export default function ActivityTimelinePage() {
                                   <CommandItem
                                     value="No client"
                                     onSelect={() => {
-                                      assignGroupClient(selectedGroup.id, null)
+                                      assignGroupClientLabel(selectedGroup.id, null)
                                       setOpenCombos((p) => ({ ...p, [`group-${selectedGroup.id}`]: false }))
                                     }}
                                   >
-                                    <Check className={`mr-2 h-4 w-4 ${!selectedGroup.client_id ? "opacity-100" : "opacity-0"}`} />
+                                    <Check className={`mr-2 h-4 w-4 ${!selectedGroup.client_id && !selectedGroup.client_label ? "opacity-100" : "opacity-0"}`} />
                                     <span className="text-gray-500">No client</span>
                                   </CommandItem>
                                   {clients.map((c) => (
@@ -970,6 +993,26 @@ export default function ActivityTimelinePage() {
                                 </CommandGroup>
                               </CommandList>
                             </Command>
+                            <div className="border-t border-gray-200 p-2">
+                              <p className="text-[10px] text-gray-500 mb-1.5">Client work (not in list)</p>
+                              <Input
+                                placeholder="e.g. Capital Q, Acme Corp"
+                                value={selectedGroup.client_label ?? ""}
+                                onChange={(e) =>
+                                  setSelectedGroup((s) => (s ? { ...s, client_label: e.target.value || null } : s))
+                                }
+                                onBlur={() => {
+                                  const trimmed = (selectedGroup.client_label ?? "").trim() || null
+                                  assignGroupClientLabel(selectedGroup.id, trimmed)
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") (e.target as HTMLInputElement).blur()
+                                }}
+                                className="h-8 text-sm"
+                                disabled={!!updatingId}
+                              />
+                              <p className="text-[10px] text-gray-400 mt-1">No time entry created; label only.</p>
+                            </div>
                           </PopoverContent>
                         </Popover>
                       </div>
