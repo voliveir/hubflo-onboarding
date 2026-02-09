@@ -1080,6 +1080,7 @@ function CourseDetailView({
 }) {
   const [selectedLecture, setSelectedLecture] = useState<UniversityLecture | null>(null)
   const userWentBackToListRef = useRef(false)
+  const lectureMarkCompleteRef = useRef<(() => void) | null>(null)
   const [localProgress, setLocalProgress] = useState<UniversityClientProgress[]>(() =>
     clientProgress.filter((p) => p.course_id === course.id)
   )
@@ -1184,6 +1185,12 @@ function CourseDetailView({
           }
         }
       }
+
+      // Navigate to the next lecture (so "Complete and continue" advances to next step)
+      const currentIndex = selectedLecture ? allLectures.findIndex((l) => l.id === selectedLecture.id) : -1
+      if (currentIndex >= 0 && currentIndex < allLectures.length - 1) {
+        setSelectedLecture(allLectures[currentIndex + 1])
+      }
     }
   }
 
@@ -1230,7 +1237,13 @@ function CourseDetailView({
           </Button>
           <button
             type="button"
-            onClick={() => document.getElementById("lecture-mark-complete")?.scrollIntoView({ behavior: "smooth" })}
+            onClick={() => {
+              if (lectureMarkCompleteRef.current) {
+                lectureMarkCompleteRef.current()
+              } else {
+                document.getElementById("lecture-mark-complete")?.scrollIntoView({ behavior: "smooth" })
+              }
+            }}
             className="text-sm text-brand-gold hover:text-brand-gold-hover font-medium"
           >
             Complete and continue →
@@ -1299,6 +1312,7 @@ function CourseDetailView({
               onBack={() => setSelectedLecture(null)}
               onComplete={handleLectureComplete}
               embeddedLayout
+              markCompleteRef={lectureMarkCompleteRef}
             />
           </main>
         </div>

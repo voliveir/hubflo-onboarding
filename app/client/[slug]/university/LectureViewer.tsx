@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -35,9 +35,11 @@ interface LectureViewerProps {
   onComplete: () => void
   /** When true, render only the lecture content (no full-page chrome) for sidebar layout */
   embeddedLayout?: boolean
+  /** Optional ref so parent can trigger "mark complete" (e.g. from header "Complete and continue") */
+  markCompleteRef?: React.MutableRefObject<(() => void) | null>
 }
 
-export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete, embeddedLayout = false }: LectureViewerProps) {
+export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete, embeddedLayout = false, markCompleteRef }: LectureViewerProps) {
   const [progress, setProgress] = useState(0)
   const [isCompleted, setIsCompleted] = useState(false)
   const [quiz, setQuiz] = useState<UniversityQuiz | null>(null)
@@ -66,26 +68,30 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
     loadProgress()
 
     return () => clearInterval(interval)
-  }, [lecture.id])
+  }, [lecture.id, clientId, courseId])
 
   const loadProgress = async () => {
     try {
-      const response = await fetch(`/api/university/progress?clientId=${clientId}&lectureId=${lecture.id}`)
+      const response = await fetch(`/api/university/progress?clientId=${clientId}&courseId=${courseId}`)
       if (response.ok) {
         const data = await response.json()
-        if (data.data && Array.isArray(data.data) && data.data.length > 0) {
-          const lectureProgress = data.data.find((p: any) => p.lecture_id === lecture.id)
-          if (lectureProgress) {
-            setProgress(lectureProgress.progress_percentage || 0)
-            setIsCompleted(lectureProgress.is_completed || false)
-          }
-        } else if (data.data && !Array.isArray(data.data)) {
-          setProgress(data.data.progress_percentage || 0)
-          setIsCompleted(data.data.is_completed || false)
+        const list = Array.isArray(data.data) ? data.data : []
+        const lectureProgress = list.find((p: any) => p.lecture_id === lecture.id)
+        if (lectureProgress) {
+          setProgress(lectureProgress.progress_percentage || 0)
+          setIsCompleted(lectureProgress.is_completed === true)
+        } else {
+          setProgress(0)
+          setIsCompleted(false)
         }
+      } else {
+        setProgress(0)
+        setIsCompleted(false)
       }
     } catch (error) {
       console.error("Error loading progress:", error)
+      setProgress(0)
+      setIsCompleted(false)
     }
   }
 
@@ -142,6 +148,18 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
       description: "Lecture marked as complete!",
     })
   }
+
+  const handleMarkCompleteRef = useRef(handleMarkComplete)
+  handleMarkCompleteRef.current = handleMarkComplete
+
+  useEffect(() => {
+    if (!markCompleteRef) return
+    const stableInvoke = () => handleMarkCompleteRef.current?.()
+    markCompleteRef.current = stableInvoke
+    return () => {
+      markCompleteRef.current = null
+    }
+  }, [markCompleteRef])
 
   const handleQuizSubmit = async () => {
     if (!quiz) return
@@ -312,28 +330,23 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
             .lecture-content strong {
               color: #060520 !important;
             }
-            /* Lists – gold bullets, spacing */
+            /* Lists – no bullets; clean indent and subtle accent */
             .lecture-content ul {
               list-style: none;
               padding-left: 0;
-              margin: 0.5rem 0 1.25rem 0;
+              margin: 0.75rem 0 1.25rem 0;
             }
             .lecture-content ul li {
               position: relative;
-              padding-left: 1.5rem;
-              margin-bottom: 0.5rem;
+              padding-left: 1rem;
+              margin-bottom: 0.625rem;
+              margin-left: 0.25rem;
               color: #374151;
-              line-height: 1.5;
+              line-height: 1.6;
+              border-left: 2px solid rgba(236, 178, 45, 0.2);
             }
-            .lecture-content ul li::before {
-              content: "";
-              position: absolute;
-              left: 0;
-              top: 0.5em;
-              width: 6px;
-              height: 6px;
-              background: #ecb22d;
-              border-radius: 50%;
+            .lecture-content ul li:last-child {
+              margin-bottom: 0;
             }
             .lecture-content ol {
               padding-left: 1.5rem;
@@ -368,6 +381,55 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
             }
             .lecture-content a:hover {
               text-decoration: underline;
+            }
+            /* Tables – clear structure, minimal clutter */
+            .lecture-content table {
+              width: 100%;
+              border-collapse: collapse;
+              margin: 1.25rem 0;
+              font-size: 0.9375rem;
+            }
+            .lecture-content thead th {
+              text-align: left;
+              font-weight: 600;
+              color: #060520;
+              background: rgba(236, 178, 45, 0.1);
+              padding: 0.75rem 1rem;
+              border-bottom: 2px solid rgba(236, 178, 45, 0.35);
+            }
+            .lecture-content thead th:first-child {
+              border-radius: 8px 0 0 0;
+            }
+            .lecture-content thead th:last-child {
+              border-radius: 0 8px 0 0;
+            }
+            .lecture-content table tr:first-child th {
+              text-align: left;
+              font-weight: 600;
+              color: #060520;
+              background: rgba(236, 178, 45, 0.1);
+              padding: 0.75rem 1rem;
+              border-bottom: 2px solid rgba(236, 178, 45, 0.35);
+            }
+            .lecture-content tbody tr {
+              border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            }
+            .lecture-content tbody tr:last-child {
+              border-bottom: none;
+            }
+            .lecture-content tbody tr:nth-child(even) {
+              background: rgba(0, 0, 0, 0.02);
+            }
+            .lecture-content tbody td {
+              padding: 0.875rem 1rem;
+              vertical-align: top;
+              color: #374151;
+              line-height: 1.5;
+            }
+            .lecture-content tbody td:first-child {
+              font-weight: 500;
+              color: #060520;
+              min-width: 10rem;
             }
           `}} />
           <div 
