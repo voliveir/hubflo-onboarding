@@ -70,6 +70,7 @@ export function UniversityClient({
   const [onboardingSubmitting, setOnboardingSubmitting] = useState(false)
   const [onboardingStep, setOnboardingStep] = useState(0)
   const [redoOnboarding, setRedoOnboarding] = useState(false)
+  const hasLectureSelectedRef = useRef(false)
 
   // Create progress map
   const progressMap = new Map(
@@ -80,6 +81,41 @@ export function UniversityClient({
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" })
   }, [viewMode, selectedCourse])
+
+  // Browser back button: go back one level (lecture → course → school → overview)
+  useEffect(() => {
+    const handlePopState = () => {
+      if (hasLectureSelectedRef.current) return
+      if (viewMode === "course") {
+        setViewMode(selectedSchool ? "school" : "overview")
+        setSelectedCourse(null)
+      } else if (viewMode === "school") {
+        setViewMode("overview")
+        setSelectedSchool(null)
+      }
+    }
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [viewMode, selectedSchool])
+
+  // Navigate to school view and push history so back button works
+  const goToSchool = useCallback((school: UniversitySchool) => {
+    setSelectedSchool(school)
+    setViewMode("school")
+    if (typeof window !== "undefined") {
+      window.history.pushState({ university: true, view: "school", schoolId: school.id }, "", window.location.href)
+    }
+  }, [])
+
+  // Navigate to course view and push history so back button works
+  const goToCourse = useCallback((course: UniversityCourse, school: UniversitySchool | null) => {
+    if (school) setSelectedSchool(school)
+    setSelectedCourse(course)
+    setViewMode("course")
+    if (typeof window !== "undefined") {
+      window.history.pushState({ university: true, view: "course", courseId: course.id }, "", window.location.href)
+    }
+  }, [])
 
   // Fetch full course data with sections and lectures
   useEffect(() => {
@@ -368,16 +404,8 @@ export function UniversityClient({
         clientProgress={clientProgress}
         getCourseProgress={getCourseProgress}
         isCourseCompleted={isCourseCompleted}
-        onBack={() => {
-          router.refresh()
-          setViewMode("overview")
-          setSelectedSchool(null)
-        }}
-        onCourseSelect={(course) => {
-          setSelectedCourse(course)
-          setViewMode("course")
-          // Keep selectedSchool in state for navigation back
-        }}
+        onBack={() => window.history.back()}
+        onCourseSelect={(course) => goToCourse(course, selectedSchool)}
       />
     )
   }
@@ -388,15 +416,8 @@ export function UniversityClient({
         course={selectedCourse}
         clientId={clientId}
         clientProgress={clientProgress}
-        onBack={() => {
-          router.refresh()
-          if (selectedSchool) {
-            setViewMode("school")
-          } else {
-            setViewMode("overview")
-            setSelectedCourse(null)
-          }
-        }}
+        onBack={() => window.history.back()}
+        hasLectureSelectedRef={hasLectureSelectedRef}
       />
     )
   }
@@ -430,10 +451,7 @@ export function UniversityClient({
                   <button
                     key={school.id}
                     type="button"
-                    onClick={() => {
-                      setSelectedSchool(school)
-                      setViewMode("school")
-                    }}
+                    onClick={() => goToSchool(school)}
                     title={school.name}
                     className="group flex flex-col items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#010124] rounded-full"
                   >
@@ -559,10 +577,7 @@ export function UniversityClient({
                   ? "border-4 border-brand-gold bg-gradient-to-br from-brand-gold/10 to-transparent shadow-lg"
                   : "border-2 border-brand-gold/50 hover:border-brand-gold bg-white"
               } transition-all cursor-pointer group relative overflow-hidden`}
-              onClick={() => {
-                setSelectedSchool(school)
-                setViewMode("school")
-              }}
+              onClick={() => goToSchool(school)}
             >
               {isCompleted && (
                 <div className="absolute top-4 right-4 z-10">
@@ -606,8 +621,7 @@ export function UniversityClient({
                   className="w-full bg-brand-gold hover:bg-brand-gold-hover text-[#010124]"
                   onClick={(e) => {
                     e.stopPropagation()
-                    setSelectedSchool(school)
-                    setViewMode("school")
+                    goToSchool(school)
                   }}
                 >
                   {isCompleted ? "Review" : "Continue"} <ChevronRight className="h-4 w-4 ml-1" />
@@ -627,11 +641,7 @@ export function UniversityClient({
                   ? "border-4 border-brand-gold bg-gradient-to-br from-brand-gold/10 to-transparent shadow-lg"
                   : "border-2 border-brand-gold/50 hover:border-brand-gold bg-white"
               } transition-all cursor-pointer group relative overflow-hidden`}
-              onClick={() => {
-                if (school) setSelectedSchool(school)
-                setSelectedCourse(course)
-                setViewMode("course")
-              }}
+              onClick={() => goToCourse(course, school ?? null)}
             >
               {courseCompleted && (
                 <div className="absolute top-4 right-4 z-10">
@@ -673,9 +683,7 @@ export function UniversityClient({
                   className="w-full bg-brand-gold hover:bg-brand-gold-hover text-[#010124]"
                   onClick={(e) => {
                     e.stopPropagation()
-                    if (school) setSelectedSchool(school)
-                    setSelectedCourse(course)
-                    setViewMode("course")
+                    goToCourse(course, school ?? null)
                   }}
                 >
                   {courseCompleted ? "Review" : "Open course"} <ChevronRight className="h-4 w-4 ml-1" />
@@ -788,10 +796,7 @@ export function UniversityClient({
                         ? 'border-4 border-brand-gold bg-gradient-to-br from-brand-gold/10 to-transparent shadow-lg' 
                         : 'border-gray-200 hover:border-brand-gold/40'
                     } transition-all cursor-pointer group relative overflow-hidden`}
-                    onClick={() => {
-                      setSelectedSchool(school)
-                      setViewMode("school")
-                    }}
+                    onClick={() => goToSchool(school)}
                   >
                     {isCompleted && (
                       <div className="absolute top-4 right-4 z-10">
@@ -1072,11 +1077,13 @@ function CourseDetailView({
   clientId,
   clientProgress,
   onBack,
+  hasLectureSelectedRef,
 }: {
   course: UniversityCourse
   clientId: string
   clientProgress: UniversityClientProgress[]
   onBack: () => void
+  hasLectureSelectedRef: React.MutableRefObject<boolean>
 }) {
   const [selectedLecture, setSelectedLecture] = useState<UniversityLecture | null>(null)
   const userWentBackToListRef = useRef(false)
@@ -1086,6 +1093,14 @@ function CourseDetailView({
   )
   const [fullCourse, setFullCourse] = useState<UniversityCourse | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Sync ref so parent's popstate knows when we're in lecture view (and skips going back to school)
+  useEffect(() => {
+    hasLectureSelectedRef.current = !!selectedLecture
+    return () => {
+      hasLectureSelectedRef.current = false
+    }
+  }, [selectedLecture, hasLectureSelectedRef])
 
   // Wire browser back button to "back to course" so clients don't leave University
   useEffect(() => {
@@ -1228,7 +1243,7 @@ function CourseDetailView({
             size="sm"
             onClick={() => {
               userWentBackToListRef.current = true
-              setSelectedLecture(null)
+              window.history.back()
             }}
             className="text-white hover:bg-white/10 hover:text-white"
           >
