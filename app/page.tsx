@@ -615,7 +615,7 @@ export default function HomePage() {
             </CardHover>
 
             <CardHover
-              title="Hubflo University"
+              title="Hubflo Labs"
               description="Comprehensive Hubflo education suite"
               icon={<GraduationCap className="h-8 w-8 text-brand-gold" />}
               delay={0.3}

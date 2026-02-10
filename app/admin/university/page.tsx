@@ -16,7 +16,7 @@ export default function UniversityPage() {
                 <span className="text-brand-gold font-medium text-sm">Education</span>
               </div>
               <h1 className="text-5xl lg:text-6xl font-bold mb-4" style={{color: '#060520'}}>
-                Hubflo University
+                Hubflo Labs
               </h1>
               <p className="text-xl max-w-4xl leading-relaxed" style={{color: '#64748b'}}>
                 Manage courses, lectures, quizzes, and educational content for client onboarding

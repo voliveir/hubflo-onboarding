@@ -327,7 +327,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
         />
       </PortalSection>
 
-      {/* Hubflo University – same layout as Integrations with programs carousel */}
+      {/* Hubflo Labs – same layout as Integrations with programs carousel */}
       <PortalSection gradient={false} className="relative overflow-hidden bg-white">
         <div className="text-center mb-12">
           <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
@@ -336,7 +336,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
           </div>
           <div className="flex flex-wrap items-center justify-center gap-3 mb-4">
             <h2 className="text-3xl md:text-5xl font-bold" style={{ color: "#060520" }}>
-              Hubflo University
+              Hubflo Labs
             </h2>
             <span className="inline-flex items-center rounded-full bg-amber-100 border border-amber-300 px-4 py-1.5 text-sm font-medium text-amber-800">
               Coming Soon — Preview Available
@@ -414,7 +414,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
             className="inline-flex items-center gap-2 bg-[#010124] hover:bg-[#060520] text-white font-semibold rounded-xl px-8 py-4 text-base transition-colors"
           >
             <GraduationCap className="h-5 w-5" />
-            Open Hubflo University
+            Open Hubflo Labs
             <ArrowRight className="h-4 w-4" />
           </a>
         </div>

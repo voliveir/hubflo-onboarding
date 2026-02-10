@@ -78,7 +78,7 @@ export function UniversityClient({
     clientProgress.map(p => [p.lecture_id || p.course_id, p])
   )
 
-  // Scroll to top when entering University or switching to school/course view so the view doesn’t start mid-page
+  // Scroll to top when entering Hubflo Labs or switching to school/course view so the view doesn’t start mid-page
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" })
   }, [viewMode, selectedCourse])
@@ -368,7 +368,7 @@ export function UniversityClient({
 
         {/* Subtle branding */}
         <div className="pb-8 text-center">
-          <span className="text-white/40 text-sm">Hubflo University</span>
+          <span className="text-white/40 text-sm">Hubflo Labs</span>
         </div>
       </div>
     )
@@ -382,7 +382,7 @@ export function UniversityClient({
         <div className="relative z-10 text-center flex flex-col justify-center min-h-[50vh]">
           <GraduationCap className="h-24 w-24 text-brand-gold mx-auto mb-6" />
           <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg" style={{textShadow: '0 2px 8px rgba(236, 178, 45, 0.33)'}}>
-            Hubflo University
+            Hubflo Labs
           </h1>
           <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto" style={{textShadow: '0 2px 8px #000'}}>
             Coming Soon
@@ -431,7 +431,7 @@ export function UniversityClient({
         <div className="relative z-10 text-center flex flex-col justify-center">
           <GraduationCap className="h-16 w-16 text-brand-gold mx-auto mb-6" />
           <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg" style={{textShadow: '0 2px 8px rgba(236, 178, 45, 0.33)'}}>
-            Hubflo University
+            Hubflo Labs
           </h1>
           <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto" style={{textShadow: '0 2px 8px #000'}}>
             Master Hubflo with our comprehensive educational platform
@@ -445,7 +445,7 @@ export function UniversityClient({
           <div className="w-full py-5" style={{ backgroundColor: "#010124" }}>
             <div className="max-w-6xl mx-auto px-4">
             <p className="text-white/70 text-sm font-medium text-center mb-4">Program badges</p>
-            <div className="flex flex-wrap items-end justify-center gap-6 sm:gap-8">
+            <div className="flex flex-wrap justify-center gap-6 sm:gap-8">
               {schools.map((school) => {
                 const isCollected = isSchoolCompleted(school.id)
                 return (
@@ -454,10 +454,10 @@ export function UniversityClient({
                     type="button"
                     onClick={() => goToSchool(school)}
                     title={school.name}
-                    className="group flex flex-col items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#010124] rounded-full"
+                    className="group flex flex-col items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#010124] rounded-full"
                   >
                     <div
-                      className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center border-2 transition-all duration-200 hover:scale-110 ${
+                      className={`w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 rounded-full flex items-center justify-center border-2 transition-all duration-200 hover:scale-110 ${
                         isCollected
                           ? "bg-brand-gold border-brand-gold shadow-lg shadow-brand-gold/30"
                           : "bg-black/80 border-white/20 shadow-[0_0_12px_rgba(0,0,0,0.6)]"
@@ -469,9 +469,11 @@ export function UniversityClient({
                         }`}
                       />
                     </div>
-                    <span className="text-xs font-medium text-white/90 max-w-[5rem] sm:max-w-[6rem] truncate text-center leading-tight group-hover:text-white">
-                      {school.name}
-                    </span>
+                    <div className="mt-2 flex min-h-[3.75rem] sm:min-h-[4rem] items-end justify-center w-[5.5rem] sm:w-[7rem]">
+                      <span className="text-xs font-medium text-white/90 text-center leading-tight break-words group-hover:text-white">
+                        {school.name}
+                      </span>
+                    </div>
                   </button>
                 )
               })}
@@ -1110,7 +1112,7 @@ function CourseDetailView({
     }
   }, [selectedLecture, hasLectureSelectedRef])
 
-  // Wire browser back button to "back to course" so clients don't leave University
+  // Wire browser back button to "back to course" so clients don't leave Hubflo Labs
   useEffect(() => {
     if (!selectedLecture) return
     const url = typeof window !== "undefined" ? window.location.href : ""

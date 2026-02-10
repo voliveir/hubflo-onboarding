@@ -1,4 +1,4 @@
--- Hubflo University System
+-- Hubflo Labs System
 -- This script creates the database schema for the University/LMS system
 -- Structure: Schools -> Courses -> Sections -> Lectures
 

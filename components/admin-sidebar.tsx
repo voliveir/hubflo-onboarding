@@ -98,7 +98,7 @@ const navigation = [
     icon: Puzzle,
   },
   {
-    name: "University",
+    name: "Labs",
     href: "/admin/university",
     icon: GraduationCap,
   },

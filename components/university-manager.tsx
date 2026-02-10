@@ -737,7 +737,7 @@ export function UniversityManager() {
             </Button>
           </div>
           <p className="text-gray-600 max-w-2xl">
-            These questions are shown when a client enters Hubflo University for the first time. For each answer option you can assign which programs (schools) to recommend. Phase 1 = workspace &amp; Hubflo, Phase 2 = billing &amp; integrations, Phase 3 = everything else.
+            These questions are shown when a client enters Hubflo Labs for the first time. For each answer option you can assign which programs (schools) to recommend. Phase 1 = workspace &amp; Hubflo, Phase 2 = billing &amp; integrations, Phase 3 = everything else.
           </p>
           <div className="space-y-4">
             {onboardingQuestions.map((q) => (
@@ -2068,7 +2068,7 @@ function OnboardingQuestionDialog({
             {question ? "Edit Onboarding Question" : "Create Onboarding Question"}
           </DialogTitle>
           <DialogDescription className="text-gray-600">
-            Shown when a client enters University for the first time. For each answer you can recommend programs and/or specific courses.
+            Shown when a client enters Hubflo Labs for the first time. For each answer you can recommend programs and/or specific courses.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

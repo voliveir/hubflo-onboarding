@@ -825,7 +825,7 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
             Back to Course
           </Button>
           <span className="text-sm text-white/70">
-            Use this button to return to the course — the browser back button may leave University.
+            Use this button to return to the course — the browser back button may leave Hubflo Labs.
           </span>
         </div>
       </div>

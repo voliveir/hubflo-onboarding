@@ -44,7 +44,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
   // Define the checklist structure based on the new requirements
   const getChecklistTasks = (): ChecklistTask[] => {
     const baseTasks: ChecklistTask[] = [
-      // Section 1: Setup Basics & Foundations (Hubflo University is a separate section above this checklist)
+      // Section 1: Setup Basics & Foundations (Hubflo Labs is a separate section above this checklist)
       {
         id: "basic-setup",
         title: "Basic Setup",
@@ -413,7 +413,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-4" style={{ color: '#060520' }}>Your Onboarding Checklist</h2>
           <p className="text-xl max-w-2xl mx-auto leading-relaxed" style={{ color: '#64748b' }}>
-            We recommend starting with Hubflo University to become a Hubflo expert. All our courses, tutorials, and in-depth education are there. This checklist covers the most basic steps required to go live with a minimal viable portal; Hubflo University expands on adding and mastering everything else. Each section builds on the previous for a smooth setup.
+            We recommend starting with Hubflo Labs to become a Hubflo expert. All our courses, tutorials, and in-depth education are there. This checklist covers the most basic steps required to go live with a minimal viable portal; Hubflo Labs expands on adding and mastering everything else. Each section builds on the previous for a smooth setup.
           </p>
         </div>
 
