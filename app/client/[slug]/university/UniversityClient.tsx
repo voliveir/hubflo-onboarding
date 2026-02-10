@@ -15,6 +15,7 @@ import {
   Award,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   FileText,
   Download,
   ExternalLink,
@@ -760,6 +761,13 @@ export function UniversityClient({
           </PortalSection>
         )
       })()}
+
+      {/* Floating down arrow: after recommended path, hint that more programs are below */}
+      {hasRecommendations && schools.length > 0 && (
+        <div className="relative flex justify-center py-4" aria-hidden>
+          <ChevronDown className="h-8 w-8 text-brand-gold/70 animate-bounce" aria-hidden />
+        </div>
+      )}
 
       {/* Programs Section */}
       <PortalSection gradient={false} className="relative overflow-hidden bg-white">
