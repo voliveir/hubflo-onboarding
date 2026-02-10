@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -299,6 +298,16 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
               box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
               transition: box-shadow 0.2s ease-in-out;
             }
+            /* Inline icons/images in paragraphs – small and subtle so they don’t look like random circles */
+            .lecture-content p img,
+            .lecture-content li img {
+              display: inline;
+              margin: 0 0.25em 0 0;
+              max-height: 1.25em;
+              width: auto;
+              vertical-align: middle;
+              border-radius: 4px;
+            }
             /* Section headings – gold accent like homepage */
             .lecture-content h1, .lecture-content h2, .lecture-content h3 {
               color: #060520 !important;
@@ -312,23 +321,10 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
             .lecture-content h1 { font-size: 1.5rem; }
             .lecture-content h2 { font-size: 1.25rem; }
             .lecture-content h3 { font-size: 1.125rem; }
-            /* Section titles (e.g. "Client Onboarding") – gold pill style */
-            .lecture-content p + strong,
-            .lecture-content ul + strong,
-            .lecture-content p > strong:first-child:last-child {
-              display: inline-block;
-              color: #060520 !important;
-              font-weight: 700;
-              margin-top: 1.25rem;
-              margin-bottom: 0.35rem;
-              padding: 0.25rem 0.75rem;
-              background: rgba(236, 178, 45, 0.12);
-              border-radius: 9999px;
-              font-size: 0.9375rem;
-              border: 1px solid rgba(236, 178, 45, 0.25);
-            }
+            /* Bold text – uniform, no pills; easy to read */
             .lecture-content strong {
               color: #060520 !important;
+              font-weight: 600;
             }
             /* Lists – no bullets; clean indent and subtle accent */
             .lecture-content ul {
@@ -756,46 +752,25 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
             <CardHeader className="pt-6 pb-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  {/* Gold pill badge (homepage-style) */}
-                  <div className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-4 py-2 mb-4">
-                    <BookOpen className="h-4 w-4 text-brand-gold" />
-                    <span className="text-brand-gold font-medium text-sm">Lecture</span>
+                  <div className="flex flex-wrap items-center gap-3 mb-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/20 px-3 py-1.5 text-xs font-medium text-[#060520]">
+                      <BookOpen className="h-3.5 w-3.5 text-brand-gold" aria-hidden />
+                      Lecture
+                    </span>
+                    {isCompleted && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/20 px-3 py-1.5 text-xs font-medium text-[#060520]">
+                        <CheckCircle className="h-3.5 w-3.5 text-brand-gold" aria-hidden />
+                        Completed
+                      </span>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    {(() => {
-                      const contentData = lecture.content_data || {}
-                      const hasVideo = contentData.video?.url || (contentType === "video" && contentData.url)
-                      const hasText = contentData.text?.content || (contentType === "text" && contentData.content)
-                      if (hasVideo && hasText) {
-                        return (
-                          <>
-                            <Video className="h-5 w-5 text-brand-gold flex-shrink-0" />
-                            <FileText className="h-5 w-5 text-brand-gold flex-shrink-0" />
-                          </>
-                        )
-                      }
-                      if (contentType === "video") return <Video className="h-5 w-5 text-brand-gold flex-shrink-0" />
-                      if (contentType === "text") return <FileText className="h-5 w-5 text-brand-gold flex-shrink-0" />
-                      if (contentType === "quiz") return <HelpCircle className="h-5 w-5 text-brand-gold flex-shrink-0" />
-                      if (contentType === "download") return <Download className="h-5 w-5 text-brand-gold flex-shrink-0" />
-                      if (contentType === "link") return <ExternalLink className="h-5 w-5 text-brand-gold flex-shrink-0" />
-                      if (contentType === "clickthrough_demo") return <MousePointerClick className="h-5 w-5 text-brand-gold flex-shrink-0" />
-                      return null
-                    })()}
-                    <CardTitle className="text-2xl font-bold" style={{ color: "#060520" }}>
-                      {lecture.title}
-                    </CardTitle>
-                  </div>
+                  <CardTitle className="text-xl font-bold tracking-tight" style={{ color: "#060520" }}>
+                    {lecture.title}
+                  </CardTitle>
                   {lecture.description && (
-                    <p className="text-gray-600 leading-relaxed">{lecture.description}</p>
+                    <p className="mt-1.5 text-sm text-gray-600 leading-relaxed">{lecture.description}</p>
                   )}
                 </div>
-                {isCompleted && (
-                  <Badge className="bg-green-100 text-green-800 border-green-200 flex-shrink-0">
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Completed
-                  </Badge>
-                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-6 pt-0">
