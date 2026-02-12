@@ -55,7 +55,7 @@ import {
   Calendar,
 } from "lucide-react"
 import { getWorkHoursSeconds } from "@/lib/workHours"
-import { ACTIVITY_GROUP_CATEGORIES, getCategoryLabel } from "@/lib/activityCategories"
+import { ACTIVITY_GROUP_CATEGORIES, getCategoryLabel, PROJECT_TRACKING_CATEGORIES } from "@/lib/activityCategories"
 import Link from "next/link"
 
 interface BrowserActivity {
@@ -126,6 +126,7 @@ export default function ActivityListPage() {
   const [groupDialogOpen, setGroupDialogOpen] = useState(false)
   const [groupClientId, setGroupClientId] = useState<string | null>(null)
   const [groupClientLabel, setGroupClientLabel] = useState("")
+  const [groupCategory, setGroupCategory] = useState("")
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [openCombos, setOpenCombos] = useState<Record<string, boolean>>({})
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
@@ -326,7 +327,10 @@ export default function ActivityListPage() {
           await fetch(`/api/activity-groups/${grp.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ client_id: groupClientId }),
+            body: JSON.stringify({
+              client_id: groupClientId,
+              ...(groupCategory && { category: groupCategory }),
+            }),
           })
         } else {
           await fetch(`/api/activity-groups/${grp.id}`, {
@@ -338,6 +342,7 @@ export default function ActivityListPage() {
         setGroupDialogOpen(false)
         setGroupClientId(null)
         setGroupClientLabel("")
+        setGroupCategory("")
         await loadData()
       }
     } catch {
@@ -948,6 +953,7 @@ export default function ActivityListPage() {
           setGroupDialogOpen(open)
           if (!open) {
             setGroupClientLabel("")
+            setGroupCategory("")
           }
         }}
       >
@@ -997,6 +1003,26 @@ export default function ActivityListPage() {
                 </PopoverContent>
               </Popover>
             </div>
+            {groupClientId && (
+              <div>
+                <Label>Add to project tracking</Label>
+                <select
+                  value={groupCategory}
+                  onChange={(e) => setGroupCategory(e.target.value)}
+                  className="w-full h-9 rounded-md border border-gray-200 bg-white px-3 text-sm mt-2"
+                >
+                  <option value="">None</option>
+                  {ACTIVITY_GROUP_CATEGORIES.filter((c) => c.value && PROJECT_TRACKING_CATEGORIES.includes(c.value as any)).map(
+                    (c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label} (+1 to client)
+                      </option>
+                    )
+                  )}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">Select Call, Form, SmartDoc, or Integration to add to the client&apos;s project tracking.</p>
+              </div>
+            )}
             <div>
               <Label>Or: Client not in list?</Label>
               <Input

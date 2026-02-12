@@ -975,6 +975,68 @@ export async function updateProjectTracking(clientId: string, tracking: any): Pr
   }
 }
 
+/** Project tracking categories that map to client counters */
+const PROJECT_TRACKING_CATEGORIES = ["call", "form", "smartdoc", "automation_integration"] as const
+
+/** Increment a client's project tracking when assigning a grouped block by category. */
+export async function incrementProjectTrackingByCategory(
+  clientId: string,
+  category: string
+): Promise<Client | null> {
+  if (!PROJECT_TRACKING_CATEGORIES.includes(category as any)) return null
+
+  const client = await getClientById(clientId)
+  if (!client) return null
+
+  try {
+    if (category === "call") {
+      const now = new Date()
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+      const existing = client.extra_call_dates || []
+      if (existing.includes(today)) return client // Avoid duplicates
+      await updateClient(clientId, {
+        extra_call_dates: [...existing, today],
+      })
+    } else {
+      const current = {
+        forms_setup: client.forms_setup || 0,
+        smartdocs_setup: client.smartdocs_setup || 0,
+        zapier_integrations_setup: client.zapier_integrations_setup || 0,
+      }
+      const baseTracking = {
+        migration_completed: client.migration_completed,
+        slack_access_granted: client.slack_access_granted,
+      }
+      if (category === "form") {
+        await updateProjectTracking(clientId, {
+          ...baseTracking,
+          forms_setup: current.forms_setup + 1,
+          smartdocs_setup: current.smartdocs_setup,
+          zapier_integrations_setup: current.zapier_integrations_setup,
+        })
+      } else if (category === "smartdoc") {
+        await updateProjectTracking(clientId, {
+          ...baseTracking,
+          forms_setup: current.forms_setup,
+          smartdocs_setup: current.smartdocs_setup + 1,
+          zapier_integrations_setup: current.zapier_integrations_setup,
+        })
+      } else if (category === "automation_integration") {
+        await updateProjectTracking(clientId, {
+          ...baseTracking,
+          forms_setup: current.forms_setup,
+          smartdocs_setup: current.smartdocs_setup,
+          zapier_integrations_setup: current.zapier_integrations_setup + 1,
+        })
+      }
+    }
+    return await getClientById(clientId)
+  } catch (error) {
+    console.error("Error incrementing project tracking by category:", error)
+    throw error
+  }
+}
+
 export async function calculateProjectCompletion(clientId: string): Promise<void> {
   try {
     const client = await getClientById(clientId)

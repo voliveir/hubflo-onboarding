@@ -6,6 +6,8 @@
 export const ACTIVITY_GROUP_CATEGORIES = [
   { value: "", label: "No category" },
   { value: "call", label: "Call" },
+  { value: "form", label: "Form" },
+  { value: "smartdoc", label: "SmartDoc" },
   { value: "automation_integration", label: "Automation / Integration" },
   { value: "prep", label: "Prep" },
   { value: "setup", label: "Setup" },
@@ -14,6 +16,14 @@ export const ACTIVITY_GROUP_CATEGORIES = [
 ] as const
 
 export type ActivityGroupCategory = (typeof ACTIVITY_GROUP_CATEGORIES)[number]["value"]
+
+/** Categories that add +1 to the client's project tracking when assigned */
+export const PROJECT_TRACKING_CATEGORIES = [
+  "call",
+  "form",
+  "smartdoc",
+  "automation_integration",
+] as const
 
 export const MANUAL_BLOCK_CATEGORIES = [
   { value: "lunch", label: "Lunch" },
@@ -56,6 +66,20 @@ export const CATEGORY_COLORS: Record<
     border: "rgb(167 139 250)",
     bg: "rgba(245, 243, 255, 1)",
     bgMuted: "rgba(245, 243, 255, 0.6)",
+  },
+  form: {
+    bar: "rgb(34 197 94)",
+    barMuted: "rgba(34, 197, 94, 0.5)",
+    border: "rgb(74 222 128)",
+    bg: "rgba(240, 253, 244, 1)",
+    bgMuted: "rgba(240, 253, 244, 0.6)",
+  },
+  smartdoc: {
+    bar: "rgb(6 182 212)",
+    barMuted: "rgba(6, 182, 212, 0.5)",
+    border: "rgb(34 211 238)",
+    bg: "rgba(236, 254, 255, 1)",
+    bgMuted: "rgba(236, 254, 255, 0.6)",
   },
   prep: {
     bar: "rgb(245 158 11)",

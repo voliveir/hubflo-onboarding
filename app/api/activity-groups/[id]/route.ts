@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
+import { incrementProjectTrackingByCategory } from "@/lib/database"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -96,6 +97,21 @@ export async function PATCH(
 
     if (category !== undefined) {
       await supabase.from("activity_groups").update({ category: category === "" ? null : category }).eq("id", id)
+    }
+
+    // When explicitly assigning a client with a project-tracking category, increment the client's counters.
+    // Only when both are sent in this request (to avoid incrementing on unrelated PATCHes).
+    if (
+      client_id &&
+      category &&
+      ["call", "form", "smartdoc", "automation_integration"].includes(category)
+    ) {
+      try {
+        await incrementProjectTrackingByCategory(client_id, category)
+      } catch (err) {
+        console.error("Failed to increment project tracking:", err)
+        // Don't fail the request - the group was still assigned
+      }
     }
 
     const { data: updated } = await supabase
