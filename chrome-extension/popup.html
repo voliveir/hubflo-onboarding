@@ -48,6 +48,10 @@
             <span class="quick-action-icon">⚙️</span>
             <span class="quick-action-label">Log 1hr Implementation</span>
           </button>
+          <button class="quick-action-item" data-action="add-call-today">
+            <span class="quick-action-icon">📞</span>
+            <span class="quick-action-label">Add call today</span>
+          </button>
           <button class="quick-action-item" data-action="create-followup-task">
             <span class="quick-action-icon">✅</span>
             <span class="quick-action-label">Create Follow-up Task</span>
@@ -566,6 +570,13 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
+        </div>
+
+        <div class="tracking-section">
+          <button id="addCallTodayBtn" class="btn btn-secondary add-call-today-btn" title="Add today's date to completed calls">
+            📞 Add call today
+          </button>
+          <span id="addCallTodayStatus" class="status-message"></span>
         </div>
 
         <div class="call-dates-section">

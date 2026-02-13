@@ -54,7 +54,15 @@ import {
   getCategoryLabel,
   getCategoryColor,
   MANUAL_BLOCK_CATEGORIES,
+  PROJECT_TRACKING_CATEGORIES,
 } from "@/lib/activityCategories"
+
+const PROJECT_TRACKING_LABELS: Record<string, string> = {
+  call: "Call",
+  form: "Form",
+  smartdoc: "SmartDoc",
+  automation_integration: "Integration",
+}
 
 interface BrowserActivity {
   id: string
@@ -170,6 +178,12 @@ export default function ActivityTimelinePage() {
   const [addBlockStart, setAddBlockStart] = useState("12:00")
   const [addBlockEnd, setAddBlockEnd] = useState("13:00")
   const [addBlockCategory, setAddBlockCategory] = useState("lunch")
+  const [groupProjectTracking, setGroupProjectTracking] = useState<Record<string, number>>({
+    call: 0,
+    form: 0,
+    smartdoc: 0,
+    automation_integration: 0,
+  })
 
   useEffect(() => {
     loadClients()
@@ -337,6 +351,33 @@ export default function ActivityTimelinePage() {
         const data = await res.json()
         setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, ...data } : g)))
         setSelectedGroup((s) => (s?.id === groupId ? { ...s, ...data } : s))
+      }
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const assignGroupProjectTracking = async (groupId: string) => {
+    if (!selectedGroup?.client_id) return
+    const tracking = Object.fromEntries(
+      Object.entries(groupProjectTracking).filter(([, v]) => v > 0)
+    )
+    if (Object.keys(tracking).length === 0) return
+    setUpdatingId(groupId)
+    try {
+      const res = await fetch(`/api/activity-groups/${groupId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_id: selectedGroup.client_id,
+          project_tracking: tracking,
+        }),
+      })
+      if (res.ok) {
+        setGroupProjectTracking({ call: 0, form: 0, smartdoc: 0, automation_integration: 0 })
+        await loadData()
       }
     } catch {
       // ignore
@@ -1016,6 +1057,38 @@ export default function ActivityTimelinePage() {
                           </PopoverContent>
                         </Popover>
                       </div>
+                      {selectedGroup.client_id && (
+                        <div className="border-t border-gray-200 pt-3 mt-3">
+                          <p className="text-xs text-gray-500 mb-2">Add to project tracking</p>
+                          <div className="grid grid-cols-2 gap-2 mb-2">
+                            {PROJECT_TRACKING_CATEGORIES.map((key) => (
+                              <div key={key} className="flex items-center justify-between gap-1">
+                                <span className="text-xs text-gray-600">{PROJECT_TRACKING_LABELS[key]}</span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={99}
+                                  value={groupProjectTracking[key] ?? 0}
+                                  onChange={(e) => {
+                                    const v = Math.max(0, Math.min(99, parseInt(e.target.value, 10) || 0))
+                                    setGroupProjectTracking((p) => ({ ...p, [key]: v }))
+                                  }}
+                                  className="w-12 h-7 rounded border border-gray-200 px-1 text-xs text-center"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full h-8 text-xs"
+                            onClick={() => assignGroupProjectTracking(selectedGroup.id)}
+                            disabled={!!updatingId || Object.values(groupProjectTracking).every((v) => v === 0)}
+                          >
+                            Add to tracking
+                          </Button>
+                        </div>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"

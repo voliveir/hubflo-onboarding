@@ -176,6 +176,7 @@ function setupEventListeners() {
   document.getElementById('saveTimeBtn').addEventListener('click', saveTimeEntry);
   document.getElementById('saveClientBtn').addEventListener('click', saveClient);
   document.getElementById('saveTrackingBtn').addEventListener('click', saveTracking);
+  document.getElementById('addCallTodayBtn')?.addEventListener('click', addCallToday);
   document.getElementById('saveWhiteLabelBtn').addEventListener('click', saveWhiteLabel);
 
   // Timer buttons
@@ -1634,6 +1635,14 @@ async function handleQuickAction(action) {
       showStatus('info', 'Form filled! Edit description and click Save.', 'timeStatus');
       break;
       
+    case 'add-call-today':
+      if (!currentClient) {
+        showStatus('error', 'Please select a client first', 'trackingStatus');
+        return;
+      }
+      await addCallToday();
+      break;
+      
     case 'create-followup-task':
       if (!clientId) {
         showStatus('error', 'Please select a client first', 'timeStatus');
@@ -1783,6 +1792,46 @@ function incrementTracking(field, delta) {
   valueEl.textContent = newValue;
   
   console.log(`Incremented ${field}: ${currentValue} → ${newValue} (delta: ${delta})`);
+}
+
+// Add call today - one-click shortcut
+async function addCallToday() {
+  if (!currentClient) {
+    showStatus('error', 'Please select a client', 'addCallTodayStatus');
+    return;
+  }
+
+  const btn = document.getElementById('addCallTodayBtn');
+  const statusEl = document.getElementById('addCallTodayStatus');
+  if (btn) btn.disabled = true;
+  if (statusEl) statusEl.textContent = 'Adding...';
+
+  try {
+    const response = await fetch(`${window.API_URL}/api/clients/${currentClient.id}/increment-tracking`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category: 'call', count: 1 }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to add call');
+
+    await loadClientData(currentClient.id);
+    if (statusEl) {
+      statusEl.textContent = '✓ Added';
+      statusEl.className = 'status-message success';
+    }
+    setTimeout(() => {
+      if (statusEl) statusEl.textContent = '';
+    }, 2000);
+  } catch (error) {
+    if (statusEl) {
+      statusEl.textContent = error.message || 'Failed';
+      statusEl.className = 'status-message error';
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 // Save tracking

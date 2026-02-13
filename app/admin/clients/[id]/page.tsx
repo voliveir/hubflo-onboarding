@@ -9,6 +9,7 @@ import { User, Package, ExternalLink, Edit, Settings, BarChart3, Zap, Calendar, 
 import Link from "next/link"
 import { ClientTimeTracking } from "@/components/client-time-tracking"
 import { PinnedNoteEditor } from "@/components/pinned-note-editor"
+import { ProjectTrackingQuickActions } from "@/components/project-tracking-quick-actions"
 
 interface PageProps {
   params: Promise<{
@@ -134,6 +135,11 @@ export default async function ClientDetailPage({ params }: PageProps) {
               <div className="grid grid-cols-12 gap-6">
                 {/* Main Content - 8 cols on xl, 12 on <lg */}
                 <div className="col-span-12 xl:col-span-8 space-y-6">
+                  {/* Quick project tracking actions */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                    <ProjectTrackingQuickActions client={client} />
+                  </div>
+
                   {/* Pinned Note Editor */}
                   <PinnedNoteEditor client={client} />
 
