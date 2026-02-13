@@ -11,6 +11,12 @@ interface ClientImplementationProgressProps {
   client: Client
 }
 
+/** Parse YYYY-MM-DD as local date (avoids UTC shift showing wrong day in timezones behind UTC) */
+function parseLocalDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number)
+  return new Date(y, m - 1, d)
+}
+
 export function ClientImplementationProgress({ client }: ClientImplementationProgressProps) {
   const { ref, isVisible } = useReveal()
   const [progress, setProgress] = useState({
@@ -118,7 +124,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
         client.gold_second_call_date,
         client.gold_third_call_date,
         ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
-      ].filter((d): d is string => !!d).map(date => new Date(date))
+      ].filter((d): d is string => !!d).map((date) => parseLocalDate(date))
       const now = new Date()
       const completedCalls = callDates.filter(date => date <= now).length
       totalTasks += packageLimits.calls === 999 ? Math.max(client.calls_scheduled, 1) : packageLimits.calls
@@ -233,7 +239,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
     client.gold_second_call_date,
     client.gold_third_call_date,
     ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
-  ].filter((d): d is string => !!d).map(date => new Date(date));
+  ].filter((d): d is string => !!d).map((date) => parseLocalDate(date));
   const now = new Date();
   const completedCallDates: Date[] = callDates.filter(date => date <= now).sort((a, b) => a.getTime() - b.getTime());
   const scheduledCallDates: Date[] = callDates.filter(date => date > now).sort((a, b) => a.getTime() - b.getTime());

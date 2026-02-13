@@ -19,7 +19,7 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await request.json()
-    const { client_id, client_label, add_activity_ids, remove_activity_ids, name, category } = body
+    const { client_id, client_label, add_activity_ids, remove_activity_ids, name, category, project_tracking } = body
 
     const { data: group, error: fetchError } = await supabase
       .from("activity_groups")
@@ -99,18 +99,30 @@ export async function PATCH(
       await supabase.from("activity_groups").update({ category: category === "" ? null : category }).eq("id", id)
     }
 
-    // When explicitly assigning a client with a project-tracking category, increment the client's counters.
-    // Only when both are sent in this request (to avoid incrementing on unrelated PATCHes).
-    if (
+    // When explicitly assigning a client with project_tracking counts, increment the client's counters.
+    // project_tracking: { call?: number, form?: number, smartdoc?: number, automation_integration?: number }
+    if (client_id && project_tracking && typeof project_tracking === "object") {
+      const categories = ["call", "form", "smartdoc", "automation_integration"] as const
+      for (const cat of categories) {
+        const count = project_tracking[cat]
+        if (typeof count === "number" && count > 0) {
+          try {
+            await incrementProjectTrackingByCategory(client_id, cat, count)
+          } catch (err) {
+            console.error(`Failed to increment project tracking (${cat}):`, err)
+          }
+        }
+      }
+    } else if (
       client_id &&
       category &&
       ["call", "form", "smartdoc", "automation_integration"].includes(category)
     ) {
+      // Legacy: single category from dropdown
       try {
         await incrementProjectTrackingByCategory(client_id, category)
       } catch (err) {
         console.error("Failed to increment project tracking:", err)
-        // Don't fail the request - the group was still assigned
       }
     }
 

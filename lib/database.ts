@@ -981,11 +981,12 @@ const PROJECT_TRACKING_CATEGORIES = ["call", "form", "smartdoc", "automation_int
 /** Increment a client's project tracking when assigning a grouped block by category. */
 export async function incrementProjectTrackingByCategory(
   clientId: string,
-  category: string
+  category: string,
+  count: number = 1
 ): Promise<Client | null> {
-  if (!PROJECT_TRACKING_CATEGORIES.includes(category as any)) return null
+  if (!PROJECT_TRACKING_CATEGORIES.includes(category as any) || count < 1) return null
 
-  const client = await getClientById(clientId)
+  let client = await getClientById(clientId)
   if (!client) return null
 
   try {
@@ -993,10 +994,11 @@ export async function incrementProjectTrackingByCategory(
       const now = new Date()
       const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
       const existing = client.extra_call_dates || []
-      if (existing.includes(today)) return client // Avoid duplicates
+      const toAdd = Array(count).fill(today)
       await updateClient(clientId, {
-        extra_call_dates: [...existing, today],
+        extra_call_dates: [...existing, ...toAdd],
       })
+      client = (await getClientById(clientId))!
     } else {
       const current = {
         forms_setup: client.forms_setup || 0,
@@ -1010,7 +1012,7 @@ export async function incrementProjectTrackingByCategory(
       if (category === "form") {
         await updateProjectTracking(clientId, {
           ...baseTracking,
-          forms_setup: current.forms_setup + 1,
+          forms_setup: current.forms_setup + count,
           smartdocs_setup: current.smartdocs_setup,
           zapier_integrations_setup: current.zapier_integrations_setup,
         })
@@ -1018,7 +1020,7 @@ export async function incrementProjectTrackingByCategory(
         await updateProjectTracking(clientId, {
           ...baseTracking,
           forms_setup: current.forms_setup,
-          smartdocs_setup: current.smartdocs_setup + 1,
+          smartdocs_setup: current.smartdocs_setup + count,
           zapier_integrations_setup: current.zapier_integrations_setup,
         })
       } else if (category === "automation_integration") {
@@ -1026,7 +1028,7 @@ export async function incrementProjectTrackingByCategory(
           ...baseTracking,
           forms_setup: current.forms_setup,
           smartdocs_setup: current.smartdocs_setup,
-          zapier_integrations_setup: current.zapier_integrations_setup + 1,
+          zapier_integrations_setup: current.zapier_integrations_setup + count,
         })
       }
     }
