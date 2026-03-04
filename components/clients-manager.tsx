@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "@/hooks/use-toast"
 import { getAllClients, deleteClient } from "@/lib/database"
 import { type Client } from "@/lib/types"
-import { Plus, Search, Edit, Trash2, Eye, Users, Package, Calendar, Filter, X, ChevronDown, ChevronUp, DollarSign, Clock, AlertTriangle, Download } from "lucide-react"
+import { Plus, Search, Edit, Trash2, Eye, Users, Package, Calendar, Filter, X, ChevronDown, ChevronUp, ChevronsUpDown, DollarSign, Clock, AlertTriangle, Download } from "lucide-react"
 import Link from "next/link"
 import { EditClientForm } from "./edit-client-form"
 import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
@@ -61,6 +61,9 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
     implementationManager: initialImplementationManager || "",
     no_onboarding_call: false,
   })
+
+  const [sortColumn, setSortColumn] = useState<string | null>(null)
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
 
   useEffect(() => {
     if (initialStatus) {
@@ -185,6 +188,76 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
 
     setFilteredClients(filtered)
   }
+
+  const getLastCallDate = (client: Client): Date | null => {
+    const callDates = [
+      client.light_onboarding_call_date,
+      client.premium_first_call_date,
+      client.premium_second_call_date,
+      client.gold_first_call_date,
+      client.gold_second_call_date,
+      client.gold_third_call_date,
+      ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
+    ].filter((d): d is string => !!d).map(date => new Date(date))
+    return callDates.length > 0 ? new Date(Math.max(...callDates.map(d => d.getTime()))) : null
+  }
+
+  const sortedClients = useMemo(() => {
+    if (!sortColumn) return filteredClients
+    const sorted = [...filteredClients]
+    const mult = sortDirection === "asc" ? 1 : -1
+    sorted.sort((a, b) => {
+      let aVal: string | number | Date | null | undefined
+      let bVal: string | number | Date | null | undefined
+      switch (sortColumn) {
+        case "name": aVal = (a.name || "").toLowerCase(); bVal = (b.name || "").toLowerCase(); break
+        case "status": aVal = (a.status || "").toLowerCase(); bVal = (b.status || "").toLowerCase(); break
+        case "package": aVal = (a.success_package || "").toLowerCase(); bVal = (b.success_package || "").toLowerCase(); break
+        case "slug": aVal = (a.slug || "").toLowerCase(); bVal = (b.slug || "").toLowerCase(); break
+        case "plan": aVal = (a.plan_type || "").toLowerCase(); bVal = (b.plan_type || "").toLowerCase(); break
+        case "users": aVal = a.number_of_users ?? 0; bVal = b.number_of_users ?? 0; break
+        case "revenue": aVal = a.revenue_amount ?? 0; bVal = b.revenue_amount ?? 0; break
+        case "billing": aVal = (a.billing_type || "").toLowerCase(); bVal = (b.billing_type || "").toLowerCase(); break
+        case "manager": aVal = (a.implementation_manager || "").toLowerCase(); bVal = (b.implementation_manager || "").toLowerCase(); break
+        case "created": aVal = a.created_at ? new Date(a.created_at).getTime() : 0; bVal = b.created_at ? new Date(b.created_at).getTime() : 0; break
+        case "lastCall": aVal = getLastCallDate(a)?.getTime() ?? 0; bVal = getLastCallDate(b)?.getTime() ?? 0; break
+        case "customApp": aVal = (a.custom_app || "").toLowerCase(); bVal = (b.custom_app || "").toLowerCase(); break
+        default: return 0
+      }
+      if (aVal === null || aVal === undefined) return 1
+      if (bVal === null || bVal === undefined) return -1
+      if (typeof aVal === "number" && typeof bVal === "number") return (aVal - bVal) * mult
+      if (aVal instanceof Date && bVal instanceof Date) return (aVal.getTime() - bVal.getTime()) * mult
+      return String(aVal).localeCompare(String(bVal)) * mult
+    })
+    return sorted
+  }, [filteredClients, sortColumn, sortDirection])
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc")
+    } else {
+      setSortColumn(column)
+      setSortDirection("asc")
+    }
+  }
+
+  const SortableHead = ({ column, label, className }: { column: string; label: string; className?: string }) => (
+    <TableHead
+      className={`font-bold text-xs px-3 py-2 cursor-pointer select-none hover:bg-gray-100 transition-colors ${className || ""}`}
+      style={{ color: "#060520" }}
+      onClick={() => handleSort(column)}
+    >
+      <div className="flex items-center gap-1">
+        {label}
+        {sortColumn === column ? (
+          sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+        ) : (
+          <ChevronsUpDown className="h-3 w-3 text-gray-400" />
+        )}
+      </div>
+    </TableHead>
+  )
 
   const updateFilter = (key: keyof FilterState, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }))
@@ -777,24 +850,24 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="bg-gray-50 border-b border-gray-200 hover:bg-gray-50">
-                    <TableHead className="font-bold text-xs sticky left-0 z-10 bg-gray-50 min-w-[180px] px-3 py-2" style={{color: '#060520'}}>Name</TableHead>
-                    <TableHead className="font-bold text-xs min-w-[100px] px-3 py-2" style={{color: '#060520'}}>Status</TableHead>
-                    <TableHead className="font-bold text-xs min-w-[100px] px-3 py-2" style={{color: '#060520'}}>Package</TableHead>
-                    <TableHead className="font-bold text-xs min-w-[140px] px-3 py-2" style={{color: '#060520'}}>Slug</TableHead>
-                    <TableHead className="font-bold text-xs min-w-[100px] px-3 py-2" style={{color: '#060520'}}>Plan</TableHead>
-                    <TableHead className="font-bold text-xs min-w-[80px] px-3 py-2" style={{color: '#060520'}}>Users</TableHead>
-                    <TableHead className="font-bold text-xs min-w-[110px] px-3 py-2" style={{color: '#060520'}}>Revenue</TableHead>
-                    <TableHead className="font-bold text-xs min-w-[100px] px-3 py-2" style={{color: '#060520'}}>Billing</TableHead>
-                    <TableHead className="font-bold text-xs min-w-[140px] px-3 py-2" style={{color: '#060520'}}>Manager</TableHead>
-                    <TableHead className="font-bold text-xs min-w-[110px] px-3 py-2" style={{color: '#060520'}}>Created</TableHead>
-                    <TableHead className="font-bold text-xs min-w-[140px] px-3 py-2" style={{color: '#060520'}}>Last Call</TableHead>
-                    <TableHead className="font-bold text-xs min-w-[100px] px-3 py-2" style={{color: '#060520'}}>Custom App</TableHead>
+                    <SortableHead column="name" label="Name" className="sticky left-0 z-10 bg-gray-50 min-w-[180px]" />
+                    <SortableHead column="status" label="Status" className="min-w-[100px]" />
+                    <SortableHead column="package" label="Package" className="min-w-[100px]" />
+                    <SortableHead column="slug" label="Slug" className="min-w-[140px]" />
+                    <SortableHead column="plan" label="Plan" className="min-w-[100px]" />
+                    <SortableHead column="users" label="Users" className="min-w-[80px]" />
+                    <SortableHead column="revenue" label="Revenue" className="min-w-[110px]" />
+                    <SortableHead column="billing" label="Billing" className="min-w-[100px]" />
+                    <SortableHead column="manager" label="Manager" className="min-w-[140px]" />
+                    <SortableHead column="created" label="Created" className="min-w-[110px]" />
+                    <SortableHead column="lastCall" label="Last Call" className="min-w-[140px]" />
+                    <SortableHead column="customApp" label="Custom App" className="min-w-[100px]" />
                     <TableHead className="font-bold text-xs min-w-[180px] px-3 py-2" style={{color: '#060520'}}>Alerts</TableHead>
                     <TableHead className="font-bold text-xs min-w-[100px] px-3 py-2" style={{color: '#060520'}}>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredClients.map((client) => {
+                  {sortedClients.map((client) => {
                     // Find the most recent call date
                     const callDates = [
                       client.light_onboarding_call_date,
