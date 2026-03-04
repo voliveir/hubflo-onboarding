@@ -199,6 +199,20 @@ export async function GET(req: Request) {
       if (bucket) bucket.count++;
     });
 
+    // Clients contributing to avg onboarding duration (for modal)
+    const avgOnboardingDurationClientList = implementationFilteredClients
+      .filter(c => c.graduation_date)
+      .map(c => {
+        const dur = daysBetween(c.created_at, c.graduation_date!);
+        return {
+          id: c.id,
+          name: c.name,
+          created_at: c.created_at,
+          graduation_date: c.graduation_date,
+          duration_days: dur !== null && dur >= 0 ? dur : null,
+        };
+      });
+
     // Build lists for implementation modals (use implementationFilteredClients for date-range consistency)
     const activeImplementationClientList = implementationFilteredClients
       .filter(c => !(c.graduation_date ?? undefined))
@@ -302,6 +316,7 @@ export async function GET(req: Request) {
       implementationHealth: {
         timeToFirstValue: timeToFirstValue !== null ? Number(timeToFirstValue.toFixed(1)) : null,
         avgOnboardingDuration: avgOnboardingDuration !== null ? Number(avgOnboardingDuration.toFixed(1)) : null,
+        avgOnboardingDurationClientList,
         medianOnboardingDuration: medianOnboardingDuration !== null ? Number(medianOnboardingDuration.toFixed(1)) : null,
         graduationsInPeriod,
         activeImplementations,

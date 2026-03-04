@@ -50,6 +50,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
   // Add state for implementation modals
   const [showActiveImplementationsModal, setShowActiveImplementationsModal] = useState(false);
   const [showAtRiskClientsModal, setShowAtRiskClientsModal] = useState(false);
+  const [showAvgOnboardingDurationModal, setShowAvgOnboardingDurationModal] = useState(false);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -361,6 +362,47 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
                     <tr key={client.id} className="border-b border-gray-200 hover:bg-gray-50">
                       <td className="py-2 px-3" style={{color: '#060520'}}>{client.name}</td>
                       <td className="py-2 px-3" style={{color: '#64748b'}}>{client.implementation_manager ?? '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 6. Avg Onboarding Duration Modal - clients that make up the average
+  function AvgOnboardingDurationModal({ open, onClose, clients }: { open: boolean, onClose: () => void, clients: any[] }) {
+    if (!open) return null;
+    const safeClients = Array.isArray(clients) ? clients : [];
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative border border-gray-200 max-h-[80vh] overflow-hidden flex flex-col">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
+          <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Clients in Avg. Onboarding Duration</h3>
+          <p className="text-sm text-gray-600 mb-4">Clients who have graduated (created date → completed date).</p>
+          <div className="overflow-y-auto flex-1">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Client</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Created</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Completed</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Duration</th>
+                </tr>
+              </thead>
+              <tbody>
+                {safeClients.length === 0 ? (
+                  <tr><td colSpan={4} className="py-4 text-center text-gray-600">No graduated clients in this period.</td></tr>
+                ) : (
+                  safeClients.map((client) => (
+                    <tr key={client.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="py-2 px-3" style={{color: '#060520'}}>{client.name}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.created_at ? new Date(client.created_at).toLocaleDateString() : '-'}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.graduation_date ? new Date(client.graduation_date).toLocaleDateString() : '-'}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.duration_days != null ? `${client.duration_days} days` : '-'}</td>
                     </tr>
                   ))
                 )}
@@ -719,9 +761,10 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
           {implementationMetrics.map((m, i) => (
             <Card
               key={i}
-              className={`shadow-lg p-6 flex flex-col items-center justify-center border rounded-2xl ${m.highlight ? "border-2 border-amber-400 bg-amber-50/50" : "border-gray-200 bg-white"} ${(m.label === "Active Implementations" || m.label === "At-Risk Clients") ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""}`}
-              onClick={(m.label === "Active Implementations" || m.label === "At-Risk Clients") ? () => {
-                if (m.label === "Active Implementations") setShowActiveImplementationsModal(true);
+              className={`shadow-lg p-6 flex flex-col items-center justify-center border rounded-2xl ${m.highlight ? "border-2 border-amber-400 bg-amber-50/50" : "border-gray-200 bg-white"} ${(m.label === "Avg. Onboarding Duration" || m.label === "Active Implementations" || m.label === "At-Risk Clients") ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""}`}
+              onClick={(m.label === "Avg. Onboarding Duration" || m.label === "Active Implementations" || m.label === "At-Risk Clients") ? () => {
+                if (m.label === "Avg. Onboarding Duration") setShowAvgOnboardingDurationModal(true);
+                else if (m.label === "Active Implementations") setShowActiveImplementationsModal(true);
                 else setShowAtRiskClientsModal(true);
               } : undefined}
             >
@@ -733,7 +776,8 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
                       <TooltipTrigger asChild>
                         <HelpCircle
                           className="w-4 h-4 text-brand-gold cursor-pointer"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             const key = m.label === "Time to First Value" ? "timeToFirstValue" :
                               m.label === "Avg. Onboarding Duration" ? "avgOnboardingDuration" :
                               m.label === "Median Onboarding Duration" ? "medianOnboardingDuration" :
@@ -1068,6 +1112,11 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
         open={showAtRiskClientsModal}
         onClose={() => setShowAtRiskClientsModal(false)}
         clients={data.implementationHealth?.atRiskClientList || []}
+      />
+      <AvgOnboardingDurationModal
+        open={showAvgOnboardingDurationModal}
+        onClose={() => setShowAvgOnboardingDurationModal(false)}
+        clients={data.implementationHealth?.avgOnboardingDurationClientList || []}
       />
     </div>
   );
