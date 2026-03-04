@@ -119,6 +119,7 @@ function transformClientFromDb(data: any): Client {
     elite_configurations_started_date: data.elite_configurations_started_date || undefined,
     elite_integrations_started_date: data.elite_integrations_started_date || undefined,
     elite_verification_completed_date: data.elite_verification_completed_date || undefined,
+    graduation_date: data.graduation_date || undefined,
     workflow_builder_enabled: data.workflow_builder_enabled || false,
     workflow: data.workflow || undefined,
     show_figma_workflow: data.show_figma_workflow || false,

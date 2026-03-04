@@ -21,6 +21,9 @@ export async function GET(req: Request) {
     const successPackage = url.searchParams.get('success_package');
     const implementationManager = url.searchParams.get('implementation_manager');
     const status = url.searchParams.get('status');
+    const dateRange = url.searchParams.get('date_range'); // '30' | '60' | '90' | 'custom'
+    const dateStart = url.searchParams.get('date_start'); // YYYY-MM-DD for custom
+    const dateEnd = url.searchParams.get('date_end'); // YYYY-MM-DD for custom
 
     let clients = await getAllClients();
     // Exclude demo clients from analytics
@@ -34,6 +37,37 @@ export async function GET(req: Request) {
     if (implementationManager) filteredClients = filteredClients.filter(c => c.implementation_manager === implementationManager);
     if (status) filteredClients = filteredClients.filter(c => c.status === status);
     // Use filteredClients for all metrics except churnedClients and churnRate
+
+    const now = new Date();
+
+    // Implementation date range filter (for Implementation Timelines section)
+    let implementationFilteredClients = filteredClients;
+    if (dateRange || dateStart || dateEnd) {
+      let rangeStart: Date | null = null;
+      let rangeEnd: Date | null = null;
+      if (dateRange === '30') {
+        rangeStart = new Date(now);
+        rangeStart.setDate(rangeStart.getDate() - 30);
+        rangeEnd = new Date(now);
+      } else if (dateRange === '60') {
+        rangeStart = new Date(now);
+        rangeStart.setDate(rangeStart.getDate() - 60);
+        rangeEnd = new Date(now);
+      } else if (dateRange === '90') {
+        rangeStart = new Date(now);
+        rangeStart.setDate(rangeStart.getDate() - 90);
+        rangeEnd = new Date(now);
+      } else if (dateStart && dateEnd) {
+        rangeStart = new Date(dateStart + 'T00:00:00');
+        rangeEnd = new Date(dateEnd + 'T23:59:59');
+      }
+      if (rangeStart && rangeEnd) {
+        implementationFilteredClients = filteredClients.filter(c => {
+          const created = new Date(c.created_at);
+          return created >= rangeStart! && created <= rangeEnd!;
+        });
+      }
+    }
 
     // Revenue breakdowns
     const revenueByPlan: Record<string, number> = {};
@@ -76,7 +110,6 @@ export async function GET(req: Request) {
     });
 
     // Contract renewal pipeline (annual contracts)
-    const now = new Date();
     const expiring30: any[] = [], expiring60: any[] = [], expiring90: any[] = [];
     let revenueAtRisk = 0;
     filteredClients.forEach(c => {
@@ -92,12 +125,13 @@ export async function GET(req: Request) {
       }
     });
 
-    // Implementation Health Metrics (reuse previous logic)
+    // Implementation Health Metrics (use implementationFilteredClients for date-range scoping)
     let timeToFirstValueSum = 0, timeToFirstValueCount = 0;
-    let onboardingDurationSum = 0, onboardingDurationCount = 0;
+    const onboardingDurations: number[] = [];
     let activeImplementations = 0;
     let atRiskClients = 0;
-    filteredClients.forEach(client => {
+    let graduationsInPeriod = 0;
+    implementationFilteredClients.forEach(client => {
       let firstCall: string | undefined = undefined;
       if (client.success_package === 'light') firstCall = client.light_onboarding_call_date ?? undefined;
       else if (client.success_package === 'premium') firstCall = client.premium_first_call_date ?? undefined;
@@ -111,8 +145,8 @@ export async function GET(req: Request) {
       if (completedDate) {
         const dur = daysBetween(client.created_at, completedDate);
         if (dur !== null && dur >= 0) {
-          onboardingDurationSum += dur;
-          onboardingDurationCount++;
+          onboardingDurations.push(dur);
+          graduationsInPeriod++;
         }
       }
       if (!completedDate) activeImplementations++;
@@ -124,7 +158,62 @@ export async function GET(req: Request) {
       if (noCallWithin10 || notCompleted45) atRiskClients++;
     });
     const timeToFirstValue = timeToFirstValueCount ? (timeToFirstValueSum / timeToFirstValueCount) : null;
-    const avgOnboardingDuration = onboardingDurationCount ? (onboardingDurationSum / onboardingDurationCount) : null;
+    const avgOnboardingDuration = onboardingDurations.length ? (onboardingDurations.reduce((a, b) => a + b, 0) / onboardingDurations.length) : null;
+    const medianOnboardingDuration = onboardingDurations.length
+      ? (() => {
+          const sorted = [...onboardingDurations].sort((a, b) => a - b);
+          const mid = Math.floor(sorted.length / 2);
+          return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+        })()
+      : null;
+
+    // Duration by package (for bar chart)
+    const durationByPackage: Record<string, number[]> = {};
+    implementationFilteredClients.forEach(client => {
+      const completedDate = client.graduation_date ?? undefined;
+      if (!completedDate) return;
+      const dur = daysBetween(client.created_at, completedDate);
+      if (dur !== null && dur >= 0) {
+        const pkg = client.success_package || 'other';
+        if (!durationByPackage[pkg]) durationByPackage[pkg] = [];
+        durationByPackage[pkg].push(dur);
+      }
+    });
+    const avgDurationByPackage = Object.fromEntries(
+      Object.entries(durationByPackage).map(([pkg, arr]) => [
+        pkg,
+        arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0,
+      ])
+    );
+
+    // Duration distribution (histogram buckets: 0-14, 15-29, 30-44, 45-59, 60+)
+    const durationBuckets = [
+      { range: '0-14 days', min: 0, max: 14, count: 0 },
+      { range: '15-29 days', min: 15, max: 29, count: 0 },
+      { range: '30-44 days', min: 30, max: 44, count: 0 },
+      { range: '45-59 days', min: 45, max: 59, count: 0 },
+      { range: '60+ days', min: 60, max: 9999, count: 0 },
+    ];
+    onboardingDurations.forEach(d => {
+      const bucket = durationBuckets.find(b => d >= b.min && d <= b.max);
+      if (bucket) bucket.count++;
+    });
+
+    // Build lists for implementation modals (use implementationFilteredClients for date-range consistency)
+    const activeImplementationClientList = implementationFilteredClients
+      .filter(c => !(c.graduation_date ?? undefined))
+      .map(c => ({ id: c.id, name: c.name, implementation_manager: c.implementation_manager, success_package: c.success_package, created_at: c.created_at }));
+    const atRiskClientList = implementationFilteredClients
+      .filter(c => {
+        const created = new Date(c.created_at);
+        const firstCall = c.success_package === 'light' ? c.light_onboarding_call_date : c.success_package === 'premium' ? c.premium_first_call_date : c.success_package === 'gold' ? c.gold_first_call_date : undefined;
+        const firstCallDate = firstCall ? new Date(firstCall) : null;
+        const daysSinceCreated = Math.round((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+        const noCallWithin10 = !firstCallDate || (firstCallDate.getTime() - created.getTime()) / (1000 * 60 * 60 * 24) > 10;
+        const notCompleted45 = !(c.graduation_date ?? undefined) && daysSinceCreated > 45;
+        return noCallWithin10 || notCompleted45;
+      })
+      .map(c => ({ id: c.id, name: c.name, implementation_manager: c.implementation_manager }));
 
     // ARR and MRR logic
     const arr = totalRevenue;
@@ -188,7 +277,7 @@ export async function GET(req: Request) {
       churnRate,
       churnRiskClients,
       churnRiskClientList,
-      filters: { planType, successPackage, implementationManager, status },
+      filters: { planType, successPackage, implementationManager, status, dateRange: dateRange || null, dateStart: dateStart || null, dateEnd: dateEnd || null },
       revenue: {
         total: totalRevenue,
         byPlan: revenueByPlan,
@@ -213,8 +302,17 @@ export async function GET(req: Request) {
       implementationHealth: {
         timeToFirstValue: timeToFirstValue !== null ? Number(timeToFirstValue.toFixed(1)) : null,
         avgOnboardingDuration: avgOnboardingDuration !== null ? Number(avgOnboardingDuration.toFixed(1)) : null,
+        medianOnboardingDuration: medianOnboardingDuration !== null ? Number(medianOnboardingDuration.toFixed(1)) : null,
+        graduationsInPeriod,
         activeImplementations,
         atRiskClients,
+        activeImplementationClientList,
+        atRiskClientList,
+        avgDurationByPackage,
+        durationDistribution: durationBuckets.map(b => ({ range: b.range, count: b.count })),
+        dateRange: dateRange || (dateStart && dateEnd ? 'custom' : null),
+        dateStart: dateStart || null,
+        dateEnd: dateEnd || null,
       },
       clients,
       revenueLostToChurnedClients,

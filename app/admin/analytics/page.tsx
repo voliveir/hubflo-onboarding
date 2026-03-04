@@ -33,6 +33,9 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     implementation_manager: "",
     status: "",
   });
+  const [implementationDateRange, setImplementationDateRange] = useState<string>("90");
+  const [implementationDateStart, setImplementationDateStart] = useState<string>("");
+  const [implementationDateEnd, setImplementationDateEnd] = useState<string>("");
   // Move modal state hooks here
   const [selectedStage, setSelectedStage] = useState<number|null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -44,6 +47,9 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
   const [showChurnedClientsModal, setShowChurnedClientsModal] = useState(false);
   // Add state for expiring contracts modal
   const [showExpiringContractsModal, setShowExpiringContractsModal] = useState(false);
+  // Add state for implementation modals
+  const [showActiveImplementationsModal, setShowActiveImplementationsModal] = useState(false);
+  const [showAtRiskClientsModal, setShowAtRiskClientsModal] = useState(false);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -55,6 +61,13 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     Object.entries(filters).forEach(([k, v]) => {
       if (v) params.append(k, v);
     });
+    if (implementationDateRange && implementationDateRange !== "all") {
+      params.append("date_range", implementationDateRange);
+      if (implementationDateRange === "custom" && implementationDateStart && implementationDateEnd) {
+        params.append("date_start", implementationDateStart);
+        params.append("date_end", implementationDateEnd);
+      }
+    }
     fetch(`/api/analytics-summary${params.toString() ? `?${params.toString()}` : ""}`)
       .then((res) => res.json())
       .then((json) => {
@@ -65,7 +78,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
         setError("Failed to load analytics.");
         setLoading(false);
       });
-  }, [filters]);
+  }, [filters, implementationDateRange, implementationDateStart, implementationDateEnd]);
 
   const handleExport = () => {
     if (!data) return;
@@ -166,7 +179,17 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     avgOnboardingDuration: {
       name: 'Avg. Onboarding Duration',
       description: 'The average time it takes for clients to complete onboarding.',
-      logic: 'For each client, calculates days between created_at and graduation_date, then averages across all clients who have graduated.'
+      logic: 'For each client, calculates days between created_at and graduation_date, then averages across all clients who have graduated (within the selected date range).'
+    },
+    medianOnboardingDuration: {
+      name: 'Median Onboarding Duration',
+      description: 'The median time it takes for clients to complete onboarding. Less affected by outliers than the average.',
+      logic: 'For each graduated client, calculates days between created_at and graduation_date, then finds the median value (middle value when sorted).'
+    },
+    graduationsInPeriod: {
+      name: 'Graduations in Period',
+      description: 'Number of clients who completed implementation (graduated) within the selected date range.',
+      logic: 'Counts clients who have a graduation_date and whose created_at falls within the selected date range.'
     },
     activeImplementations: {
       name: 'Active Implementations',
@@ -349,6 +372,84 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     );
   }
 
+  // 6a. Active Implementations Modal component
+  function ActiveImplementationsModal({ open, onClose, clients }: { open: boolean, onClose: () => void, clients: any[] }) {
+    if (!open) return null;
+    const safeClients = Array.isArray(clients) ? clients : [];
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl relative border border-gray-200 max-h-[80vh] overflow-hidden flex flex-col">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
+          <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Active Implementations</h3>
+          <p className="text-sm text-gray-600 mb-4">Clients without a graduation date (implementation not yet complete).</p>
+          <div className="overflow-y-auto flex-1">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Name</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Package</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Implementation Manager</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {safeClients.length === 0 ? (
+                  <tr><td colSpan={4} className="py-4 text-center text-gray-600">No active implementations.</td></tr>
+                ) : (
+                  safeClients.map((client) => (
+                    <tr key={client.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="py-2 px-3" style={{color: '#060520'}}>{client.name}</td>
+                      <td className="py-2 px-3 capitalize" style={{color: '#64748b'}}>{client.success_package ?? '-'}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.implementation_manager ?? '-'}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.created_at ? new Date(client.created_at).toLocaleDateString() : '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 6b. At-Risk Clients Modal component (implementation)
+  function AtRiskImplementationModal({ open, onClose, clients }: { open: boolean, onClose: () => void, clients: any[] }) {
+    if (!open) return null;
+    const safeClients = Array.isArray(clients) ? clients : [];
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg relative border border-gray-200">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
+          <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>At-Risk Clients (Implementation)</h3>
+          <p className="text-sm text-gray-600 mb-4">Clients with no first onboarding call within 10 days of signup, or not completed after 45 days.</p>
+          <div className="overflow-y-auto max-h-[60vh]">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Name</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Implementation Manager</th>
+                </tr>
+              </thead>
+              <tbody>
+                {safeClients.length === 0 ? (
+                  <tr><td colSpan={2} className="py-4 text-center text-gray-600">No at-risk clients.</td></tr>
+                ) : (
+                  safeClients.map((client) => (
+                    <tr key={client.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="py-2 px-3" style={{color: '#060520'}}>{client.name}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.implementation_manager ?? '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // 6. Expiring Contracts Modal component
   function ExpiringContractsModal({ open, onClose, clients }: { open: boolean, onClose: () => void, clients: any[] }) {
     if (!open) return null;
@@ -409,6 +510,8 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
   const implementationMetrics = [
     { label: "Time to First Value", value: data.implementationHealth?.timeToFirstValue !== null ? `${data.implementationHealth?.timeToFirstValue} days` : "-" },
     { label: "Avg. Onboarding Duration", value: data.implementationHealth?.avgOnboardingDuration !== null ? `${data.implementationHealth?.avgOnboardingDuration} days` : "-" },
+    { label: "Median Onboarding Duration", value: data.implementationHealth?.medianOnboardingDuration !== null ? `${data.implementationHealth?.medianOnboardingDuration} days` : "-" },
+    { label: "Graduations in Period", value: data.implementationHealth?.graduationsInPeriod ?? "-" },
     { label: "Active Implementations", value: data.implementationHealth?.activeImplementations ?? "-" },
     { label: "At-Risk Clients", value: data.implementationHealth?.atRiskClients ?? "-", highlight: true },
   ];
@@ -559,6 +662,138 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
         <div className="flex items-center gap-2 text-sm bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">
           <RefreshCw className="w-4 h-4 text-brand-gold" />
           Last updated: <span className="ml-1 font-medium" style={{color: '#060520'}}>{lastUpdated}</span>
+        </div>
+      </div>
+
+      {/* SECTION: Implementation Timelines */}
+      <div className="py-10">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <h2 className="text-2xl font-bold flex items-center gap-2" style={{color: '#060520'}}>
+            <span>🚀 Implementation Timelines</span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="w-5 h-5 text-brand-gold cursor-pointer" onClick={() => setOpenMetricModal('avgOnboardingDuration')} />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900 max-w-sm">
+                  Metrics for implementation duration. Start = when client is created (deal closed won). Completion = graduation date (when they invite their first non-test client to a portal).
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="text-xs font-medium" style={{color: '#060520'}}>Date Range:</label>
+            <select
+              className="bg-white text-gray-900 rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-gold text-sm"
+              value={implementationDateRange}
+              onChange={(e) => setImplementationDateRange(e.target.value)}
+            >
+              <option value="30">Last 30 days</option>
+              <option value="60">Last 60 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="custom">Custom range</option>
+              <option value="all">All time</option>
+            </select>
+            {implementationDateRange === "custom" && (
+              <>
+                <input
+                  type="date"
+                  className="bg-white text-gray-900 rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-gold text-sm"
+                  value={implementationDateStart}
+                  onChange={(e) => setImplementationDateStart(e.target.value)}
+                  placeholder="Start"
+                />
+                <span className="text-gray-500">to</span>
+                <input
+                  type="date"
+                  className="bg-white text-gray-900 rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-gold text-sm"
+                  value={implementationDateEnd}
+                  onChange={(e) => setImplementationDateEnd(e.target.value)}
+                  placeholder="End"
+                />
+              </>
+            )}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-6">
+          {implementationMetrics.map((m, i) => (
+            <Card
+              key={i}
+              className={`shadow-lg p-6 flex flex-col items-center justify-center border rounded-2xl ${m.highlight ? "border-2 border-amber-400 bg-amber-50/50" : "border-gray-200 bg-white"} ${(m.label === "Active Implementations" || m.label === "At-Risk Clients") ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""}`}
+              onClick={(m.label === "Active Implementations" || m.label === "At-Risk Clients") ? () => {
+                if (m.label === "Active Implementations") setShowActiveImplementationsModal(true);
+                else setShowAtRiskClientsModal(true);
+              } : undefined}
+            >
+              <div className="text-base mb-1 font-medium" style={{color: '#060520'}}>
+                <div className="flex items-center justify-center gap-1">
+                  <span>{m.label}</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle
+                          className="w-4 h-4 text-brand-gold cursor-pointer"
+                          onClick={() => {
+                            const key = m.label === "Time to First Value" ? "timeToFirstValue" :
+                              m.label === "Avg. Onboarding Duration" ? "avgOnboardingDuration" :
+                              m.label === "Median Onboarding Duration" ? "medianOnboardingDuration" :
+                              m.label === "Graduations in Period" ? "graduationsInPeriod" :
+                              m.label === "Active Implementations" ? "activeImplementations" :
+                              m.label === "At-Risk Clients" ? "atRiskClients" : null;
+                            if (key) setOpenMetricModal(key);
+                          }}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Click for metric details.</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+              <div className={`text-2xl lg:text-3xl font-extrabold ${m.highlight ? "text-amber-600" : ""}`} style={{color: m.highlight ? undefined : '#060520'}}>{m.value}</div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Implementation Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <Card className="bg-white shadow-lg p-6 border border-gray-200 rounded-2xl">
+            <h3 className="text-lg font-semibold mb-4" style={{color: '#060520'}}>Avg. Duration by Package</h3>
+            {data.implementationHealth?.avgDurationByPackage && Object.keys(data.implementationHealth.avgDurationByPackage).length > 0 ? (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={Object.entries(data.implementationHealth.avgDurationByPackage).map(([name, avg], i) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value: Number(Number(avg).toFixed(1)) }))} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <XAxis type="number" unit=" days" />
+                    <YAxis type="category" dataKey="name" width={80} />
+                    <RechartsTooltip formatter={(val: number) => [`${val} days`, "Avg. duration"]} />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                      {Object.keys(data.implementationHealth.avgDurationByPackage || {}).map((_, i) => (
+                        <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-gray-500">No graduated clients in this period.</div>
+            )}
+          </Card>
+          <Card className="bg-white shadow-lg p-6 border border-gray-200 rounded-2xl">
+            <h3 className="text-lg font-semibold mb-4" style={{color: '#060520'}}>Implementation Duration Distribution</h3>
+            {data.implementationHealth?.durationDistribution && data.implementationHealth.durationDistribution.some((d: { count: number }) => d.count > 0) ? (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data.implementationHealth.durationDistribution} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <XAxis dataKey="range" />
+                    <YAxis />
+                    <RechartsTooltip />
+                    <Bar dataKey="count" fill="#F2C94C" radius={[4, 4, 0, 0]} name="Clients" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-gray-500">No graduated clients in this period.</div>
+            )}
+          </Card>
         </div>
       </div>
 
@@ -823,6 +1058,16 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
         open={showExpiringContractsModal}
         onClose={() => setShowExpiringContractsModal(false)}
         clients={data.contractRenewal?.expiring90 || []}
+      />
+      <ActiveImplementationsModal
+        open={showActiveImplementationsModal}
+        onClose={() => setShowActiveImplementationsModal(false)}
+        clients={data.implementationHealth?.activeImplementationClientList || []}
+      />
+      <AtRiskImplementationModal
+        open={showAtRiskClientsModal}
+        onClose={() => setShowAtRiskClientsModal(false)}
+        clients={data.implementationHealth?.atRiskClientList || []}
       />
     </div>
   );

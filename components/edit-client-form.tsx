@@ -127,6 +127,7 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
     elite_configurations_started_date: client.elite_configurations_started_date,
     elite_integrations_started_date: client.elite_integrations_started_date,
     elite_verification_completed_date: client.elite_verification_completed_date,
+    graduation_date: client.graduation_date,
     churned: client.churned,
     is_demo: client.is_demo,
     churn_risk: client.churn_risk,
@@ -1095,6 +1096,25 @@ export function EditClientForm({ client, onSuccess, onCancel }: EditClientFormPr
                 </div>
               )}
               
+              {/* Graduation / Implementation Complete Date - visible for all packages */}
+              <div className="space-y-2 mt-6 pt-6 border-t border-gray-200">
+                <Label htmlFor="graduation_date" style={{color: '#060520'}}>Graduation Date (Implementation Complete)</Label>
+                <p className="text-sm text-gray-600 mb-2">When the client invited their first non-test client to a portal. You can override this date if needed.</p>
+                <div className="relative">
+                  <Input
+                    id="graduation_date"
+                    type="date"
+                    value={formData.graduation_date || ""}
+                    onChange={(e) => setFormData((prev: Partial<Client>) => ({ ...prev, graduation_date: e.target.value || null }))}
+                    className="bg-white border-gray-300 text-gray-900 focus:border-brand-gold focus:ring-brand-gold/20"
+                  />
+                  {formData.graduation_date && (
+                    <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-600" onClick={() => setFormData(prev => ({ ...prev, graduation_date: null }))}>
+                      <span aria-label="Clear date">×</span>
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
