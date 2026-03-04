@@ -979,11 +979,23 @@ export async function updateProjectTracking(clientId: string, tracking: any): Pr
 /** Project tracking categories that map to client counters */
 const PROJECT_TRACKING_CATEGORIES = ["call", "form", "smartdoc", "automation_integration"] as const
 
+/** Ordered onboarding call date fields per package (first empty slot gets the call date; after that, extra_call_dates). */
+const ONBOARDING_CALL_FIELDS_BY_PACKAGE: Record<string, (keyof Client)[]> = {
+  light: ["light_onboarding_call_date"],
+  starter: ["light_onboarding_call_date"],
+  premium: ["premium_first_call_date", "premium_second_call_date"],
+  professional: ["premium_first_call_date", "premium_second_call_date", "gold_first_call_date"],
+  gold: ["gold_first_call_date", "gold_second_call_date", "gold_third_call_date"],
+  elite: ["light_onboarding_call_date", "premium_first_call_date", "premium_second_call_date", "gold_first_call_date", "gold_second_call_date", "gold_third_call_date"],
+  enterprise: ["light_onboarding_call_date", "premium_first_call_date", "premium_second_call_date", "gold_first_call_date", "gold_second_call_date", "gold_third_call_date"],
+}
+
 /** Increment a client's project tracking when assigning a grouped block by category. */
 export async function incrementProjectTrackingByCategory(
   clientId: string,
   category: string,
-  count: number = 1
+  count: number = 1,
+  options?: { callDate?: string }
 ): Promise<Client | null> {
   if (!PROJECT_TRACKING_CATEGORIES.includes(category as any) || count < 1) return null
 
@@ -993,12 +1005,40 @@ export async function incrementProjectTrackingByCategory(
   try {
     if (category === "call") {
       const now = new Date()
-      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
-      const existing = client.extra_call_dates || []
-      const toAdd = Array(count).fill(today)
-      await updateClient(clientId, {
-        extra_call_dates: [...existing, ...toAdd],
-      })
+      const defaultDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+      const callDate = options?.callDate || defaultDate
+
+      const fields = ONBOARDING_CALL_FIELDS_BY_PACKAGE[client.success_package || ""]
+      const updates: Record<string, unknown> = {}
+      let usedOnboardingSlot = false
+
+      if (fields && fields.length > 0) {
+        for (const field of fields) {
+          const value = client[field]
+          if (!value || (typeof value === "string" && value.trim() === "")) {
+            updates[field] = callDate
+            usedOnboardingSlot = true
+            break
+          }
+        }
+      }
+
+      if (!usedOnboardingSlot) {
+        const existing = client.extra_call_dates || []
+        const toAdd = Array(count).fill(callDate)
+        updates.extra_call_dates = [...existing, ...toAdd]
+      } else {
+        // Only add one date to onboarding slot; any remaining count goes to extra (e.g. count 2 with one slot left)
+        const remaining = count - 1
+        if (remaining > 0) {
+          const existing = client.extra_call_dates || []
+          updates.extra_call_dates = [...existing, ...Array(remaining).fill(callDate)]
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await updateClient(clientId, updates as any)
+      }
       client = (await getClientById(clientId))!
     } else {
       const current = {

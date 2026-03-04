@@ -103,11 +103,29 @@ export async function PATCH(
     // project_tracking: { call?: number, form?: number, smartdoc?: number, automation_integration?: number }
     if (client_id && project_tracking && typeof project_tracking === "object") {
       const categories = ["call", "form", "smartdoc", "automation_integration"] as const
+      let callDate: string | undefined
+      if (typeof project_tracking.call === "number" && project_tracking.call > 0) {
+        const { data: groupActivitiesForDate } = await supabase
+          .from("browser_activity")
+          .select("started_at")
+          .eq("group_id", id)
+          .order("started_at", { ascending: true })
+          .limit(1)
+        const firstStarted = groupActivitiesForDate?.[0]?.started_at
+        if (firstStarted) {
+          const d = new Date(firstStarted)
+          callDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+        }
+      }
       for (const cat of categories) {
         const count = project_tracking[cat]
         if (typeof count === "number" && count > 0) {
           try {
-            await incrementProjectTrackingByCategory(client_id, cat, count)
+            if (cat === "call" && callDate) {
+              await incrementProjectTrackingByCategory(client_id, cat, count, { callDate })
+            } else {
+              await incrementProjectTrackingByCategory(client_id, cat, count)
+            }
           } catch (err) {
             console.error(`Failed to increment project tracking (${cat}):`, err)
           }
@@ -120,7 +138,26 @@ export async function PATCH(
     ) {
       // Legacy: single category from dropdown
       try {
-        await incrementProjectTrackingByCategory(client_id, category)
+        let callDate: string | undefined
+        if (category === "call") {
+          const { data: groupActivitiesForDate } = await supabase
+            .from("browser_activity")
+            .select("started_at")
+            .eq("group_id", id)
+            .order("started_at", { ascending: true })
+            .limit(1)
+          const firstStarted = groupActivitiesForDate?.[0]?.started_at
+          if (firstStarted) {
+            const d = new Date(firstStarted)
+            callDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+          }
+        }
+        await incrementProjectTrackingByCategory(
+          client_id,
+          category,
+          1,
+          category === "call" && callDate ? { callDate } : undefined
+        )
       } catch (err) {
         console.error("Failed to increment project tracking:", err)
       }
