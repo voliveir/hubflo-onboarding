@@ -37,15 +37,24 @@ function parseDate(date: string | null | undefined): Date | null {
   return new Date(date);
 }
 
-/** Compute median after removing the 3 smallest and 3 largest values (trimmed median). */
+/** Compute median (no minimum, returns value for any length >= 1). */
+function median(values: number[]): number | null {
+  if (!values?.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const medianVal = sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
+  return isNaN(medianVal) ? null : medianVal;
+}
+
+/** Compute median after removing the 3 smallest and 3 largest values (trimmed median). Falls back to regular median when insufficient data. */
 function trimmedMedian(values: number[], trimCount = 3): number | null {
   if (!values?.length) return null;
   const sorted = [...values].sort((a, b) => a - b);
   const trimmed = sorted.slice(trimCount, trimCount > 0 ? -trimCount : undefined);
-  if (!trimmed.length) return null;
+  if (!trimmed.length) return median(values);
   const mid = Math.floor(trimmed.length / 2);
-  const median = trimmed.length % 2 ? trimmed[mid]! : (trimmed[mid - 1]! + trimmed[mid]!) / 2;
-  return isNaN(median) ? null : median;
+  const medianVal = trimmed.length % 2 ? trimmed[mid]! : (trimmed[mid - 1]! + trimmed[mid]!) / 2;
+  return isNaN(medianVal) ? median(values) : medianVal;
 }
 
 export async function GET(req: Request) {
