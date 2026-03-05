@@ -16,6 +16,7 @@ import { type Client } from "@/lib/types"
 import { Plus, Search, Edit, Trash2, Eye, Users, Package, Calendar, Filter, X, ChevronDown, ChevronUp, ChevronsUpDown, DollarSign, Clock, AlertTriangle, Download } from "lucide-react"
 import Link from "next/link"
 import { EditClientForm } from "./edit-client-form"
+import { ClientQuickAddPopover } from "./client-quick-add-popover"
 import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
 import { useRouter, useSearchParams } from "next/navigation"
 
@@ -1023,6 +1024,13 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                         </TableCell>
                         <TableCell className="text-xs px-3 py-2">
                           <div className="flex items-center gap-1">
+                            <ClientQuickAddPopover
+                              client={client}
+                              onUpdate={(updated) => {
+                                setClients((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+                                setFilteredClients((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+                              }}
+                            />
                             <Button asChild variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-gray-100">
                               <Link href={`/admin/clients/${client.id}`}>
                                 <Eye className="h-3.5 w-3.5 text-brand-gold" />

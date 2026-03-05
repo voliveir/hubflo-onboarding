@@ -11,7 +11,7 @@ export async function POST(
   try {
     const { id: clientId } = await params
     const body = await request.json().catch(() => ({}))
-    const { category, count = 1 } = body
+    const { category, count = 1, callDate } = body
 
     if (!clientId || !category || !VALID_CATEGORIES.includes(category)) {
       return NextResponse.json(
@@ -21,7 +21,10 @@ export async function POST(
     }
 
     const safeCount = Math.max(1, Math.min(99, typeof count === "number" ? count : 1))
-    const result = await incrementProjectTrackingByCategory(clientId, category, safeCount)
+    const options = category === "call" && typeof callDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(callDate)
+      ? { callDate }
+      : undefined
+    const result = await incrementProjectTrackingByCategory(clientId, category, safeCount, options)
 
     if (!result) {
       return NextResponse.json({ error: "Client not found or invalid" }, { status: 404 })
