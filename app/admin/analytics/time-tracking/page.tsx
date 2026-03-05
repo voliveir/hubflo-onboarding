@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useMemo } from "react"
 import { Card } from "@/components/ui/card"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { PasswordProtection } from "@/components/password-protection"
@@ -28,7 +28,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, ChevronDown, ChevronUp } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -62,6 +62,8 @@ export default function TimeTrackingPage() {
     to: "",
   })
   const [selectedActivityType, setSelectedActivityType] = useState<string>("all")
+  const [summarySortColumn, setSummarySortColumn] = useState<string | null>(null)
+  const [summarySortDirection, setSummarySortDirection] = useState<"asc" | "desc">("asc")
 
   // Form state
   const [formData, setFormData] = useState({
@@ -356,12 +358,26 @@ export default function TimeTrackingPage() {
     return totalCost - packageCost // Positive = over budget, Negative = under budget
   }
 
+  const sortedSummary = useMemo(() => {
+    if (!summary || summary.length === 0) return []
+    const mult = summarySortDirection === "asc" ? 1 : -1
+    return [...summary].sort((a: any, b: any) => {
+      const aName = (a.client_name || (a.client_id ? getClientName(a.client_id) : "All Clients")).toLowerCase()
+      const bName = (b.client_name || (b.client_id ? getClientName(b.client_id) : "All Clients")).toLowerCase()
+      const aTime = a.total_minutes || 0
+      const bTime = b.total_minutes || 0
+      if (summarySortColumn === "client") return aName.localeCompare(bName) * mult
+      if (summarySortColumn === "time") return (aTime - bTime) * mult
+      return 0
+    })
+  }, [summary, summarySortColumn, summarySortDirection, clients])
+
   return (
     <PasswordProtection>
       <div className="flex h-screen bg-white">
         <AdminSidebar />
         <main className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="container mx-auto px-6 py-8">
+          <div className="p-8 max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
@@ -375,7 +391,7 @@ export default function TimeTrackingPage() {
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
-                    className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-[#10122b] font-semibold hover:brightness-110"
+                    className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-[#010124] font-semibold shadow-lg hover:scale-105 transition-transform"
                     onClick={() => {
                       setEditingEntry(null)
                       setClientPopoverOpen(false)
@@ -393,19 +409,19 @@ export default function TimeTrackingPage() {
                     Add Time Entry
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-[#181a2f] border border-[#F2C94C]/20 text-white max-w-2xl">
+                <DialogContent className="bg-white border border-gray-200 shadow-2xl max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle className="text-white">
+                    <DialogTitle style={{ color: "#060520" }}>
                       {editingEntry ? "Edit Time Entry" : "Add Time Entry"}
                     </DialogTitle>
-                    <DialogDescription className="text-white/70">
+                    <DialogDescription className="text-gray-600">
                       Track time spent on meetings, emails, or implementation work
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="client_id" className="text-white">
+                        <Label htmlFor="client_id" style={{ color: "#060520" }}>
                           Client *
                         </Label>
                         <Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
@@ -414,7 +430,7 @@ export default function TimeTrackingPage() {
                               variant="outline"
                               role="combobox"
                               aria-expanded={clientPopoverOpen}
-                              className="w-full justify-between bg-[#0d1120] border-slate-600 text-white hover:bg-[#161c36]"
+                              className="w-full justify-between bg-white border-gray-300 text-gray-900 hover:bg-gray-50"
                             >
                               {formData.client_id
                                 ? clients.find((client) => client.id === formData.client_id)?.name ||
@@ -423,14 +439,14 @@ export default function TimeTrackingPage() {
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-[#0d1120] border-slate-600" align="start">
-                            <Command className="bg-[#0d1120]">
+                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-white border-gray-200" align="start">
+                            <Command className="bg-white">
                               <CommandInput
                                 placeholder="Search client..."
-                                className="text-white placeholder:text-white/50 border-slate-600"
+                                className="text-gray-900 placeholder:text-gray-500 border-gray-200"
                               />
                               <CommandList>
-                                <CommandEmpty className="text-white/70 py-6 text-center text-sm">
+                                <CommandEmpty className="text-gray-600 py-6 text-center text-sm">
                                   No client found.
                                 </CommandEmpty>
                                 <CommandGroup>
@@ -442,10 +458,10 @@ export default function TimeTrackingPage() {
                                         setFormData({ ...formData, client_id: client.id })
                                         setClientPopoverOpen(false)
                                       }}
-                                      className="text-white cursor-pointer hover:bg-[#161c36] data-[selected='true']:bg-[#161c36]"
+                                      className="text-gray-900 cursor-pointer hover:bg-gray-100 data-[selected='true']:bg-gray-100"
                                     >
                                       <Check
-                                        className={`mr-2 h-4 w-4 text-[#F2C94C] ${
+                                        className={`mr-2 h-4 w-4 text-brand-gold ${
                                           formData.client_id === client.id
                                             ? "opacity-100"
                                             : "opacity-0"
@@ -461,7 +477,7 @@ export default function TimeTrackingPage() {
                         </Popover>
                       </div>
                       <div>
-                        <Label htmlFor="entry_type" className="text-white">
+                        <Label htmlFor="entry_type" style={{ color: "#060520" }}>
                           Activity Type *
                         </Label>
                         <Select
@@ -471,35 +487,35 @@ export default function TimeTrackingPage() {
                           }
                           required
                         >
-                          <SelectTrigger className="bg-[#0d1120] border-slate-600 text-white">
+                          <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="bg-[#0d1120] border-slate-600">
-                            <SelectItem value="meeting" className="text-white">
+                          <SelectContent className="bg-white border-gray-200">
+                            <SelectItem value="meeting" className="text-gray-900">
                               Meeting
                             </SelectItem>
-                            <SelectItem value="email" className="text-white">
+                            <SelectItem value="email" className="text-gray-900">
                               Email
                             </SelectItem>
-                            <SelectItem value="initial_setup" className="text-white">
+                            <SelectItem value="initial_setup" className="text-gray-900">
                               Initial Setup/Discovery
                             </SelectItem>
-                            <SelectItem value="automation_workflow" className="text-white">
+                            <SelectItem value="automation_workflow" className="text-gray-900">
                               Building Automations/Zapier Workflows
                             </SelectItem>
-                            <SelectItem value="api_integration" className="text-white">
+                            <SelectItem value="api_integration" className="text-gray-900">
                               API Integration Work
                             </SelectItem>
-                            <SelectItem value="testing_debugging" className="text-white">
+                            <SelectItem value="testing_debugging" className="text-gray-900">
                               Testing/Debugging
                             </SelectItem>
-                            <SelectItem value="training_handoff" className="text-white">
+                            <SelectItem value="training_handoff" className="text-gray-900">
                               Training/Handoff
                             </SelectItem>
-                            <SelectItem value="revisions_rework" className="text-white">
+                            <SelectItem value="revisions_rework" className="text-gray-900">
                               Revisions/Rework
                             </SelectItem>
-                            <SelectItem value="implementation" className="text-white">
+                            <SelectItem value="implementation" className="text-gray-900">
                               General Implementation
                             </SelectItem>
                           </SelectContent>
@@ -508,7 +524,7 @@ export default function TimeTrackingPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="date" className="text-white">
+                        <Label htmlFor="date" style={{ color: "#060520" }}>
                           Date *
                         </Label>
                         <Input
@@ -516,12 +532,12 @@ export default function TimeTrackingPage() {
                           type="date"
                           value={formData.date}
                           onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                          className="bg-[#0d1120] border-slate-600 text-white"
+                          className="bg-white border-gray-300 text-gray-900"
                           required
                         />
                       </div>
                       <div>
-                        <Label htmlFor="duration_minutes" className="text-white">
+                        <Label htmlFor="duration_minutes" style={{ color: "#060520" }}>
                           Duration (minutes) *
                         </Label>
                         <Input
@@ -532,32 +548,32 @@ export default function TimeTrackingPage() {
                           onChange={(e) =>
                             setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })
                           }
-                          className="bg-[#0d1120] border-slate-600 text-white"
+                          className="bg-white border-gray-300 text-gray-900"
                           required
                         />
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="description" className="text-white">
+                      <Label htmlFor="description" style={{ color: "#060520" }}>
                         Description
                       </Label>
                       <Input
                         id="description"
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        className="bg-[#0d1120] border-slate-600 text-white"
+                        className="bg-white border-gray-300 text-gray-900"
                         placeholder="Brief description of the work"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="notes" className="text-white">
+                      <Label htmlFor="notes" style={{ color: "#060520" }}>
                         Notes
                       </Label>
                       <Textarea
                         id="notes"
                         value={formData.notes}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                        className="bg-[#0d1120] border-slate-600 text-white"
+                        className="bg-white border-gray-300 text-gray-900"
                         placeholder="Additional notes or details"
                         rows={3}
                       />
@@ -567,13 +583,13 @@ export default function TimeTrackingPage() {
                         type="button"
                         variant="outline"
                         onClick={() => setIsDialogOpen(false)}
-                        className="border-slate-600 text-white hover:bg-[#23244a]"
+                        className="border-gray-300 text-gray-700 hover:bg-gray-50"
                       >
                         Cancel
                       </Button>
                       <Button
                         type="submit"
-                        className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-[#10122b] font-semibold"
+                        className="bg-gradient-to-r from-[#F2C94C] to-[#F2994A] text-[#010124] font-semibold shadow-lg hover:scale-105 transition-transform"
                       >
                         {editingEntry ? "Update" : "Create"} Entry
                       </Button>
@@ -584,26 +600,26 @@ export default function TimeTrackingPage() {
             </div>
 
             {/* Filters */}
-            <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6 mb-6">
+            <Card className="bg-white shadow-lg rounded-2xl border border-gray-200 p-6 mb-6">
               <div className="flex items-center gap-2 mb-4">
-                <Filter className="h-5 w-5 text-[#F2C94C]" />
-                <h3 className="text-lg font-semibold text-white">Filters</h3>
+                <Filter className="h-5 w-5 text-brand-gold" />
+                <h3 className="text-lg font-semibold" style={{ color: "#060520" }}>Filters</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <Label htmlFor="client_filter" className="text-white mb-2 block">
+                  <Label htmlFor="client_filter" className="mb-2 block" style={{ color: "#060520" }}>
                     Client
                   </Label>
                   <Select value={selectedClientId || "all"} onValueChange={(value) => setSelectedClientId(value === "all" ? "" : value)}>
-                    <SelectTrigger className="bg-[#0d1120] border-slate-600 text-white">
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                       <SelectValue placeholder="All clients" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#0d1120] border-slate-600">
-                      <SelectItem value="all" className="text-white">
+                    <SelectContent className="bg-white border-gray-200">
+                      <SelectItem value="all" className="text-gray-900">
                         All clients
                       </SelectItem>
                       {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id} className="text-white">
+                        <SelectItem key={client.id} value={client.id} className="text-gray-900">
                           {client.name}
                         </SelectItem>
                       ))}
@@ -611,16 +627,16 @@ export default function TimeTrackingPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="activity_filter" className="text-white mb-2 block">
+                  <Label htmlFor="activity_filter" className="mb-2 block" style={{ color: "#060520" }}>
                     Activity Type
                   </Label>
                   <Select value={selectedActivityType} onValueChange={setSelectedActivityType}>
-                    <SelectTrigger className="bg-[#0d1120] border-slate-600 text-white">
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                       <SelectValue placeholder="All activities" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#0d1120] border-slate-600">
+                    <SelectContent className="bg-white border-gray-200">
                       {activityTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value} className="text-white">
+                        <SelectItem key={type.value} value={type.value} className="text-gray-900">
                           {type.label}
                         </SelectItem>
                       ))}
@@ -628,7 +644,7 @@ export default function TimeTrackingPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="date_from" className="text-white mb-2 block">
+                  <Label htmlFor="date_from" className="mb-2 block" style={{ color: "#060520" }}>
                     Date From
                   </Label>
                   <Input
@@ -636,11 +652,11 @@ export default function TimeTrackingPage() {
                     type="date"
                     value={dateRange.from}
                     onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
-                    className="bg-[#0d1120] border-slate-600 text-white"
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="date_to" className="text-white mb-2 block">
+                  <Label htmlFor="date_to" className="mb-2 block" style={{ color: "#060520" }}>
                     Date To
                   </Label>
                   <Input
@@ -648,17 +664,17 @@ export default function TimeTrackingPage() {
                     type="date"
                     value={dateRange.to}
                     onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
-                    className="bg-[#0d1120] border-slate-600 text-white"
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
               </div>
               <div className="flex items-center gap-2 mt-4 flex-wrap">
-                <span className="text-sm text-white/70">Quick filters:</span>
+                <span className="text-sm text-gray-600">Quick filters:</span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setDateRange(getQuickDateRange("this_month"))}
-                  className="bg-[#0d1120] border-slate-600 text-white hover:bg-[#23244a] hover:text-white text-xs"
+                  className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-brand-gold/50 text-xs"
                 >
                   This Month
                 </Button>
@@ -666,7 +682,7 @@ export default function TimeTrackingPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setDateRange(getQuickDateRange("last_month"))}
-                  className="bg-[#0d1120] border-slate-600 text-white hover:bg-[#23244a] hover:text-white text-xs"
+                  className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-brand-gold/50 text-xs"
                 >
                   Last Month
                 </Button>
@@ -674,7 +690,7 @@ export default function TimeTrackingPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setDateRange(getQuickDateRange("this_quarter"))}
-                  className="bg-[#0d1120] border-slate-600 text-white hover:bg-[#23244a] hover:text-white text-xs"
+                  className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-brand-gold/50 text-xs"
                 >
                   This Quarter
                 </Button>
@@ -682,7 +698,7 @@ export default function TimeTrackingPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setDateRange(getQuickDateRange("this_year"))}
-                  className="bg-[#0d1120] border-slate-600 text-white hover:bg-[#23244a] hover:text-white text-xs"
+                  className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-brand-gold/50 text-xs"
                 >
                   This Year
                 </Button>
@@ -693,118 +709,172 @@ export default function TimeTrackingPage() {
                     setDateRange({ from: "", to: "" })
                     setSelectedActivityType("all")
                   }}
-                  className="bg-[#0d1120] border-slate-600 text-white hover:bg-[#23244a] hover:text-white text-xs"
+                  className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-brand-gold/50 text-xs"
                 >
                   Clear Filters
                 </Button>
               </div>
             </Card>
 
-            {/* Summary Cards */}
+            {/* Time by Client - Spreadsheet */}
             {summary && summary.length > 0 && (
-              <div className="space-y-6 mb-6">
-                {/* Time Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {summary.map((s: any, idx: number) => {
-                  const clientName = s.client_name || (s.client_id ? getClientName(s.client_id) : "All Clients")
-                  const acv = s.client_acv || (s.client_id ? getClientACV(s.client_id) : 0)
-                  const packageType = s.client_package || (s.client_id ? getClientPackage(s.client_id) : "")
-                  const packageCost = getPackageCost(packageType)
-                  const timeToACV = calculateTimeToACVRatio(s.total_hours || 0, acv)
-                  const totalCost = (s.total_hours || 0) * HOURLY_RATE
-                  const breakevenTimeline = calculateBreakevenTimeline(s.total_hours || 0, acv)
-                  const roiEfficiencyScore = calculateROIEfficiencyScore(s.total_hours || 0, acv)
-                  const packageROI = calculatePackageROI(s.total_hours || 0, packageCost)
-                  const packageCostSavings = calculatePackageCostSavings(s.total_hours || 0, packageCost)
-
-                  return (
-                    <Card
-                      key={idx}
-                      className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6"
-                    >
-                      <div className="text-sm text-white/70 mb-2">{clientName}</div>
-                      <div className="text-2xl font-bold text-white mb-1">
-                        {formatDuration(s.total_minutes || 0)}
-                      </div>
-                      <div className="text-xs text-white/60 mb-3">
-                        {s.total_hours?.toFixed(1) || 0} hours
-                      </div>
-                      {timeToACV !== null && (
-                        <div className="text-xs text-yellow-400 mb-1">
-                          {timeToACV.toFixed(2)} hrs per $1k ACV
-                        </div>
-                      )}
-                      {acv > 0 && (
-                        <>
-                          <div className="text-xs text-white/60 mt-3 pt-3 border-t border-slate-700">
-                            <div className="mb-1">Implementation Cost: ${totalCost.toLocaleString()}</div>
-                            {breakevenTimeline !== null && (
-                              <div className="mb-1">
-                                Breakeven (ACV): <span className="text-blue-400 font-semibold">{breakevenTimeline.toFixed(1)} months</span>
-                              </div>
-                            )}
-                            {roiEfficiencyScore !== null && (
-                              <div className="mb-1">
-                                ROI Score (ACV): <span className={`font-semibold ${roiEfficiencyScore >= 10 ? 'text-green-400' : roiEfficiencyScore >= 5 ? 'text-yellow-400' : 'text-red-400'}`}>
-                                  {roiEfficiencyScore.toFixed(2)}x
-                                </span>
-                              </div>
+              <Card className="bg-white border border-gray-200 shadow-sm rounded-2xl p-0 mb-6">
+                <div className="px-6 pt-6 pb-4 border-b border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-brand-gold" />
+                    <h2 className="text-xl font-bold" style={{ color: "#060520" }}>Time by Client</h2>
+                    <span className="text-sm font-normal text-gray-500">({summary.length} clients)</span>
+                  </div>
+                  <p className="text-gray-600 text-sm mt-1">Summary of tracked time and ROI metrics per client</p>
+                </div>
+                <div className="overflow-x-auto rounded-b-2xl">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 border-b border-gray-200 hover:bg-gray-50">
+                        <TableHead
+                          className="font-bold text-xs px-4 py-3 cursor-pointer select-none hover:bg-gray-100 transition-colors sticky left-0 z-10 bg-gray-50 min-w-[160px]"
+                          style={{ color: "#060520" }}
+                          onClick={() => {
+                            if (summarySortColumn === "client") {
+                              setSummarySortDirection((d) => (d === "asc" ? "desc" : "asc"))
+                            } else {
+                              setSummarySortColumn("client")
+                              setSummarySortDirection("asc")
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-1">
+                            Client
+                            {summarySortColumn === "client" ? (
+                              summarySortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                            ) : (
+                              <ChevronsUpDown className="h-3 w-3 text-gray-400" />
                             )}
                           </div>
-                        </>
-                      )}
-                      {packageCost > 0 && (
-                        <div className="text-xs text-white/60 mt-3 pt-3 border-t border-slate-700">
-                          <div className="mb-1">Package Cost: ${packageCost.toLocaleString()}</div>
-                          {packageCostSavings !== null && (
-                            <div className="mb-1">
-                              Cost vs Package: <span className={`font-semibold ${packageCostSavings <= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                {packageCostSavings < 0 ? `$${Math.abs(packageCostSavings).toLocaleString()} under` : `$${packageCostSavings.toLocaleString()} over`}
-                              </span>
-                            </div>
-                          )}
-                          {packageROI !== null && (
-                            <div>
-                              Cost Ratio: <span className={`font-semibold ${packageROI <= 1 ? 'text-green-400' : 'text-red-400'}`}>
-                                {packageROI.toFixed(2)}x
-                              </span>
-                              <span className="text-white/50 ml-1">({packageROI <= 1 ? 'under budget' : 'over budget'})</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </Card>
-                  )
-                })}
+                        </TableHead>
+                        <TableHead
+                          className="font-bold text-xs px-4 py-3 cursor-pointer select-none hover:bg-gray-100 transition-colors min-w-[100px]"
+                          style={{ color: "#060520" }}
+                          onClick={() => {
+                            if (summarySortColumn === "time") {
+                              setSummarySortDirection((d) => (d === "asc" ? "desc" : "asc"))
+                            } else {
+                              setSummarySortColumn("time")
+                              setSummarySortDirection("asc")
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-1">
+                            Time
+                            {summarySortColumn === "time" ? (
+                              summarySortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                            ) : (
+                              <ChevronsUpDown className="h-3 w-3 text-gray-400" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead className="font-bold text-xs px-4 py-3 min-w-[90px]" style={{ color: "#060520" }}>Hrs</TableHead>
+                        <TableHead className="font-bold text-xs px-4 py-3 min-w-[120px]" style={{ color: "#060520" }}>Hrs / $1k ACV</TableHead>
+                        <TableHead className="font-bold text-xs px-4 py-3 min-w-[130px]" style={{ color: "#060520" }}>Impl. Cost</TableHead>
+                        <TableHead className="font-bold text-xs px-4 py-3 min-w-[110px]" style={{ color: "#060520" }}>Breakeven</TableHead>
+                        <TableHead className="font-bold text-xs px-4 py-3 min-w-[100px]" style={{ color: "#060520" }}>ROI Score</TableHead>
+                        <TableHead className="font-bold text-xs px-4 py-3 min-w-[110px]" style={{ color: "#060520" }}>Package Cost</TableHead>
+                        <TableHead className="font-bold text-xs px-4 py-3 min-w-[120px]" style={{ color: "#060520" }}>Cost vs Pkg</TableHead>
+                        <TableHead className="font-bold text-xs px-4 py-3 min-w-[100px]" style={{ color: "#060520" }}>Cost Ratio</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sortedSummary.map((s: any, idx: number) => {
+                        const clientName = s.client_name || (s.client_id ? getClientName(s.client_id) : "All Clients")
+                        const acv = s.client_acv || (s.client_id ? getClientACV(s.client_id) : 0)
+                        const packageType = s.client_package || (s.client_id ? getClientPackage(s.client_id) : "")
+                        const packageCost = getPackageCost(packageType)
+                        const timeToACV = calculateTimeToACVRatio(s.total_hours || 0, acv)
+                        const totalCost = (s.total_hours || 0) * HOURLY_RATE
+                        const breakevenTimeline = calculateBreakevenTimeline(s.total_hours || 0, acv)
+                        const roiEfficiencyScore = calculateROIEfficiencyScore(s.total_hours || 0, acv)
+                        const packageROI = calculatePackageROI(s.total_hours || 0, packageCost)
+                        const packageCostSavings = calculatePackageCostSavings(s.total_hours || 0, packageCost)
+
+                        return (
+                          <TableRow key={idx} className="border-b border-gray-200 hover:bg-gray-50 transition-colors group">
+                            <TableCell className="font-semibold text-sm px-4 py-3 sticky left-0 z-10 bg-white group-hover:bg-gray-50 border-r border-gray-200" style={{ color: "#060520" }}>
+                              {clientName}
+                            </TableCell>
+                            <TableCell className="text-sm font-medium px-4 py-3 text-gray-900">
+                              {formatDuration(s.total_minutes || 0)}
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3 text-gray-600">
+                              {s.total_hours?.toFixed(1) || 0}h
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3 text-brand-gold font-medium">
+                              {timeToACV !== null ? `${timeToACV.toFixed(2)}` : "—"}
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3 text-gray-700">
+                              {acv > 0 ? `$${totalCost.toLocaleString()}` : "—"}
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3 text-blue-600 font-medium">
+                              {breakevenTimeline !== null ? `${breakevenTimeline.toFixed(1)} mo` : "—"}
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3">
+                              {roiEfficiencyScore !== null ? (
+                                <span className={`font-semibold ${roiEfficiencyScore >= 10 ? "text-green-600" : roiEfficiencyScore >= 5 ? "text-amber-600" : "text-red-600"}`}>
+                                  {roiEfficiencyScore.toFixed(2)}x
+                                </span>
+                              ) : "—"}
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3 text-gray-700">
+                              {packageCost > 0 ? `$${packageCost.toLocaleString()}` : "—"}
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3">
+                              {packageCostSavings !== null ? (
+                                <span className={`font-semibold ${packageCostSavings <= 0 ? "text-green-600" : "text-red-600"}`}>
+                                  {packageCostSavings < 0 ? `$${Math.abs(packageCostSavings).toLocaleString()} under` : `$${packageCostSavings.toLocaleString()} over`}
+                                </span>
+                              ) : "—"}
+                            </TableCell>
+                            <TableCell className="text-sm px-4 py-3">
+                              {packageROI !== null ? (
+                                <span className={`font-semibold ${packageROI <= 1 ? "text-green-600" : "text-red-600"}`}>
+                                  {packageROI.toFixed(2)}x
+                                </span>
+                              ) : "—"}
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
                 </div>
-              </div>
+              </Card>
             )}
 
             {/* Time Entries Table */}
-            <Card className="bg-[#060818]/90 rounded-2xl border border-[#F2C94C]/20 p-6">
+            <Card className="bg-white shadow-lg rounded-2xl border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white">Time Entries</h2>
-                <div className="text-sm text-white/70">
+                <h2 className="text-xl font-bold" style={{ color: "#060520" }}>Time Entries</h2>
+                <div className="text-sm text-gray-600">
                   {entries.length} {entries.length === 1 ? "entry" : "entries"}
                 </div>
               </div>
               {loading ? (
-                <div className="text-center py-8 text-white/70">Loading...</div>
+                <div className="text-center py-12 text-gray-600">Loading...</div>
               ) : entries.length === 0 ? (
-                <div className="text-center py-8 text-white/70">
-                  No time entries found. Click "Add Time Entry" to get started.
+                <div className="text-center py-12 text-gray-600 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  <Clock className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                  <p>No time entries found. Click &quot;Add Time Entry&quot; to get started.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-xl border border-gray-200">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-slate-700 hover:bg-[#0d1120]">
-                        <TableHead className="text-white">Date</TableHead>
-                        <TableHead className="text-white">Client</TableHead>
-                        <TableHead className="text-white">Type</TableHead>
-                        <TableHead className="text-white">Description</TableHead>
-                        <TableHead className="text-white">Duration</TableHead>
-                        <TableHead className="text-white">Actions</TableHead>
+                      <TableRow className="border-gray-200 bg-gray-50 hover:bg-gray-50">
+                        <TableHead style={{ color: "#060520" }}>Date</TableHead>
+                        <TableHead style={{ color: "#060520" }}>Client</TableHead>
+                        <TableHead style={{ color: "#060520" }}>Type</TableHead>
+                        <TableHead style={{ color: "#060520" }}>Description</TableHead>
+                        <TableHead style={{ color: "#060520" }}>Duration</TableHead>
+                        <TableHead style={{ color: "#060520" }}>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -817,31 +887,31 @@ export default function TimeTrackingPage() {
                         return (
                           <TableRow
                             key={entry.id}
-                            className="border-slate-700 hover:bg-[#0d1120]"
+                            className="border-gray-200 hover:bg-gray-50/80"
                           >
-                            <TableCell className="text-white">
+                            <TableCell className="text-gray-900">
                               {formatDateString(entry.date)}
                             </TableCell>
-                            <TableCell className="text-white">{clientName}</TableCell>
-                            <TableCell className="text-white">
-                              <div className="flex items-center gap-2">
+                            <TableCell className="font-medium text-gray-900">{clientName}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2 text-gray-700">
                                 {getEntryTypeIcon(entry.entry_type)}
                                 <span>{getEntryTypeLabel(entry.entry_type)}</span>
                               </div>
                             </TableCell>
-                            <TableCell className="text-white">
+                            <TableCell className="text-gray-600">
                               {entry.description || "-"}
                             </TableCell>
-                            <TableCell className="text-white">
+                            <TableCell className="font-medium text-gray-900">
                               {formatDuration(entry.duration_minutes)}
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1">
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleEdit(entry)}
-                                  className="text-[#F2C94C] hover:text-[#F2994A]"
+                                  className="text-brand-gold hover:text-brand-gold-hover hover:bg-brand-gold/10"
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
@@ -849,7 +919,7 @@ export default function TimeTrackingPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleDelete(entry.id)}
-                                  className="text-red-400 hover:text-red-300"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
