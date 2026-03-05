@@ -13,6 +13,7 @@ import { CardHover } from "@/components/ui/card-hover"
 import { PrimaryButton, SecondaryButton } from "@/components/ui/button-variants"
 import { HorizontalTimeline } from "@/components/ui/horizontal-timeline"
 import { Timeline } from "@/components/ui/timeline"
+import { MedianOnboardingStat } from "@/components/median-onboarding-stat"
 
 export default function HomePage() {
   console.log("HomePage rendered")
@@ -325,6 +326,8 @@ export default function HomePage() {
               }
             ]}
           />
+
+          <MedianOnboardingStat />
         </Section>
 
         {/* Prepare for Kickoff Call Section */}

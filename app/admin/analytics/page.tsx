@@ -179,6 +179,11 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
       description: 'The average number of business days (Mon–Fri, excluding weekends) from client signup to their first onboarding call.',
       logic: 'Only clients with actual first onboarding call data are included. For each client, counts business days between created_at and their first call date (by package), then averages. Weekends are excluded. Click the metric to see the client list.'
     },
+    medianTimeToFirstValue: {
+      name: 'Median Time to First Value',
+      description: 'The median number of business days from client signup to first onboarding call, after excluding the 3 smallest and 3 largest values.',
+      logic: 'Uses the same clients as Time to First Value. Excludes the 3 smallest and 3 largest values, then finds the median of the remaining values. Business days only. Click the metric to see the client list.'
+    },
     avgOnboardingDuration: {
       name: 'Avg. Onboarding Duration',
       description: 'The average time it takes for clients to complete onboarding, in business days only.',
@@ -186,8 +191,8 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     },
     medianOnboardingDuration: {
       name: 'Median Onboarding Duration',
-      description: 'The median time it takes for clients to complete onboarding (business days only). Less affected by outliers than the average.',
-      logic: 'Uses the same clients as Avg. Onboarding Duration (graduated with valid data). Finds the median value (middle value when sorted by duration). Counts business days only—weekends excluded. Click the metric to see the client list.'
+      description: 'The median time to complete onboarding (business days only), after excluding the 3 smallest and 3 largest values.',
+      logic: 'Uses the same clients as Avg. Onboarding Duration. Excludes the 3 smallest and 3 largest durations, then finds the median of the remaining values. Business days only. Click the metric to see the client list.'
     },
     graduationsInPeriod: {
       name: 'Graduations in Period',
@@ -635,6 +640,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
   // Section 1: Implementation Health Metric Cards (live data)
   const implementationMetrics = [
     { label: "Time to First Value", value: data.implementationHealth?.timeToFirstValue ?? "-", unit: "business days" },
+    { label: "Median Time to First Value", value: data.implementationHealth?.medianTimeToFirstValue ?? data.implementationHealth?.timeToFirstValue ?? "-", unit: "business days" },
     { label: "Avg. Onboarding Duration", value: data.implementationHealth?.avgOnboardingDuration ?? "-", unit: "business days" },
     { label: "Median Onboarding Duration", value: data.implementationHealth?.medianOnboardingDuration ?? "-", unit: "business days" },
     { label: "Graduations in Period", value: data.implementationHealth?.graduationsInPeriod ?? "-" },
@@ -845,9 +851,9 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
           {implementationMetrics.map((m, i) => (
             <Card
               key={i}
-              className={`shadow-lg p-6 flex flex-col items-center justify-center border rounded-2xl ${m.highlight ? "border-2 border-amber-400 bg-amber-50/50" : "border-gray-200 bg-white"} ${["Time to First Value", "Avg. Onboarding Duration", "Median Onboarding Duration", "Active Implementations", "At-Risk Clients"].includes(m.label) ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""}`}
-              onClick={["Time to First Value", "Avg. Onboarding Duration", "Median Onboarding Duration", "Active Implementations", "At-Risk Clients"].includes(m.label) ? () => {
-                if (m.label === "Time to First Value") setShowTimeToFirstValueModal(true);
+              className={`shadow-lg p-6 flex flex-col items-center justify-center border rounded-2xl ${m.highlight ? "border-2 border-amber-400 bg-amber-50/50" : "border-gray-200 bg-white"} ${["Time to First Value", "Median Time to First Value", "Avg. Onboarding Duration", "Median Onboarding Duration", "Active Implementations", "At-Risk Clients"].includes(m.label) ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""}`}
+              onClick={["Time to First Value", "Median Time to First Value", "Avg. Onboarding Duration", "Median Onboarding Duration", "Active Implementations", "At-Risk Clients"].includes(m.label) ? () => {
+                if (m.label === "Time to First Value" || m.label === "Median Time to First Value") setShowTimeToFirstValueModal(true);
                 else if (m.label === "Avg. Onboarding Duration") setShowAvgOnboardingDurationModal(true);
                 else if (m.label === "Median Onboarding Duration") setShowMedianOnboardingDurationModal(true);
                 else if (m.label === "Active Implementations") setShowActiveImplementationsModal(true);
@@ -865,6 +871,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
                           onClick={(e) => {
                             e.stopPropagation();
                             const key = m.label === "Time to First Value" ? "timeToFirstValue" :
+                              m.label === "Median Time to First Value" ? "medianTimeToFirstValue" :
                               m.label === "Avg. Onboarding Duration" ? "avgOnboardingDuration" :
                               m.label === "Median Onboarding Duration" ? "medianOnboardingDuration" :
                               m.label === "Graduations in Period" ? "graduationsInPeriod" :

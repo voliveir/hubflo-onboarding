@@ -37,6 +37,17 @@ function parseDate(date: string | null | undefined): Date | null {
   return new Date(date);
 }
 
+/** Compute median after removing the 3 smallest and 3 largest values (trimmed median). */
+function trimmedMedian(values: number[], trimCount = 3): number | null {
+  if (!values?.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const trimmed = sorted.slice(trimCount, trimCount > 0 ? -trimCount : undefined);
+  if (!trimmed.length) return null;
+  const mid = Math.floor(trimmed.length / 2);
+  const median = trimmed.length % 2 ? trimmed[mid]! : (trimmed[mid - 1]! + trimmed[mid]!) / 2;
+  return isNaN(median) ? null : median;
+}
+
 export async function GET(req: Request) {
   try {
     // Parse filters from query params
@@ -48,6 +59,7 @@ export async function GET(req: Request) {
     const dateRange = url.searchParams.get('date_range'); // '30' | '60' | '90' | 'custom'
     const dateStart = url.searchParams.get('date_start'); // YYYY-MM-DD for custom
     const dateEnd = url.searchParams.get('date_end'); // YYYY-MM-DD for custom
+    const debug = url.searchParams.get('debug') === '1';
 
     let clients = await getAllClients();
     // Exclude demo clients from analytics
@@ -198,14 +210,16 @@ export async function GET(req: Request) {
       if (noCallWithin10 || notCompleted45) atRiskClients++;
     });
     const timeToFirstValue = timeToFirstValueCount ? (timeToFirstValueSum / timeToFirstValueCount) : null;
+    const ttfvDays = timeToFirstValueClientList?.length
+      ? timeToFirstValueClientList.map((c) => c.days).filter((d) => typeof d === "number" && !isNaN(d))
+      : [];
+    const ttfvSorted = [...ttfvDays].sort((a, b) => a - b);
+    const ttfvTrimmed = ttfvSorted.slice(3, ttfvSorted.length > 6 ? -3 : undefined);
+    const medianTimeToFirstValue = trimmedMedian(ttfvDays);
     const avgOnboardingDuration = onboardingDurations.length ? (onboardingDurations.reduce((a, b) => a + b, 0) / onboardingDurations.length) : null;
-    const medianOnboardingDuration = onboardingDurations.length
-      ? (() => {
-          const sorted = [...onboardingDurations].sort((a, b) => a - b);
-          const mid = Math.floor(sorted.length / 2);
-          return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-        })()
-      : null;
+    const obDurationSorted = [...onboardingDurations].sort((a, b) => a - b);
+    const obDurationTrimmed = obDurationSorted.slice(3, obDurationSorted.length > 6 ? -3 : undefined);
+    const medianOnboardingDuration = trimmedMedian(onboardingDurations);
 
     // Duration by package (for bar chart)
     const durationByPackage: Record<string, number[]> = {};
@@ -356,10 +370,17 @@ export async function GET(req: Request) {
       },
       implementationHealth: {
         timeToFirstValue: timeToFirstValue !== null ? Number(timeToFirstValue.toFixed(1)) : null,
+        medianTimeToFirstValue: medianTimeToFirstValue !== null ? Number(medianTimeToFirstValue.toFixed(1)) : null,
         timeToFirstValueClientList,
         avgOnboardingDuration: avgOnboardingDuration !== null ? Number(avgOnboardingDuration.toFixed(1)) : null,
         avgOnboardingDurationClientList,
         medianOnboardingDuration: medianOnboardingDuration !== null ? Number(medianOnboardingDuration.toFixed(1)) : null,
+        ...(debug && {
+          medianDebug: {
+            timeToFirstValue: { sorted: ttfvSorted, trimmed: ttfvTrimmed, median: medianTimeToFirstValue },
+            onboardingDuration: { sorted: obDurationSorted, trimmed: obDurationTrimmed, median: medianOnboardingDuration },
+          },
+        }),
         graduationsInPeriod,
         activeImplementations,
         atRiskClients,
