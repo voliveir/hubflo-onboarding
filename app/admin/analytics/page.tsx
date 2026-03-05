@@ -176,18 +176,18 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     },
     timeToFirstValue: {
       name: 'Time to First Value',
-      description: 'The average number of days from client signup to their first onboarding call.',
-      logic: 'Only clients with actual first onboarding call data are included. For each client, calculates days between created_at and their first call date (by package), then averages. Click the metric to see the client list.'
+      description: 'The average number of business days (Mon–Fri, excluding weekends) from client signup to their first onboarding call.',
+      logic: 'Only clients with actual first onboarding call data are included. For each client, counts business days between created_at and their first call date (by package), then averages. Weekends are excluded. Click the metric to see the client list.'
     },
     avgOnboardingDuration: {
       name: 'Avg. Onboarding Duration',
-      description: 'The average time it takes for clients to complete onboarding.',
-      logic: 'Only clients with actual graduation data are included. Calculates days between created_at and graduation_date for each graduated client (within the selected date range), then averages. Click the metric to see the client list.'
+      description: 'The average time it takes for clients to complete onboarding, in business days only.',
+      logic: 'Only clients with actual graduation data are included. Counts business days (Mon–Fri) between created_at and graduation_date for each graduated client (within the selected date range), then averages. Weekends are excluded. Click the metric to see the client list.'
     },
     medianOnboardingDuration: {
       name: 'Median Onboarding Duration',
-      description: 'The median time it takes for clients to complete onboarding. Less affected by outliers than the average.',
-      logic: 'Uses the same clients as Avg. Onboarding Duration (graduated with valid data). Finds the median value (middle value when sorted by duration). Click the metric to see the client list.'
+      description: 'The median time it takes for clients to complete onboarding (business days only). Less affected by outliers than the average.',
+      logic: 'Uses the same clients as Avg. Onboarding Duration (graduated with valid data). Finds the median value (middle value when sorted by duration). Counts business days only—weekends excluded. Click the metric to see the client list.'
     },
     graduationsInPeriod: {
       name: 'Graduations in Period',
@@ -384,7 +384,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
         <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative border border-gray-200 max-h-[80vh] overflow-hidden flex flex-col">
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
           <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Clients in Avg. Onboarding Duration</h3>
-          <p className="text-sm text-gray-600 mb-4">Clients who have graduated with valid created and completion dates (created date → graduation date).</p>
+          <p className="text-sm text-gray-600 mb-4">Clients who have graduated with valid created and completion dates. Duration shown in business days only (Mon–Fri, excluding weekends).</p>
           <div className="overflow-y-auto flex-1">
             <table className="min-w-full">
               <thead>
@@ -392,7 +392,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
                   <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Client</th>
                   <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Created</th>
                   <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Completed</th>
-                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Duration</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Duration (business days)</th>
                 </tr>
               </thead>
               <tbody>
@@ -425,7 +425,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
         <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative border border-gray-200 max-h-[80vh] overflow-hidden flex flex-col">
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
           <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Clients in Time to First Value</h3>
-          <p className="text-sm text-gray-600 mb-4">Clients who have a first onboarding call date (created date → first call date). Only clients with actual data are included.</p>
+          <p className="text-sm text-gray-600 mb-4">Clients who have a first onboarding call date (created date → first call date). Days shown are business days only (Mon–Fri, excluding weekends).</p>
           <div className="overflow-y-auto flex-1">
             <table className="min-w-full">
               <thead>
@@ -433,7 +433,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
                   <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Client</th>
                   <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Created</th>
                   <th className="py-2 px-3 text-left" style={{color: '#060520'}}>First Call</th>
-                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Days</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Business days</th>
                 </tr>
               </thead>
               <tbody>
@@ -466,7 +466,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
         <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative border border-gray-200 max-h-[80vh] overflow-hidden flex flex-col">
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
           <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Clients in Median Onboarding Duration</h3>
-          <p className="text-sm text-gray-600 mb-4">Same clients as Avg. Onboarding Duration—graduated clients with valid data. Median is the middle value when sorted.</p>
+          <p className="text-sm text-gray-600 mb-4">Same clients as Avg. Onboarding Duration—graduated clients with valid data. Duration in business days (Mon–Fri). Median is the middle value when sorted.</p>
           <div className="overflow-y-auto flex-1">
             <table className="min-w-full">
               <thead>
@@ -474,7 +474,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
                   <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Client</th>
                   <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Created</th>
                   <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Completed</th>
-                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Duration</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Duration (business days)</th>
                 </tr>
               </thead>
               <tbody>
@@ -634,9 +634,9 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
 
   // Section 1: Implementation Health Metric Cards (live data)
   const implementationMetrics = [
-    { label: "Time to First Value", value: data.implementationHealth?.timeToFirstValue !== null ? `${data.implementationHealth?.timeToFirstValue} days` : "-" },
-    { label: "Avg. Onboarding Duration", value: data.implementationHealth?.avgOnboardingDuration !== null ? `${data.implementationHealth?.avgOnboardingDuration} days` : "-" },
-    { label: "Median Onboarding Duration", value: data.implementationHealth?.medianOnboardingDuration !== null ? `${data.implementationHealth?.medianOnboardingDuration} days` : "-" },
+    { label: "Time to First Value", value: data.implementationHealth?.timeToFirstValue ?? "-", unit: "business days" },
+    { label: "Avg. Onboarding Duration", value: data.implementationHealth?.avgOnboardingDuration ?? "-", unit: "business days" },
+    { label: "Median Onboarding Duration", value: data.implementationHealth?.medianOnboardingDuration ?? "-", unit: "business days" },
     { label: "Graduations in Period", value: data.implementationHealth?.graduationsInPeriod ?? "-" },
     { label: "Active Implementations", value: data.implementationHealth?.activeImplementations ?? "-" },
     { label: "At-Risk Clients", value: data.implementationHealth?.atRiskClients ?? "-", highlight: true },
@@ -879,7 +879,12 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
                   </TooltipProvider>
                 </div>
               </div>
-              <div className={`text-2xl lg:text-3xl font-extrabold ${m.highlight ? "text-amber-600" : ""}`} style={{color: m.highlight ? undefined : '#060520'}}>{m.value}</div>
+              <div className="flex flex-col items-center">
+                <span className={`text-2xl lg:text-3xl font-extrabold ${m.highlight ? "text-amber-600" : ""}`} style={{color: m.highlight ? undefined : '#060520'}}>{m.value}</span>
+                {"unit" in m && m.unit && m.value !== "-" && (
+                  <span className="text-xs text-gray-500 mt-0.5">{m.unit}</span>
+                )}
+              </div>
             </Card>
           ))}
         </div>

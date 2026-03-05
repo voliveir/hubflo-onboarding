@@ -1,11 +1,35 @@
 import { NextResponse } from 'next/server';
 import { getAnalyticsOverview, getAllClients } from '@/lib/database';
 
+/** Count calendar days between two dates (legacy, used for at-risk logic). */
 function daysBetween(start: string | undefined, end: string | undefined): number | null {
   if (!start || !end) return null;
   const s = new Date(start);
   const e = new Date(end);
   return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+/** Count business days only (Mon–Fri) strictly between two dates. Excludes weekends and both boundary dates. */
+function businessDaysBetween(start: string | undefined, end: string | undefined): number | null {
+  if (!start || !end) return null;
+  const startStr = start.split('T')[0] || start;
+  const endStr = end.split('T')[0] || end;
+  const [sy, sm, sd] = startStr.split('-').map(Number);
+  const [ey, em, ed] = endStr.split('-').map(Number);
+  if (!sy || !sm || !sd || !ey || !em || !ed) return null;
+  const s = new Date(sy, sm - 1, sd);
+  const e = new Date(ey, em - 1, ed);
+  if (e.getTime() <= s.getTime()) return null;
+  // Count business days strictly between (exclude start and end dates)
+  let count = 0;
+  const cursor = new Date(s);
+  cursor.setDate(cursor.getDate() + 1);
+  while (cursor.getTime() < e.getTime()) {
+    const day = cursor.getDay();
+    if (day !== 0 && day !== 6) count++;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return count;
 }
 
 function parseDate(date: string | null | undefined): Date | null {
@@ -146,7 +170,7 @@ export async function GET(req: Request) {
     implementationFilteredClients.forEach(client => {
       const firstCall = getFirstCallDate(client);
       const completedDate = client.graduation_date ?? undefined;
-      const ttfv = daysBetween(client.created_at, firstCall);
+      const ttfv = businessDaysBetween(client.created_at, firstCall);
       if (ttfv !== null && ttfv >= 0 && firstCall) {
         timeToFirstValueSum += ttfv;
         timeToFirstValueCount++;
@@ -159,7 +183,7 @@ export async function GET(req: Request) {
         });
       }
       if (completedDate) {
-        const dur = daysBetween(client.created_at, completedDate);
+        const dur = businessDaysBetween(client.created_at, completedDate);
         if (dur !== null && dur >= 0) {
           onboardingDurations.push(dur);
           graduationsInPeriod++;
@@ -188,7 +212,7 @@ export async function GET(req: Request) {
     implementationFilteredClients.forEach(client => {
       const completedDate = client.graduation_date ?? undefined;
       if (!completedDate) return;
-      const dur = daysBetween(client.created_at, completedDate);
+      const dur = businessDaysBetween(client.created_at, completedDate);
       if (dur !== null && dur >= 0) {
         const pkg = client.success_package || 'other';
         if (!durationByPackage[pkg]) durationByPackage[pkg] = [];
@@ -219,7 +243,7 @@ export async function GET(req: Request) {
     const avgOnboardingDurationClientList = implementationFilteredClients
       .filter(c => c.graduation_date && c.created_at)
       .map(c => {
-        const dur = daysBetween(c.created_at, c.graduation_date!);
+        const dur = businessDaysBetween(c.created_at, c.graduation_date!);
         return {
           id: c.id,
           name: c.name,
