@@ -915,7 +915,6 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                       : null;
 
                     const hasGraduationDate = !!(client.graduation_date && client.graduation_date.trim());
-                    const showGraduated = allFilled && onboardingFields.length > 0 && hasGraduationDate;
                     const showCheckFirstClientInvite =
                       allFilled && onboardingFields.length > 0 && !hasGraduationDate && daysSinceCreated >= 30;
                     const showScheduleAnotherCall =
@@ -954,7 +953,7 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                       alerts.push({ text: "Churned", color: "bg-red-900 text-white border border-red-950" });
                     } else {
                       if (missingFirstCall) alerts.push({ text: "No Onboarding Call", color: "bg-yellow-100 text-yellow-800 border border-yellow-200" });
-                      if (showGraduated) alerts.push({ text: "Graduated!", color: "bg-green-100 text-green-800 border border-green-200" });
+                      if (hasGraduationDate) alerts.push({ text: "Graduated!", color: "bg-green-100 text-green-800 border border-green-200" });
                       else if (allFilled) alerts.push({ text: "Finished Onboarding Calls", color: "bg-green-100 text-green-800 border border-green-200" });
                       if (someFilled) alerts.push({ text: "Pending Onboarding Calls", color: "bg-amber-100 text-amber-800 border border-amber-200" });
                       if (showCheckFirstClientInvite) alerts.push({ text: "Check First Client Invite (30+ days)", color: "bg-blue-100 text-blue-800 border border-blue-200" });
