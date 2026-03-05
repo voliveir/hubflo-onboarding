@@ -924,6 +924,23 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                       client.success_package !== "no_success" &&
                       (daysSinceLastCall === null || daysSinceLastCall > 14);
 
+                    const isAnnual = (client.billing_type || "").toLowerCase() === "annually" || (client.billing_type || "").toLowerCase() === "yearly";
+                    let contractExpiringAlert: { text: string; color: string } | null = null;
+                    if (isAnnual && !client.churned) {
+                      const contractStart = (client as any).contract_start_date ? new Date((client as any).contract_start_date) : (client.created_at ? new Date(client.created_at) : null);
+                      const contractEnd = (client as any).contract_end_date ? new Date((client as any).contract_end_date) : (contractStart ? new Date(contractStart.getFullYear() + 1, contractStart.getMonth(), contractStart.getDate()) : null);
+                      if (contractEnd) {
+                        const daysToExpiry = Math.round((contractEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                        if (daysToExpiry < 30 && daysToExpiry >= 0) {
+                          contractExpiringAlert = { text: "Contract expires in <30 days", color: "bg-red-100 text-red-800 border border-red-200" };
+                        } else if (daysToExpiry <= 60 && daysToExpiry > 30) {
+                          contractExpiringAlert = { text: "Contract expires in 60 days", color: "bg-orange-100 text-orange-800 border border-orange-200" };
+                        } else if (daysToExpiry <= 90 && daysToExpiry > 60) {
+                          contractExpiringAlert = { text: "Contract expires in 90 days", color: "bg-amber-100 text-amber-800 border border-amber-200" };
+                        }
+                      }
+                    }
+
                     let rowClass = "border-b border-gray-200 hover:bg-gray-50 transition-colors"
                     // Churned takes precedence over churn risk with deeper red
                     if (client.churned) {
@@ -933,19 +950,23 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                     }
 
                     const alerts = [];
-                    if (missingFirstCall) alerts.push({ text: "No Onboarding Call", color: "bg-yellow-100 text-yellow-800 border border-yellow-200" });
-                    if (showGraduated) alerts.push({ text: "Graduated!", color: "bg-green-100 text-green-800 border border-green-200" });
-                    else if (allFilled) alerts.push({ text: "Finished Onboarding Calls", color: "bg-green-100 text-green-800 border border-green-200" });
-                    if (someFilled) alerts.push({ text: "Pending Onboarding Calls", color: "bg-amber-100 text-amber-800 border border-amber-200" });
-                    if (showCheckFirstClientInvite) alerts.push({ text: "Check First Client Invite (30+ days)", color: "bg-blue-100 text-blue-800 border border-blue-200" });
-                    if (showScheduleAnotherCall) alerts.push({ text: "Schedule Another Call (2+ weeks)", color: "bg-orange-100 text-orange-800 border border-orange-200" });
-                    if (client.churned) alerts.push({ text: "Churned", color: "bg-red-900 text-white border border-red-950" });
-                    if (client.churn_risk) alerts.push({ text: "⚠ Churn Risk", color: "bg-red-600 text-white border border-red-700" });
-                    if (client.success_package === 'no_success') {
-                      if (client.onboarding_email_sent) {
-                        alerts.push({ text: "CSM Email Sent", color: "bg-green-100 text-green-800 border border-green-200" });
-                      } else {
-                        alerts.push({ text: "CSM Needs Email", color: "bg-yellow-100 text-yellow-800 border border-yellow-200" });
+                    if (client.churned) {
+                      alerts.push({ text: "Churned", color: "bg-red-900 text-white border border-red-950" });
+                    } else {
+                      if (missingFirstCall) alerts.push({ text: "No Onboarding Call", color: "bg-yellow-100 text-yellow-800 border border-yellow-200" });
+                      if (showGraduated) alerts.push({ text: "Graduated!", color: "bg-green-100 text-green-800 border border-green-200" });
+                      else if (allFilled) alerts.push({ text: "Finished Onboarding Calls", color: "bg-green-100 text-green-800 border border-green-200" });
+                      if (someFilled) alerts.push({ text: "Pending Onboarding Calls", color: "bg-amber-100 text-amber-800 border border-amber-200" });
+                      if (showCheckFirstClientInvite) alerts.push({ text: "Check First Client Invite (30+ days)", color: "bg-blue-100 text-blue-800 border border-blue-200" });
+                      if (showScheduleAnotherCall) alerts.push({ text: "Schedule Another Call (2+ weeks)", color: "bg-orange-100 text-orange-800 border border-orange-200" });
+                      if (contractExpiringAlert) alerts.push(contractExpiringAlert);
+                      if (client.churn_risk) alerts.push({ text: "⚠ Churn Risk", color: "bg-red-600 text-white border border-red-700" });
+                      if (client.success_package === 'no_success') {
+                        if (client.onboarding_email_sent) {
+                          alerts.push({ text: "CSM Email Sent", color: "bg-green-100 text-green-800 border border-green-200" });
+                        } else {
+                          alerts.push({ text: "CSM Needs Email", color: "bg-yellow-100 text-yellow-800 border border-yellow-200" });
+                        }
                       }
                     }
 
