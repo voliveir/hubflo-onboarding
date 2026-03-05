@@ -961,13 +961,6 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                       if (showScheduleAnotherCall) alerts.push({ text: "Schedule Another Call (2+ weeks)", color: "bg-orange-100 text-orange-800 border border-orange-200" });
                       if (contractExpiringAlert) alerts.push(contractExpiringAlert);
                       if (client.churn_risk) alerts.push({ text: "⚠ Churn Risk", color: "bg-red-600 text-white border border-red-700" });
-                      if (client.success_package === 'no_success') {
-                        if (client.onboarding_email_sent) {
-                          alerts.push({ text: "CSM Email Sent", color: "bg-green-100 text-green-800 border border-green-200" });
-                        } else {
-                          alerts.push({ text: "CSM Needs Email", color: "bg-yellow-100 text-yellow-800 border border-yellow-200" });
-                        }
-                      }
                     }
 
                     return (
