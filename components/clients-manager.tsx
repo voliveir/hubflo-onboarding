@@ -880,7 +880,6 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                       ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
                     ].filter((d): d is string => !!d).map(date => new Date(date))
                     const lastCallDate = callDates.length > 0 ? new Date(Math.max(...callDates.map(d => d.getTime()))) : null
-                    const now = new Date()
 
                     // Determine if the client is missing their first onboarding call
                     let missingFirstCall = false;
@@ -889,26 +888,23 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                     if (client.success_package === 'gold' && !client.gold_first_call_date) missingFirstCall = true;
                     if (client.success_package === 'elite' && !client.elite_configurations_started_date) missingFirstCall = true;
 
-                    // Check if last call was more than 2 weeks ago
-                    let showNoRecentCallNote = false;
-                    if (!missingFirstCall && lastCallDate) {
-                      const diffDays = (now.getTime() - lastCallDate.getTime()) / (1000 * 60 * 60 * 24);
-                      if (diffDays > 14) {
-                        showNoRecentCallNote = true;
-                      }
-                    }
-                    if (!missingFirstCall && !lastCallDate) {
-                      showNoRecentCallNote = true;
-                    }
-
-                    // Check if last call was more than 1 week ago (but less than 2 weeks)
-                    let showEmailReminder = false;
-                    if (!missingFirstCall && lastCallDate) {
-                      const diffDays = (now.getTime() - lastCallDate.getTime()) / (1000 * 60 * 60 * 24);
-                      if (diffDays > 7 && diffDays <= 14) {
-                        showEmailReminder = true;
-                      }
-                    }
+                    // Onboarding call fields per package (for finished/pending alerts)
+                    const onboardingFieldsByPackage: Record<string, (keyof Client)[]> = {
+                      light: ["light_onboarding_call_date"],
+                      starter: ["light_onboarding_call_date"],
+                      premium: ["premium_first_call_date", "premium_second_call_date"],
+                      professional: ["premium_first_call_date", "premium_second_call_date", "gold_first_call_date"],
+                      gold: ["gold_first_call_date", "gold_second_call_date", "gold_third_call_date"],
+                      elite: ["light_onboarding_call_date", "premium_first_call_date", "premium_second_call_date", "gold_first_call_date", "gold_second_call_date", "gold_third_call_date"],
+                      enterprise: ["light_onboarding_call_date", "premium_first_call_date", "premium_second_call_date", "gold_first_call_date", "gold_second_call_date", "gold_third_call_date"],
+                    };
+                    const onboardingFields = onboardingFieldsByPackage[client.success_package || ""] || [];
+                    const filledCount = onboardingFields.filter((f) => {
+                      const v = client[f];
+                      return v && (typeof v !== "string" || v.trim() !== "");
+                    }).length;
+                    const allFilled = onboardingFields.length > 0 && filledCount === onboardingFields.length;
+                    const someFilled = filledCount > 0 && !allFilled;
 
                     let rowClass = "border-b border-gray-200 hover:bg-gray-50 transition-colors"
                     // Churned takes precedence over churn risk with deeper red
@@ -920,8 +916,8 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
 
                     const alerts = [];
                     if (missingFirstCall) alerts.push({ text: "No Onboarding Call", color: "bg-yellow-100 text-yellow-800 border border-yellow-200" });
-                    if (showNoRecentCallNote) alerts.push({ text: "No Call 2+ Weeks", color: "bg-red-100 text-red-800 border border-red-200" });
-                    if (showEmailReminder) alerts.push({ text: "Email: 1+ Week", color: "bg-yellow-100 text-yellow-800 border border-yellow-200" });
+                    if (allFilled) alerts.push({ text: "Finished Onboarding Calls", color: "bg-green-100 text-green-800 border border-green-200" });
+                    if (someFilled) alerts.push({ text: "Pending Onboarding Calls", color: "bg-amber-100 text-amber-800 border border-amber-200" });
                     if (client.churned) alerts.push({ text: "Churned", color: "bg-red-900 text-white border border-red-950" });
                     if (client.churn_risk) alerts.push({ text: "⚠ Churn Risk", color: "bg-red-600 text-white border border-red-700" });
                     if (client.success_package === 'no_success') {
