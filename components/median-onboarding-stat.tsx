@@ -68,7 +68,7 @@ export function MedianOnboardingStat() {
                 {Number.isInteger(value) ? value : value.toFixed(1)}
               </span>
               <span className="text-sm font-medium" style={{ color: "#64748b" }}>
-                median business days to launch
+                median business days to launch MVP
               </span>
             </div>
             <div className="hidden sm:block h-10 w-px" style={{ backgroundColor: "rgba(236, 178, 45, 0.3)" }} />
