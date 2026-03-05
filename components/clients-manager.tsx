@@ -20,6 +20,20 @@ import { ClientQuickAddPopover } from "./client-quick-add-popover"
 import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
 import { useRouter, useSearchParams } from "next/navigation"
 
+const ALERT_FILTER_OPTIONS = [
+  { value: "no_onboarding_call", label: "No Onboarding Call" },
+  { value: "graduated", label: "Graduated!" },
+  { value: "finished_onboarding_calls", label: "Finished Onboarding Calls" },
+  { value: "pending_onboarding_calls", label: "Pending Onboarding Calls" },
+  { value: "check_first_client_invite", label: "Check First Client Invite (30+ days)" },
+  { value: "schedule_another_call", label: "Schedule Another Call (2+ weeks)" },
+  { value: "contract_expires_90", label: "Contract expires in 90 days" },
+  { value: "contract_expires_60", label: "Contract expires in 60 days" },
+  { value: "contract_expires_30", label: "Contract expires in <30 days" },
+  { value: "churned", label: "Churned" },
+  { value: "churn_risk", label: "Churn Risk" },
+] as const
+
 interface FilterState {
   searchTerm: string
   status: string
@@ -34,6 +48,7 @@ interface FilterState {
   revenueMax: string
   implementationManager: string
   no_onboarding_call?: boolean
+  alertType: string
 }
 
 export function ClientsManager({ initialStatus, initialImplementationManager }: { initialStatus?: string, initialImplementationManager?: string } = {}) {
@@ -61,6 +76,7 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
     revenueMax: "",
     implementationManager: initialImplementationManager || "",
     no_onboarding_call: false,
+    alertType: "",
   })
 
   const [sortColumn, setSortColumn] = useState<string | null>(null)
@@ -187,6 +203,11 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
       });
     }
 
+    // Filter by alert type
+    if (filters.alertType && filters.alertType !== "all") {
+      filtered = filtered.filter(client => getClientAlertSlugs(client).includes(filters.alertType))
+    }
+
     setFilteredClients(filtered)
   }
 
@@ -201,6 +222,61 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
       ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
     ].filter((d): d is string => !!d).map(date => new Date(date))
     return callDates.length > 0 ? new Date(Math.max(...callDates.map(d => d.getTime()))) : null
+  }
+
+  const getClientAlertSlugs = (client: Client): string[] => {
+    const slugs: string[] = []
+    const now = new Date()
+    const lastCallDate = getLastCallDate(client)
+    let missingFirstCall = false
+    if (client.success_package === "light" && !client.light_onboarding_call_date) missingFirstCall = true
+    if (client.success_package === "premium" && !client.premium_first_call_date) missingFirstCall = true
+    if (client.success_package === "gold" && !client.gold_first_call_date) missingFirstCall = true
+    if (client.success_package === "elite" && !client.elite_configurations_started_date) missingFirstCall = true
+    const onboardingFieldsByPackage: Record<string, (keyof Client)[]> = {
+      light: ["light_onboarding_call_date"],
+      starter: ["light_onboarding_call_date"],
+      premium: ["premium_first_call_date", "premium_second_call_date"],
+      professional: ["premium_first_call_date", "premium_second_call_date", "gold_first_call_date"],
+      gold: ["gold_first_call_date", "gold_second_call_date", "gold_third_call_date"],
+      elite: ["light_onboarding_call_date", "premium_first_call_date", "premium_second_call_date", "gold_first_call_date", "gold_second_call_date", "gold_third_call_date"],
+      enterprise: ["light_onboarding_call_date", "premium_first_call_date", "premium_second_call_date", "gold_first_call_date", "gold_second_call_date", "gold_third_call_date"],
+    }
+    const onboardingFields = onboardingFieldsByPackage[client.success_package || ""] || []
+    const filledCount = onboardingFields.filter((f) => {
+      const v = client[f]
+      return v && (typeof v !== "string" || v.trim() !== "")
+    }).length
+    const allFilled = onboardingFields.length > 0 && filledCount === onboardingFields.length
+    const someFilled = filledCount > 0 && !allFilled
+    const daysSinceCreated = client.created_at ? Math.floor((now.getTime() - new Date(client.created_at).getTime()) / (1000 * 60 * 60 * 24)) : 0
+    const daysSinceLastCall = lastCallDate ? Math.floor((now.getTime() - lastCallDate.getTime()) / (1000 * 60 * 60 * 24)) : null
+    const hasGraduationDate = !!(client.graduation_date && client.graduation_date.trim())
+    const showCheckFirstClientInvite = allFilled && onboardingFields.length > 0 && !hasGraduationDate && daysSinceCreated >= 30
+    const showScheduleAnotherCall = !allFilled && onboardingFields.length > 0 && client.success_package !== "no_success" && (daysSinceLastCall === null || daysSinceLastCall > 14)
+    if (client.churned) {
+      slugs.push("churned")
+    } else {
+      if (missingFirstCall) slugs.push("no_onboarding_call")
+      if (hasGraduationDate) slugs.push("graduated")
+      else if (allFilled) slugs.push("finished_onboarding_calls")
+      if (someFilled) slugs.push("pending_onboarding_calls")
+      if (showCheckFirstClientInvite) slugs.push("check_first_client_invite")
+      if (showScheduleAnotherCall) slugs.push("schedule_another_call")
+      if (client.churn_risk) slugs.push("churn_risk")
+      const isAnnual = (client.billing_type || "").toLowerCase() === "annually" || (client.billing_type || "").toLowerCase() === "yearly"
+      if (isAnnual) {
+        const contractStart = (client as any).contract_start_date ? new Date((client as any).contract_start_date) : (client.created_at ? new Date(client.created_at) : null)
+        const contractEnd = (client as any).contract_end_date ? new Date((client as any).contract_end_date) : (contractStart ? new Date(contractStart.getFullYear() + 1, contractStart.getMonth(), contractStart.getDate()) : null)
+        if (contractEnd) {
+          const daysToExpiry = Math.round((contractEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+          if (daysToExpiry < 30 && daysToExpiry >= 0) slugs.push("contract_expires_30")
+          else if (daysToExpiry <= 60 && daysToExpiry > 30) slugs.push("contract_expires_60")
+          else if (daysToExpiry <= 90 && daysToExpiry > 60) slugs.push("contract_expires_90")
+        }
+      }
+    }
+    return slugs
   }
 
   const sortedClients = useMemo(() => {
@@ -277,16 +353,48 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
       usersMax: "",
       revenueMin: "",
       revenueMax: "",
-      implementationManager: ""
+      implementationManager: "",
+      no_onboarding_call: false,
+      alertType: "",
     })
   }
 
   const hasActiveFilters = () => {
-    return Object.values(filters).some(value => value !== "")
+    const hasStringFilters = !!(
+      filters.searchTerm ||
+      (filters.status && filters.status !== "all") ||
+      (filters.successPackage && filters.successPackage !== "all") ||
+      (filters.billingType && filters.billingType !== "all") ||
+      (filters.planType && filters.planType !== "all") ||
+      filters.dateFrom ||
+      filters.dateTo ||
+      filters.usersMin ||
+      filters.usersMax ||
+      filters.revenueMin ||
+      filters.revenueMax ||
+      (filters.implementationManager && filters.implementationManager !== "all") ||
+      (filters.alertType && filters.alertType !== "all")
+    )
+    return hasStringFilters || !!filters.no_onboarding_call
   }
 
   const getActiveFiltersCount = () => {
-    return Object.values(filters).filter(value => value !== "").length
+    let count = 0
+    if (filters.searchTerm) count++
+    if (filters.status && filters.status !== "all") count++
+    if (filters.successPackage && filters.successPackage !== "all") count++
+    if (filters.billingType && filters.billingType !== "all") count++
+    if (filters.planType && filters.planType !== "all") count++
+    if (filters.dateFrom) count++
+    if (filters.dateTo) count++
+    if (filters.usersMin) count++
+    if (filters.usersMax) count++
+    if (filters.revenueMin) count++
+    if (filters.revenueMax) count++
+    if (filters.implementationManager && filters.implementationManager !== "all") count++
+    if (filters.alertType && filters.alertType !== "all") count++
+    if (filters.no_onboarding_call) count++
+    return count
   }
 
   const loadClients = async () => {
@@ -751,6 +859,22 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Alert Filter */}
+                <div className="space-y-2">
+                  <Label htmlFor="alert-filter" className="text-sm font-medium" style={{color: '#060520'}}>Alert</Label>
+                  <Select value={filters.alertType || "all"} onValueChange={(value) => updateFilter("alertType", value)}>
+                    <SelectTrigger id="alert-filter" className="h-9 bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold">
+                      <SelectValue placeholder="All alerts" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All alerts</SelectItem>
+                      {ALERT_FILTER_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -824,6 +948,16 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                 {filters.implementationManager && (
                   <span className="bg-brand-gold/20 border border-brand-gold/30 text-brand-gold px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
                     Manager: {managers.find(m => m.manager_id === filters.implementationManager)?.name || filters.implementationManager}
+                  </span>
+                )}
+                {filters.alertType && filters.alertType !== "all" && (
+                  <span className="bg-brand-gold/20 border border-brand-gold/30 text-brand-gold px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
+                    Alert: {ALERT_FILTER_OPTIONS.find(o => o.value === filters.alertType)?.label || filters.alertType}
+                  </span>
+                )}
+                {filters.no_onboarding_call && (
+                  <span className="bg-brand-gold/20 border border-brand-gold/30 text-brand-gold px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">
+                    No Onboarding Call
                   </span>
                 )}
               </div>
@@ -948,18 +1082,18 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                       rowClass += " bg-red-50"
                     }
 
-                    const alerts = [];
+                    const alerts: { text: string; color: string; slug: string }[] = [];
                     if (client.churned) {
-                      alerts.push({ text: "Churned", color: "bg-red-900 text-white border border-red-950" });
+                      alerts.push({ text: "Churned", color: "bg-red-900 text-white border border-red-950", slug: "churned" });
                     } else {
-                      if (missingFirstCall) alerts.push({ text: "No Onboarding Call", color: "bg-yellow-100 text-yellow-800 border border-yellow-200" });
-                      if (hasGraduationDate) alerts.push({ text: "Graduated!", color: "bg-green-100 text-green-800 border border-green-200" });
-                      else if (allFilled) alerts.push({ text: "Finished Onboarding Calls", color: "bg-green-100 text-green-800 border border-green-200" });
-                      if (someFilled) alerts.push({ text: "Pending Onboarding Calls", color: "bg-amber-100 text-amber-800 border border-amber-200" });
-                      if (showCheckFirstClientInvite) alerts.push({ text: "Check First Client Invite (30+ days)", color: "bg-blue-100 text-blue-800 border border-blue-200" });
-                      if (showScheduleAnotherCall) alerts.push({ text: "Schedule Another Call (2+ weeks)", color: "bg-orange-100 text-orange-800 border border-orange-200" });
-                      if (contractExpiringAlert) alerts.push(contractExpiringAlert);
-                      if (client.churn_risk) alerts.push({ text: "⚠ Churn Risk", color: "bg-red-600 text-white border border-red-700" });
+                      if (missingFirstCall) alerts.push({ text: "No Onboarding Call", color: "bg-yellow-100 text-yellow-800 border border-yellow-200", slug: "no_onboarding_call" });
+                      if (hasGraduationDate) alerts.push({ text: "Graduated!", color: "bg-green-100 text-green-800 border border-green-200", slug: "graduated" });
+                      else if (allFilled) alerts.push({ text: "Finished Onboarding Calls", color: "bg-green-100 text-green-800 border border-green-200", slug: "finished_onboarding_calls" });
+                      if (someFilled) alerts.push({ text: "Pending Onboarding Calls", color: "bg-amber-100 text-amber-800 border border-amber-200", slug: "pending_onboarding_calls" });
+                      if (showCheckFirstClientInvite) alerts.push({ text: "Check First Client Invite (30+ days)", color: "bg-blue-100 text-blue-800 border border-blue-200", slug: "check_first_client_invite" });
+                      if (showScheduleAnotherCall) alerts.push({ text: "Schedule Another Call (2+ weeks)", color: "bg-orange-100 text-orange-800 border border-orange-200", slug: "schedule_another_call" });
+                      if (contractExpiringAlert) alerts.push({ ...contractExpiringAlert, slug: contractExpiringAlert.text.includes("<30") ? "contract_expires_30" : contractExpiringAlert.text.includes("60 days") ? "contract_expires_60" : "contract_expires_90" });
+                      if (client.churn_risk) alerts.push({ text: "⚠ Churn Risk", color: "bg-red-600 text-white border border-red-700", slug: "churn_risk" });
                     }
 
                     return (
@@ -1045,9 +1179,20 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                         <TableCell className="text-xs min-w-[180px] px-3 py-2">
                           <div className="flex flex-wrap gap-1">
                             {alerts.map((alert, idx) => (
-                              <span key={idx} className={`px-2 py-0.5 rounded text-xs font-semibold whitespace-nowrap ${alert.color}`}>
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  updateFilter("alertType", filters.alertType === alert.slug ? "" : alert.slug)
+                                  setFiltersOpen(true)
+                                }}
+                                className={`px-2 py-0.5 rounded text-xs font-semibold whitespace-nowrap ${alert.color} hover:opacity-90 cursor-pointer transition-opacity`}
+                                title="Click to filter by this alert"
+                              >
                                 {alert.text}
-                              </span>
+                              </button>
                             ))}
                             {alerts.length === 0 && <span className="text-gray-400">—</span>}
                           </div>
