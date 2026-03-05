@@ -125,22 +125,38 @@ export async function GET(req: Request) {
       }
     });
 
+    // Helper: first onboarding call date by package (only packages that track first call)
+    function getFirstCallDate(client: any): string | undefined {
+      const pkg = (client.success_package || '').toLowerCase();
+      if (pkg === 'light' || pkg === 'starter') return client.light_onboarding_call_date ?? undefined;
+      if (pkg === 'premium' || pkg === 'professional') return client.premium_first_call_date ?? undefined;
+      if (pkg === 'gold') return client.gold_first_call_date ?? undefined;
+      if (pkg === 'elite' || pkg === 'enterprise') return client.elite_configurations_started_date ?? undefined;
+      return undefined;
+    }
+
     // Implementation Health Metrics (use implementationFilteredClients for date-range scoping)
+    // Only count clients that have actual data for each metric
     let timeToFirstValueSum = 0, timeToFirstValueCount = 0;
+    const timeToFirstValueClientList: { id: string; name: string; created_at: string; first_call_date: string; days: number }[] = [];
     const onboardingDurations: number[] = [];
     let activeImplementations = 0;
     let atRiskClients = 0;
     let graduationsInPeriod = 0;
     implementationFilteredClients.forEach(client => {
-      let firstCall: string | undefined = undefined;
-      if (client.success_package === 'light') firstCall = client.light_onboarding_call_date ?? undefined;
-      else if (client.success_package === 'premium') firstCall = client.premium_first_call_date ?? undefined;
-      else if (client.success_package === 'gold') firstCall = client.gold_first_call_date ?? undefined;
+      const firstCall = getFirstCallDate(client);
       const completedDate = client.graduation_date ?? undefined;
       const ttfv = daysBetween(client.created_at, firstCall);
-      if (ttfv !== null && ttfv >= 0) {
+      if (ttfv !== null && ttfv >= 0 && firstCall) {
         timeToFirstValueSum += ttfv;
         timeToFirstValueCount++;
+        timeToFirstValueClientList.push({
+          id: client.id,
+          name: client.name,
+          created_at: client.created_at || '',
+          first_call_date: firstCall,
+          days: ttfv,
+        });
       }
       if (completedDate) {
         const dur = daysBetween(client.created_at, completedDate);
@@ -199,9 +215,9 @@ export async function GET(req: Request) {
       if (bucket) bucket.count++;
     });
 
-    // Clients contributing to avg onboarding duration (for modal)
+    // Clients contributing to avg/median onboarding duration (for modal) - only clients with valid graduation data
     const avgOnboardingDurationClientList = implementationFilteredClients
-      .filter(c => c.graduation_date)
+      .filter(c => c.graduation_date && c.created_at)
       .map(c => {
         const dur = daysBetween(c.created_at, c.graduation_date!);
         return {
@@ -211,7 +227,8 @@ export async function GET(req: Request) {
           graduation_date: c.graduation_date,
           duration_days: dur !== null && dur >= 0 ? dur : null,
         };
-      });
+      })
+      .filter(c => c.duration_days != null);
 
     // Build lists for implementation modals (use implementationFilteredClients for date-range consistency)
     const activeImplementationClientList = implementationFilteredClients
@@ -315,6 +332,7 @@ export async function GET(req: Request) {
       },
       implementationHealth: {
         timeToFirstValue: timeToFirstValue !== null ? Number(timeToFirstValue.toFixed(1)) : null,
+        timeToFirstValueClientList,
         avgOnboardingDuration: avgOnboardingDuration !== null ? Number(avgOnboardingDuration.toFixed(1)) : null,
         avgOnboardingDurationClientList,
         medianOnboardingDuration: medianOnboardingDuration !== null ? Number(medianOnboardingDuration.toFixed(1)) : null,

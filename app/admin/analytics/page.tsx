@@ -51,6 +51,8 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
   const [showActiveImplementationsModal, setShowActiveImplementationsModal] = useState(false);
   const [showAtRiskClientsModal, setShowAtRiskClientsModal] = useState(false);
   const [showAvgOnboardingDurationModal, setShowAvgOnboardingDurationModal] = useState(false);
+  const [showTimeToFirstValueModal, setShowTimeToFirstValueModal] = useState(false);
+  const [showMedianOnboardingDurationModal, setShowMedianOnboardingDurationModal] = useState(false);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -174,18 +176,18 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     },
     timeToFirstValue: {
       name: 'Time to First Value',
-      description: 'The average number of days from client signup to their first onboarding milestone (e.g., first call).',
-      logic: 'For each client, calculates days between created_at and their first onboarding call date, then averages across all clients.'
+      description: 'The average number of days from client signup to their first onboarding call.',
+      logic: 'Only clients with actual first onboarding call data are included. For each client, calculates days between created_at and their first call date (by package), then averages. Click the metric to see the client list.'
     },
     avgOnboardingDuration: {
       name: 'Avg. Onboarding Duration',
       description: 'The average time it takes for clients to complete onboarding.',
-      logic: 'For each client, calculates days between created_at and graduation_date, then averages across all clients who have graduated (within the selected date range).'
+      logic: 'Only clients with actual graduation data are included. Calculates days between created_at and graduation_date for each graduated client (within the selected date range), then averages. Click the metric to see the client list.'
     },
     medianOnboardingDuration: {
       name: 'Median Onboarding Duration',
       description: 'The median time it takes for clients to complete onboarding. Less affected by outliers than the average.',
-      logic: 'For each graduated client, calculates days between created_at and graduation_date, then finds the median value (middle value when sorted).'
+      logic: 'Uses the same clients as Avg. Onboarding Duration (graduated with valid data). Finds the median value (middle value when sorted by duration). Click the metric to see the client list.'
     },
     graduationsInPeriod: {
       name: 'Graduations in Period',
@@ -382,7 +384,89 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
         <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative border border-gray-200 max-h-[80vh] overflow-hidden flex flex-col">
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
           <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Clients in Avg. Onboarding Duration</h3>
-          <p className="text-sm text-gray-600 mb-4">Clients who have graduated (created date → completed date).</p>
+          <p className="text-sm text-gray-600 mb-4">Clients who have graduated with valid created and completion dates (created date → graduation date).</p>
+          <div className="overflow-y-auto flex-1">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Client</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Created</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Completed</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Duration</th>
+                </tr>
+              </thead>
+              <tbody>
+                {safeClients.length === 0 ? (
+                  <tr><td colSpan={4} className="py-4 text-center text-gray-600">No graduated clients in this period.</td></tr>
+                ) : (
+                  safeClients.map((client) => (
+                    <tr key={client.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="py-2 px-3" style={{color: '#060520'}}>{client.name}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.created_at ? new Date(client.created_at).toLocaleDateString() : '-'}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.graduation_date ? new Date(client.graduation_date).toLocaleDateString() : '-'}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.duration_days != null ? `${client.duration_days} days` : '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 6b. Time to First Value Modal - clients with first onboarding call data
+  function TimeToFirstValueModal({ open, onClose, clients }: { open: boolean, onClose: () => void, clients: any[] }) {
+    if (!open) return null;
+    const safeClients = Array.isArray(clients) ? clients : [];
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative border border-gray-200 max-h-[80vh] overflow-hidden flex flex-col">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
+          <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Clients in Time to First Value</h3>
+          <p className="text-sm text-gray-600 mb-4">Clients who have a first onboarding call date (created date → first call date). Only clients with actual data are included.</p>
+          <div className="overflow-y-auto flex-1">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Client</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Created</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>First Call</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Days</th>
+                </tr>
+              </thead>
+              <tbody>
+                {safeClients.length === 0 ? (
+                  <tr><td colSpan={4} className="py-4 text-center text-gray-600">No clients with first call data in this period.</td></tr>
+                ) : (
+                  safeClients.map((client) => (
+                    <tr key={client.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="py-2 px-3" style={{color: '#060520'}}>{client.name}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.created_at ? new Date(client.created_at).toLocaleDateString() : '-'}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.first_call_date ? new Date(client.first_call_date).toLocaleDateString() : '-'}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.days != null ? `${client.days} days` : '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 6c. Median Onboarding Duration Modal - same clients as avg
+  function MedianOnboardingDurationModal({ open, onClose, clients }: { open: boolean, onClose: () => void, clients: any[] }) {
+    if (!open) return null;
+    const safeClients = Array.isArray(clients) ? clients : [];
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative border border-gray-200 max-h-[80vh] overflow-hidden flex flex-col">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
+          <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Clients in Median Onboarding Duration</h3>
+          <p className="text-sm text-gray-600 mb-4">Same clients as Avg. Onboarding Duration—graduated clients with valid data. Median is the middle value when sorted.</p>
           <div className="overflow-y-auto flex-1">
             <table className="min-w-full">
               <thead>
@@ -761,9 +845,11 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
           {implementationMetrics.map((m, i) => (
             <Card
               key={i}
-              className={`shadow-lg p-6 flex flex-col items-center justify-center border rounded-2xl ${m.highlight ? "border-2 border-amber-400 bg-amber-50/50" : "border-gray-200 bg-white"} ${(m.label === "Avg. Onboarding Duration" || m.label === "Active Implementations" || m.label === "At-Risk Clients") ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""}`}
-              onClick={(m.label === "Avg. Onboarding Duration" || m.label === "Active Implementations" || m.label === "At-Risk Clients") ? () => {
-                if (m.label === "Avg. Onboarding Duration") setShowAvgOnboardingDurationModal(true);
+              className={`shadow-lg p-6 flex flex-col items-center justify-center border rounded-2xl ${m.highlight ? "border-2 border-amber-400 bg-amber-50/50" : "border-gray-200 bg-white"} ${["Time to First Value", "Avg. Onboarding Duration", "Median Onboarding Duration", "Active Implementations", "At-Risk Clients"].includes(m.label) ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""}`}
+              onClick={["Time to First Value", "Avg. Onboarding Duration", "Median Onboarding Duration", "Active Implementations", "At-Risk Clients"].includes(m.label) ? () => {
+                if (m.label === "Time to First Value") setShowTimeToFirstValueModal(true);
+                else if (m.label === "Avg. Onboarding Duration") setShowAvgOnboardingDurationModal(true);
+                else if (m.label === "Median Onboarding Duration") setShowMedianOnboardingDurationModal(true);
                 else if (m.label === "Active Implementations") setShowActiveImplementationsModal(true);
                 else setShowAtRiskClientsModal(true);
               } : undefined}
@@ -1116,6 +1202,16 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
       <AvgOnboardingDurationModal
         open={showAvgOnboardingDurationModal}
         onClose={() => setShowAvgOnboardingDurationModal(false)}
+        clients={data.implementationHealth?.avgOnboardingDurationClientList || []}
+      />
+      <TimeToFirstValueModal
+        open={showTimeToFirstValueModal}
+        onClose={() => setShowTimeToFirstValueModal(false)}
+        clients={data.implementationHealth?.timeToFirstValueClientList || []}
+      />
+      <MedianOnboardingDurationModal
+        open={showMedianOnboardingDurationModal}
+        onClose={() => setShowMedianOnboardingDurationModal(false)}
         clients={data.implementationHealth?.avgOnboardingDurationClientList || []}
       />
     </div>
