@@ -125,6 +125,8 @@ export default function TimeTrackingPage() {
     try {
       const params = new URLSearchParams()
       if (clientId) params.append("client_id", clientId)
+      if (dateRange.from) params.append("start_date", dateRange.from)
+      if (dateRange.to) params.append("end_date", dateRange.to)
 
       const response = await fetch(`/api/time-entries/summary?${params.toString()}`)
       const data = await response.json()
@@ -671,6 +673,7 @@ export default function TimeTrackingPage() {
               <div className="flex items-center gap-2 mt-4 flex-wrap">
                 <span className="text-sm text-gray-600">Quick filters:</span>
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setDateRange(getQuickDateRange("this_month"))}
@@ -679,6 +682,7 @@ export default function TimeTrackingPage() {
                   This Month
                 </Button>
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setDateRange(getQuickDateRange("last_month"))}
@@ -687,6 +691,7 @@ export default function TimeTrackingPage() {
                   Last Month
                 </Button>
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setDateRange(getQuickDateRange("this_quarter"))}
@@ -695,6 +700,7 @@ export default function TimeTrackingPage() {
                   This Quarter
                 </Button>
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setDateRange(getQuickDateRange("this_year"))}
@@ -703,6 +709,7 @@ export default function TimeTrackingPage() {
                   This Year
                 </Button>
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => {

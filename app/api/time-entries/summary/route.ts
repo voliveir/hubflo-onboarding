@@ -15,6 +15,8 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const clientId = searchParams.get("client_id")
+    const startDate = searchParams.get("start_date")
+    const endDate = searchParams.get("end_date")
 
     let query = supabase.rpc("get_client_total_time", { client_uuid: clientId || null })
 
@@ -25,10 +27,19 @@ export async function GET(request: NextRequest) {
 
       if (error) {
         // Fallback to manual calculation if function doesn't exist
-        const { data: entries, error: entriesError } = await supabase
+        let entriesQuery = supabase
           .from("client_time_entries")
           .select("entry_type, duration_minutes")
           .eq("client_id", clientId)
+
+        if (startDate) {
+          entriesQuery = entriesQuery.gte("date", startDate)
+        }
+        if (endDate) {
+          entriesQuery = entriesQuery.lte("date", endDate)
+        }
+
+        const { data: entries, error: entriesError } = await entriesQuery
 
         if (entriesError) {
           console.error("Error fetching time entries:", entriesError)
@@ -56,9 +67,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Get summary for all clients
-    const { data: entries, error: entriesError } = await supabase
+    let allClientsQuery = supabase
       .from("client_time_entries")
       .select("client_id, entry_type, duration_minutes, client:clients(id, name, revenue_amount, success_package)")
+
+    if (startDate) {
+      allClientsQuery = allClientsQuery.gte("date", startDate)
+    }
+    if (endDate) {
+      allClientsQuery = allClientsQuery.lte("date", endDate)
+    }
+
+    const { data: entries, error: entriesError } = await allClientsQuery
 
     if (entriesError) {
       console.error("Error fetching time entries:", entriesError)
