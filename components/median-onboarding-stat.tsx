@@ -86,9 +86,10 @@ export function MedianOnboardingStat() {
             </div>
           </div>
         </div>
-        <p className="text-xs text-center max-w-xl" style={{ color: "#94a3b8" }}>
-          From when payment is first received for Hubflo to when your first client is invited using your minimal viable portal. This does not include advanced integrations and/or automations. Graduation in Hubflo is when you invite your first client.
-        </p>
+        <div className="text-xs text-center max-w-xl space-y-2" style={{ color: "#94a3b8" }}>
+          <p>From when payment is first received for Hubflo to when your first client is invited using your <strong className="font-semibold" style={{ color: "#64748b" }}>minimal viable portal</strong> (a first version with limited scope—typically 2–3 apps such as file sharing, forms, contracts, or messaging, plus basics like branding and custom domain). Graduation in Hubflo is when you invite your first client.</p>
+          <p>This does not include advanced integrations and/or automations. Timeline depends on: how quickly your first kickoff or onboarding call is scheduled, how long it takes to send documentation for your workflow (SOPs, etc.), and how quickly you can schedule and complete assigned tasks.</p>
+        </div>
       </div>
     </motion.div>
   )
