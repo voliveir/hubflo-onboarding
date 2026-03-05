@@ -9,7 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Phone, FileText, BookOpen, Zap, Loader2, Plus, GraduationCap } from "lucide-react"
+import { Phone, FileText, BookOpen, Zap, Loader2, Plus, GraduationCap, UserX, AlertTriangle, UserCheck } from "lucide-react"
 import type { Client } from "@/lib/types"
 
 interface ClientQuickAddPopoverProps {
@@ -69,6 +69,27 @@ export function ClientQuickAddPopover({ client, onUpdate, compact = true }: Clie
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ graduation_date: graduationDate || null }),
+      })
+      const data = await res.json()
+      if (res.ok && data.client) {
+        onUpdate?.(data.client)
+        router.refresh()
+        setOpen(false)
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const handleChurnStatus = async (churned: boolean, churn_risk: boolean) => {
+    setLoading("churn")
+    try {
+      const res = await fetch(`/api/clients/${client.id}/churn-status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ churned, churn_risk }),
       })
       const data = await res.json()
       if (res.ok && data.client) {
@@ -184,6 +205,44 @@ export function ClientQuickAddPopover({ client, onUpdate, compact = true }: Clie
                 Set
               </Button>
             </div>
+          </div>
+          {/* Churn status quick actions */}
+          <div className="space-y-1 border-t border-gray-100 mt-1 pt-2">
+            <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              Churn status
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-full justify-start gap-2 text-xs font-normal text-red-700 hover:bg-red-50 hover:text-red-800"
+              onClick={() => handleChurnStatus(true, false)}
+              disabled={!!loading || client.churned}
+            >
+              {loading === "churn" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserX className="h-3.5 w-3.5" />}
+              Mark as Churned
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-full justify-start gap-2 text-xs font-normal text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+              onClick={() => handleChurnStatus(false, true)}
+              disabled={!!loading || client.churn_risk || client.churned}
+            >
+              {loading === "churn" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+              Mark as Churn Risk
+            </Button>
+            {(client.churned || client.churn_risk) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-full justify-start gap-2 text-xs font-normal"
+                onClick={() => handleChurnStatus(false, false)}
+                disabled={!!loading}
+              >
+                {loading === "churn" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserCheck className="h-3.5 w-3.5" />}
+                Clear churn status
+              </Button>
+            )}
           </div>
         </div>
       </PopoverContent>
