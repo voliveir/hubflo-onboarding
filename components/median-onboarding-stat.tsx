@@ -14,7 +14,10 @@ export function MedianOnboardingStat() {
       .then((res) => res.json())
       .then((data) => {
         const median = data?.implementationHealth?.medianOnboardingDuration
-        setValue(median != null ? Number(median) : null)
+        const avg = data?.implementationHealth?.avgOnboardingDuration
+        // Use median when available; fall back to average when median is null (e.g. < 7 clients for trimmed median)
+        const num = median != null ? Number(median) : avg != null ? Number(avg) : null
+        setValue(num)
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false))
@@ -37,7 +40,10 @@ export function MedianOnboardingStat() {
     )
   }
 
-  if (error || value === null) return null
+  if (error) return null
+
+  // Show section even when no data—use placeholder so visitors see the section
+  const showValue = value != null
 
   return (
     <motion.div
@@ -65,7 +71,7 @@ export function MedianOnboardingStat() {
             </div>
             <div className="flex flex-col">
               <span className="text-3xl lg:text-4xl font-bold" style={{ color: "#060520" }}>
-                {Number.isInteger(value) ? value : value.toFixed(1)}
+                {showValue ? (Number.isInteger(value) ? value : value!.toFixed(1)) : "—"}
               </span>
               <span className="text-sm font-medium" style={{ color: "#64748b" }}>
                 median business days to launch
