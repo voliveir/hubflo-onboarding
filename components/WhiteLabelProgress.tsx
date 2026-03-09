@@ -145,7 +145,7 @@ const STATE_VARIANTS = {
 
 function StatusPill({ variant }: { variant: string }) {
   const variants = {
-    not_started: "bg-gray-500/20 text-gray-300 border-gray-500/40",
+    not_started: "bg-gray-200 text-gray-800 border-gray-400",
     in_progress: "bg-brand-gold/20 text-brand-gold border-brand-gold/40",
     waiting_for_approval: "bg-orange-500/20 text-orange-300 border-orange-500/40", 
     complete: "bg-green-500/20 text-green-300 border-green-500/40"
