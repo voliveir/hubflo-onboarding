@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PrimaryButton, SecondaryButton } from "@/components/ui/button-variants"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Settings, FileText, Users, Calendar, Star, ExternalLink, FileSignature, ClipboardList, Rocket, Target } from "lucide-react"
+import { CheckCircle, Settings, FileText, Users, Calendar, Star, ExternalLink, FileSignature, ClipboardList, Rocket, Target, Lock, Key } from "lucide-react"
 
 interface SupportLink {
   url: string
@@ -41,8 +41,14 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
   const [expandedVideos, setExpandedVideos] = useState<Set<string>>(new Set())
   const [expandedSupport, setExpandedSupport] = useState<Set<string>>(new Set())
 
+  const [unlockedSections, setUnlockedSections] = useState<{ contract: boolean; form: boolean; project: boolean }>({
+    contract: false,
+    form: false,
+    project: false,
+  })
+
   // Define the checklist structure based on the new requirements
-  const getChecklistTasks = (): ChecklistTask[] => {
+  const getChecklistTasks = (unlocked: { contract: boolean; form: boolean; project: boolean }): ChecklistTask[] => {
     const baseTasks: ChecklistTask[] = [
       // Section 1: Setup Basics & Foundations (Hubflo Labs is a separate section above this checklist)
       {
@@ -190,7 +196,9 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
           },
         ],
       },
-      // Section: Setup Your Contract (If Needed)
+    ]
+
+    const contractTasks: ChecklistTask[] = [
       {
         id: "contract-pdf",
         title: "Convert Your Contract Template to PDF",
@@ -199,16 +207,10 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         subtasks: ["Leave blank space for fields signees will fill out", "Leave blank space for sections that need dynamic replacement"],
         completed: false,
         accountability: "Client",
-        section: "Setup Your Contract (If Needed)",
+        section: "Setup Your Contract",
         supportLinks: [
-          {
-            url: "https://support.hubflo.com/en/articles/9455020-create-and-manage-smartdocs",
-            title: "Create and Manage SmartDocs",
-          },
-          {
-            url: "https://support.hubflo.com/en/collections/9572880-smartdocs",
-            title: "SmartDocs Help Center",
-          },
+          { url: "https://support.hubflo.com/en/articles/9455020-create-and-manage-smartdocs", title: "Create and Manage SmartDocs" },
+          { url: "https://support.hubflo.com/en/collections/9572880-smartdocs", title: "SmartDocs Help Center" },
         ],
       },
       {
@@ -218,13 +220,8 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
           "Head to SmartDocs in Hubflo and upload your PDF or Word document. SmartDocs lets you send contracts for signature or approval to clients — manually or automatically — with an experience familiar from tools like DocuSign. When you have a new client, you can send your main SmartDoc or duplicate it to create a fresh instance.",
         completed: false,
         accountability: "Client",
-        section: "Setup Your Contract (If Needed)",
-        supportLinks: [
-          {
-            url: "https://support.hubflo.com/en/articles/9455020-create-and-manage-smartdocs",
-            title: "Create and Manage SmartDocs",
-          },
-        ],
+        section: "Setup Your Contract",
+        supportLinks: [{ url: "https://support.hubflo.com/en/articles/9455020-create-and-manage-smartdocs", title: "Create and Manage SmartDocs" }],
       },
       {
         id: "contract-add-fields",
@@ -234,15 +231,12 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         subtasks: ["Add name, email, address, and other signee fields", "Use heading fields for static sections like terms"],
         completed: false,
         accountability: "Client",
-        section: "Setup Your Contract (If Needed)",
-        supportLinks: [
-          {
-            url: "https://support.hubflo.com/en/articles/9455020-create-and-manage-smartdocs",
-            title: "Create and Manage SmartDocs",
-          },
-        ],
+        section: "Setup Your Contract",
+        supportLinks: [{ url: "https://support.hubflo.com/en/articles/9455020-create-and-manage-smartdocs", title: "Create and Manage SmartDocs" }],
       },
-      // Section: Setup Your First Form (If Needed)
+    ]
+
+    const formTasks: ChecklistTask[] = [
       {
         id: "create-first-form",
         title: "Create Your First Form",
@@ -255,55 +249,40 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         ],
         completed: false,
         accountability: "Client",
-        section: "Setup Your First Form (If Needed)",
-        supportLinks: [
-          {
-            url: "https://support.hubflo.com/en/articles/10335671-create-and-manage-hubflo-forms",
-            title: "Create and Manage Hubflo Forms",
-          },
-        ],
+        section: "Setup Your First Form",
+        supportLinks: [{ url: "https://support.hubflo.com/en/articles/10335671-create-and-manage-hubflo-forms", title: "Create and Manage Hubflo Forms" }],
       },
     ]
 
-    // Add project tasks if projects are enabled
-    if (client.projects_enabled) {
-      baseTasks.splice(
-        4,
-        0,
-        {
-          id: "custom-fields",
-          title: "Add Custom Fields To Your Project",
-          description:
-            "Define the data you want to track on each project — status, deadline, budget, client type, or anything else that matters to your workflow. Custom fields appear on project cards and in filters, so you can see at a glance what's in progress, overdue, or ready for handoff. Add fields that match how you actually work, not just the defaults.",
-          completed: false,
-          accountability: "Client",
-          section: "Setup Your Project Board",
-          videoUrls: ["https://www.tella.tv/video/how-to-add-custom-fields-to-your-projects-3-frtl"],
-          supportLinks: [
-            {
-              url: "https://support.hubflo.com/en/articles/8613085-create-and-manage-custom-fields",
-              title: "Create and Manage Custom Fields",
-            },
-          ],
-        },
-        {
-          id: "configure-project-board",
-          title: "Configure Your Project Board (Organize Internally)",
-          description:
-            "Organize your project board so your team can find and manage work efficiently. Set up columns or stages (e.g. Not Started, In Progress, Review, Complete) that mirror your process. Decide how projects are grouped, sorted, and filtered. This is your internal view — clients see their own workspaces; the project board is where you track everything across clients.",
-          completed: false,
-          accountability: "Client",
-          section: "Setup Your Project Board",
-          videoUrls: ["https://www.tella.tv/video/configuring-project-boards-1-8t4g"],
-          supportLinks: [
-            {
-              url: "https://support.hubflo.com/en/articles/11128526-getting-started-with-projects",
-              title: "Getting Started with Projects",
-            },
-          ],
-        },
-      )
-    }
+    if (unlocked.contract) baseTasks.push(...contractTasks)
+    if (unlocked.form) baseTasks.push(...formTasks)
+
+    const projectTasks: ChecklistTask[] = [
+      {
+        id: "custom-fields",
+        title: "Add Custom Fields To Your Project",
+        description:
+          "Define the data you want to track on each project — status, deadline, budget, client type, or anything else that matters to your workflow. Custom fields appear on project cards and in filters, so you can see at a glance what's in progress, overdue, or ready for handoff. Add fields that match how you actually work, not just the defaults.",
+        completed: false,
+        accountability: "Client",
+        section: "Setup Your Project Board",
+        videoUrls: ["https://www.tella.tv/video/how-to-add-custom-fields-to-your-projects-3-frtl"],
+        supportLinks: [{ url: "https://support.hubflo.com/en/articles/8613085-create-and-manage-custom-fields", title: "Create and Manage Custom Fields" }],
+      },
+      {
+        id: "configure-project-board",
+        title: "Configure Your Project Board (Organize Internally)",
+        description:
+          "Organize your project board so your team can find and manage work efficiently. Set up columns or stages (e.g. Not Started, In Progress, Review, Complete) that mirror your process. Decide how projects are grouped, sorted, and filtered. This is your internal view — clients see their own workspaces; the project board is where you track everything across clients.",
+        completed: false,
+        accountability: "Client",
+        section: "Setup Your Project Board",
+        videoUrls: ["https://www.tella.tv/video/configuring-project-boards-1-8t4g"],
+        supportLinks: [{ url: "https://support.hubflo.com/en/articles/11128526-getting-started-with-projects", title: "Getting Started with Projects" }],
+      },
+    ]
+
+    if (unlocked.project) baseTasks.splice(4, 0, ...projectTasks)
 
     // Add success session for premium packages
     if (["premium", "gold", "elite"].includes(client.success_package.toLowerCase())) {
@@ -389,14 +368,17 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
       try {
         setLoading(true)
 
-        // Get the base tasks structure
-        const baseTasks = getChecklistTasks()
-
-        // Load completion status from database
         const { getTaskCompletions } = await import("@/lib/database")
-        const completions = await getTaskCompletions(clientId)
+        const completions = clientId && clientId !== "undefined" ? await getTaskCompletions(clientId) : {}
 
-        // Apply completion status from database
+        const unlocked = {
+          contract: !!completions["section-unlock-contract"],
+          form: !!completions["section-unlock-form"],
+          project: !!completions["section-unlock-project"],
+        }
+        setUnlockedSections(unlocked)
+
+        const baseTasks = getChecklistTasks(unlocked)
         const tasksWithCompletion = baseTasks.map((task) => ({
           ...task,
           completed: completions[task.id] || false,
@@ -405,8 +387,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         setTasks(tasksWithCompletion)
       } catch (error) {
         console.error("Error loading checklist data:", error)
-        // Fallback to base tasks without completion status
-        setTasks(getChecklistTasks())
+        setTasks(getChecklistTasks({ contract: false, form: false, project: false }))
       } finally {
         setLoading(false)
       }
@@ -415,11 +396,65 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
     if (clientId && clientId !== "undefined") {
       loadChecklistData()
     } else {
-      // If no valid clientId, just show the base tasks
-      setTasks(getChecklistTasks())
+      setTasks(getChecklistTasks({ contract: false, form: false, project: false }))
       setLoading(false)
     }
   }, [clientId, client])
+
+  const handleUnlockSection = async (section: "contract" | "form" | "project") => {
+    try {
+      setUpdating(`unlock-${section}`)
+      const newUnlocked = { ...unlockedSections, [section]: true }
+
+      if (clientId && clientId !== "undefined") {
+        const { updateTaskCompletion, getTaskCompletions } = await import("@/lib/database")
+        await updateTaskCompletion(clientId, `section-unlock-${section}`, true)
+        const completions = await getTaskCompletions(clientId)
+        const baseTasks = getChecklistTasks(newUnlocked)
+        const tasksWithCompletion = baseTasks.map((task) => ({
+          ...task,
+          completed: completions[task.id] || false,
+        }))
+        setTasks(tasksWithCompletion)
+      } else {
+        setTasks(getChecklistTasks(newUnlocked))
+      }
+      setUnlockedSections(newUnlocked)
+    } catch (error) {
+      console.error("Error unlocking section:", error)
+      alert("Failed to unlock. Please try again.")
+    } finally {
+      setUpdating(null)
+    }
+  }
+
+  const handleLockSection = async (section: "contract" | "form" | "project") => {
+    if (!confirm("Hide these tasks? You can add them back anytime by clicking the lock.")) return
+    try {
+      setUpdating(`lock-${section}`)
+      const newUnlocked = { ...unlockedSections, [section]: false }
+
+      if (clientId && clientId !== "undefined") {
+        const { updateTaskCompletion, getTaskCompletions } = await import("@/lib/database")
+        await updateTaskCompletion(clientId, `section-unlock-${section}`, false)
+        const completions = await getTaskCompletions(clientId)
+        const baseTasks = getChecklistTasks(newUnlocked)
+        const tasksWithCompletion = baseTasks.map((task) => ({
+          ...task,
+          completed: completions[task.id] || false,
+        }))
+        setTasks(tasksWithCompletion)
+      } else {
+        setTasks(getChecklistTasks(newUnlocked))
+      }
+      setUnlockedSections(newUnlocked)
+    } catch (error) {
+      console.error("Error locking section:", error)
+      alert("Failed to hide these tasks. Please try again.")
+    } finally {
+      setUpdating(null)
+    }
+  }
 
   const toggleTask = async (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId)
@@ -462,9 +497,9 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         return "border-[#ECB22D] bg-yellow-50"
       case "Setup Workspaces & Tasks":
         return "border-[#ECB22D] bg-yellow-50"
-      case "Setup Your Contract (If Needed)":
+      case "Setup Your Contract":
         return "border-[#ECB22D] bg-yellow-50"
-      case "Setup Your First Form (If Needed)":
+      case "Setup Your First Form":
         return "border-[#ECB22D] bg-yellow-50"
       case "Schedule session with Success team":
         return "border-[#ECB22D] bg-yellow-50"
@@ -483,9 +518,9 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         return <FileText className="h-5 w-5 text-[#010124]" />
       case "Setup Workspaces & Tasks":
         return <Users className="h-5 w-5 text-[#010124]" />
-      case "Setup Your Contract (If Needed)":
+      case "Setup Your Contract":
         return <FileSignature className="h-5 w-5 text-[#010124]" />
-      case "Setup Your First Form (If Needed)":
+      case "Setup Your First Form":
         return <ClipboardList className="h-5 w-5 text-[#010124]" />
       case "Schedule session with Success team":
         return <Calendar className="h-5 w-5 text-[#010124]" />
@@ -541,9 +576,59 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
     {} as Record<string, ChecklistTask[]>,
   )
 
+  const isPremium = ["premium", "gold", "elite"].includes(client.success_package?.toLowerCase() || "")
+  const sectionOrder = [
+    "Setup Basics & Foundations",
+    "Setup Your Project Board",
+    "Setup Workspaces & Tasks",
+    "Setup Your Contract",
+    "Setup Your First Form",
+    ...(isPremium ? (["Schedule session with Success team"] as const) : []),
+    "Maximize Client Engagement",
+  ]
+
   const completedTasks = tasks.filter((task) => task.completed).length
   const totalTasks = tasks.length
   const overallProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+
+  const LockCard = ({
+    section,
+    question,
+    unlockTaskId,
+  }: {
+    section: "contract" | "form" | "project"
+    question: string
+    unlockTaskId: string
+  }) => (
+    <div>
+      <button
+        type="button"
+        onClick={() => handleUnlockSection(section)}
+        disabled={updating === unlockTaskId}
+        className="w-full bg-white rounded-2xl border-2 border-dashed border-gray-300 hover:border-brand-gold/50 hover:bg-brand-gold/5 p-8 text-left transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <div className="flex items-center space-x-4">
+          <div className="w-14 h-14 rounded-xl flex items-center justify-center border-2 border-gray-200 group-hover:border-brand-gold/40 bg-gray-50 group-hover:bg-brand-gold/10 transition-colors">
+            <Lock className="h-7 w-7 text-gray-400 group-hover:text-brand-gold" />
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-medium mb-1" style={{ color: '#060520' }}>
+              {question}
+            </p>
+            <p className="text-sm flex items-center gap-2" style={{ color: '#64748b' }}>
+              <Key className="h-4 w-4 text-brand-gold" />
+              Click to add these tasks to your checklist
+            </p>
+          </div>
+          {updating === unlockTaskId ? (
+            <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Key className="h-5 w-5 text-brand-gold opacity-0 group-hover:opacity-100 transition-opacity" />
+          )}
+        </div>
+      </button>
+    </div>
+  )
 
   if (loading) {
     return (
@@ -605,7 +690,32 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
 
         {/* Checklist Sections */}
         <div className="max-w-4xl mx-auto space-y-8">
-          {Object.entries(tasksBySection).map(([sectionName, sectionTasks]) => {
+          {sectionOrder.map((sectionName) => {
+            if (sectionName === "Setup Your Project Board" && !unlockedSections.project) {
+              return (
+                <div key={sectionName}>
+                  <LockCard section="project" question="Planning to use the project board?" unlockTaskId="unlock-project" />
+                </div>
+              )
+            }
+            if (sectionName === "Setup Your Contract" && !unlockedSections.contract) {
+              return (
+                <div key={sectionName}>
+                  <LockCard section="contract" question="Planning to use contracts?" unlockTaskId="unlock-contract" />
+                </div>
+              )
+            }
+            if (sectionName === "Setup Your First Form" && !unlockedSections.form) {
+              return (
+                <div key={sectionName}>
+                  <LockCard section="form" question="Planning to use forms?" unlockTaskId="unlock-form" />
+                </div>
+              )
+            }
+
+            const sectionTasks = tasksBySection[sectionName] || []
+            if (sectionTasks.length === 0) return null
+
             const sectionCompleted = sectionTasks.filter((task) => task.completed).length
             const sectionTotal = sectionTasks.length
             const sectionProgress = sectionTotal > 0 ? Math.round((sectionCompleted / sectionTotal) * 100) : 0
@@ -636,6 +746,30 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
                     style={{ width: `${sectionProgress}%` }}
                   ></div>
                 </div>
+                {(() => {
+                  const gatedSection =
+                    sectionName === "Setup Your Project Board"
+                      ? ("project" as const)
+                      : sectionName === "Setup Your Contract"
+                        ? ("contract" as const)
+                        : sectionName === "Setup Your First Form"
+                          ? ("form" as const)
+                          : null
+                  return gatedSection ? (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <button
+                        type="button"
+                        onClick={() => handleLockSection(gatedSection)}
+                        disabled={updating === `lock-${gatedSection}`}
+                        className="flex items-center gap-2 text-sm hover:text-brand-gold transition-colors disabled:opacity-50"
+                        style={{ color: '#64748b' }}
+                      >
+                        <Lock className="h-4 w-4" />
+                        Changed your mind? Hide these tasks
+                      </button>
+                    </div>
+                  ) : null
+                })()}
                 {sectionName === "Maximize Client Engagement" && (
                   <p className="mt-6 text-base leading-relaxed" style={{ color: '#64748b' }}>
                     As with every app or website, the best way to drive your clients to your portal is to make it as easy as possible for them to access it and to ensure they understand how you'll use it.
@@ -787,7 +921,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
                   ))}
                 </div>
               </div>
-              {sectionName === "Setup Your First Form (If Needed)" && (
+              {sectionName === "Setup Your First Form" && (
                 <div className="bg-gradient-to-br from-brand-gold/5 to-brand-gold/10 rounded-2xl border-2 border-brand-gold/30 shadow-sm p-8">
                   <div className="flex items-start space-x-4">
                     <div className="w-14 h-14 bg-brand-gold/20 rounded-xl flex items-center justify-center flex-shrink-0">
