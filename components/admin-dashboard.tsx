@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { DatabaseStatusCheck } from "@/components/database-status-check"
 import { ImplementationManagerDashboard } from "@/components/implementation-manager-dashboard"
 import { getAllClients, getWebhookData, getClientActivityLog } from "@/lib/database"
-import { Users, Package, TrendingUp, AlertCircle, Plus, CheckCircle, Clock, User, Activity } from "lucide-react"
+import { AlertCircle, CheckCircle, Clock, User, Activity } from "lucide-react"
 import Link from "next/link"
 import { format, parseISO, isBefore, formatDistanceToNow } from "date-fns"
 import type { TaskCompletion } from "@/lib/types"
@@ -176,82 +176,37 @@ export function AdminDashboard() {
     )
   }
 
+  const packages = [
+    { label: 'Light', value: stats.packageBreakdown.light, color: 'bg-emerald-500', light: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700' },
+    { label: 'Premium', value: stats.packageBreakdown.premium, color: 'bg-blue-500', light: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
+    { label: 'Gold', value: stats.packageBreakdown.gold, color: 'bg-amber-500', light: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700' },
+    { label: 'Elite', value: stats.packageBreakdown.elite, color: 'bg-violet-500', light: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700' },
+  ]
+
   return (
     <div className="space-y-8">
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        {[
-          {
-            label: 'Total Clients',
-            value: stats.totalClients,
-            icon: <Users className="h-10 w-10 text-blue-500" />,
-            labelColor: 'text-blue-600',
-            bgColor: 'bg-blue-50',
-            borderColor: 'border-blue-200',
-          },
-          {
-            label: 'Active Clients',
-            value: stats.activeClients,
-            icon: <Users className="h-10 w-10 text-green-500" />,
-            labelColor: 'text-green-600',
-            bgColor: 'bg-green-50',
-            borderColor: 'border-green-200',
-          },
-          {
-            label: 'Avg Progress',
-            value: `${stats.averageProgress}%`,
-            icon: <TrendingUp className="h-10 w-10 text-yellow-500" />,
-            labelColor: 'text-yellow-600',
-            bgColor: 'bg-yellow-50',
-            borderColor: 'border-yellow-200',
-          },
-          {
-            label: 'Premium+',
-            value: stats.packageBreakdown.premium + stats.packageBreakdown.gold + stats.packageBreakdown.elite,
-            icon: <Package className="h-10 w-10 text-purple-500" />,
-            labelColor: 'text-purple-600',
-            bgColor: 'bg-purple-50',
-            borderColor: 'border-purple-200',
-          },
-        ].map((stat, i) => (
-          <div key={i} className={`rounded-2xl ${stat.bgColor} border ${stat.borderColor} shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center p-6 min-h-[140px]`}>
-            <div className="mb-3">{stat.icon}</div>
-            <div className="text-4xl font-bold" style={{color: '#060520'}}>{stat.value}</div>
-            <div className={`text-sm mt-2 font-semibold tracking-wide ${stat.labelColor}`}>{stat.label}</div>
+      {/* Client overview – single card */}
+      <div className="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
+        <div className="p-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+            <div>
+              <p className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Total clients</p>
+              <p className="text-4xl sm:text-5xl font-bold tracking-tight" style={{ color: '#060520' }}>
+                {stats.totalClients}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              {packages.map((pkg, i) => (
+                <div
+                  key={i}
+                  className={`inline-flex items-center gap-2 rounded-xl border ${pkg.border} ${pkg.light} px-4 py-2.5 min-w-[7rem] justify-between sm:justify-center`}
+                >
+                  <span className={`text-2xl font-bold`} style={{ color: '#060520' }}>{pkg.value}</span>
+                  <span className={`text-sm font-semibold ${pkg.text}`}>{pkg.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
-
-      {/* Package Breakdown as mini cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Light', value: stats.packageBreakdown.light, color: 'bg-green-500', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-700' },
-          { label: 'Premium', value: stats.packageBreakdown.premium, color: 'bg-blue-500', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-700' },
-          { label: 'Gold', value: stats.packageBreakdown.gold, color: 'bg-yellow-400', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', textColor: 'text-yellow-700' },
-          { label: 'Elite', value: stats.packageBreakdown.elite, color: 'bg-purple-500', bgColor: 'bg-purple-50', borderColor: 'border-purple-200', textColor: 'text-purple-700' },
-        ].map((pkg, i) => (
-          <div key={i} className={`rounded-2xl ${pkg.bgColor} border ${pkg.borderColor} shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center p-4 min-h-[100px]`}>
-            <div className={`text-3xl font-bold mb-2`} style={{color: '#060520'}}>{pkg.value}</div>
-            <div className={`text-sm mt-1 px-3 py-1 rounded-full ${pkg.color} text-white font-semibold tracking-wide`}>{pkg.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="rounded-2xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-8">
-        <div className="flex flex-col sm:flex-row gap-6 w-full justify-center">
-          <Button asChild className="flex items-center justify-center gap-3 bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] font-bold rounded-xl shadow-md hover:shadow-lg py-6 px-8 w-full sm:w-auto hover:scale-105 transition-transform" size="lg">
-            <Link href="/admin/clients/new">
-              <Plus className="h-6 w-6" />
-              <span>Add New Client</span>
-            </Link>
-          </Button>
-          <Button asChild className="flex items-center justify-center gap-3 bg-gradient-to-br from-[#F2C94C] to-[#F2994A] text-[#010124] font-bold rounded-xl shadow-md hover:shadow-lg py-6 px-8 w-full sm:w-auto hover:scale-105 transition-transform" size="lg">
-            <Link href="/admin/integrations">
-              <Package className="h-6 w-6" />
-              <span>Manage Integrations</span>
-            </Link>
-          </Button>
         </div>
       </div>
 
