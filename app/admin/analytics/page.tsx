@@ -8,7 +8,6 @@ import { Loader2, Download, RefreshCw, HelpCircle, TrendingUp, TrendingDown, Min
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { PasswordProtection } from "@/components/password-protection";
-import { PieChart, Pie, Legend as RechartsLegend } from "recharts";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import type { ReactElement } from "react";
 
@@ -773,6 +772,7 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
         </h1>
         <p className="text-xl max-w-4xl leading-relaxed mb-8" style={{color: '#64748b'}}>Track key metrics and business performance</p>
       </div>
+
       <div className="flex flex-wrap gap-4 mb-8 items-end">
         {filterOptions.map((filter) => (
           <div key={filter.key} className="flex flex-col">

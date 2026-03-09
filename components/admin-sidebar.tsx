@@ -35,6 +35,7 @@ const navigation = [
     icon: TrendingUp,
     children: [
       { name: "Analytics Dashboard", href: "/admin/analytics" },
+      { name: "Implementation Report", href: "/admin/analytics/company-call" },
       { name: "Time Tracking", href: "/admin/analytics/time-tracking" },
       { name: "Activity Analytics", href: "/admin/analytics/activity" },
       { name: "Activity Timeline", href: "/admin/activity-timeline" },

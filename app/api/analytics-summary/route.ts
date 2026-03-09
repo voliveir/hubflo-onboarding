@@ -9,6 +9,27 @@ function daysBetween(start: string | undefined, end: string | undefined): number
   return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+/** Count business days from start to end inclusive (Mon–Fri only). Used for graduation duration. */
+function businessDaysInclusive(start: string | undefined, end: string | undefined): number | null {
+  if (!start || !end) return null;
+  const startStr = (start.split('T')[0] || start).trim();
+  const endStr = (end.split('T')[0] || end).trim();
+  const [sy, sm, sd] = startStr.split('-').map(Number);
+  const [ey, em, ed] = endStr.split('-').map(Number);
+  if (!sy || !sm || !sd || !ey || !em || !ed) return null;
+  const s = new Date(sy, sm - 1, sd);
+  const e = new Date(ey, em - 1, ed);
+  if (e.getTime() < s.getTime()) return null;
+  let count = 0;
+  const cursor = new Date(s);
+  while (cursor.getTime() <= e.getTime()) {
+    const day = cursor.getDay();
+    if (day !== 0 && day !== 6) count++;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return count;
+}
+
 /** Count business days only (Mon–Fri) strictly between two dates. Excludes weekends and both boundary dates. */
 function businessDaysBetween(start: string | undefined, end: string | undefined): number | null {
   if (!start || !end) return null;
@@ -68,6 +89,7 @@ export async function GET(req: Request) {
     const dateRange = url.searchParams.get('date_range'); // '30' | '60' | '90' | 'custom'
     const dateStart = url.searchParams.get('date_start'); // YYYY-MM-DD for custom
     const dateEnd = url.searchParams.get('date_end'); // YYYY-MM-DD for custom
+    const reportMonth = url.searchParams.get('report_month'); // 'YYYY-MM' for Monthly Company Call view
     const debug = url.searchParams.get('debug') === '1';
 
     let clients = await getAllClients();
@@ -356,6 +378,109 @@ export async function GET(req: Request) {
       if (year > maxYear) maxYear = year;
     });
 
+    // Monthly Company Call report: clients added in a specific month
+    let monthlyReport: {
+      month: string;
+      year: number;
+      monthName: string;
+      clientsAdded: number;
+      arrFromNewClients: number;
+      clientsAddedList: { id: string; name: string; success_package: string; plan_type: string; billing_type: string; revenue_amount: number; created_at: string }[];
+      packageBreakdown: Record<string, { count: number; arr: number }>;
+      planTypeBreakdown: Record<string, { count: number; arr: number }>;
+      billingTypeBreakdown: Record<string, { count: number; arr: number }>;
+      graduationsInMonth: number;
+      graduationsList: { id: string; name: string; success_package: string; billing_type: string; created_at: string; graduation_date: string; duration_days: number | null }[];
+    } | null = null;
+
+    if (reportMonth) {
+      const [y, m] = reportMonth.split('-').map(Number);
+      if (y && m >= 1 && m <= 12) {
+        const rangeStart = new Date(y, m - 1, 1);
+        const rangeEnd = new Date(y, m, 0, 23, 59, 59);
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+        const clientsInMonth = allNonDemoClients.filter(c => {
+          const created = new Date(c.created_at);
+          return created >= rangeStart && created <= rangeEnd && !c.churned;
+        });
+
+        const packageBreakdown: Record<string, { count: number; arr: number }> = {};
+        const planTypeBreakdown: Record<string, { count: number; arr: number }> = {};
+        const billingTypeBreakdown: Record<string, { count: number; arr: number }> = {};
+        let arrFromNewClients = 0;
+
+        const normalizeBilling = (bt: string | undefined) => {
+          const b = (bt || '').toLowerCase();
+          if (b === 'yearly') return 'annually';
+          return b || 'unknown';
+        };
+
+        clientsInMonth.forEach(c => {
+          const rev = Number(c.revenue_amount) || 0;
+          arrFromNewClients += rev;
+          const pkg = c.success_package || 'unknown';
+          const plan = c.plan_type || 'unknown';
+          const billing = normalizeBilling(c.billing_type);
+          if (!packageBreakdown[pkg]) packageBreakdown[pkg] = { count: 0, arr: 0 };
+          packageBreakdown[pkg].count++;
+          packageBreakdown[pkg].arr += rev;
+          if (!planTypeBreakdown[plan]) planTypeBreakdown[plan] = { count: 0, arr: 0 };
+          planTypeBreakdown[plan].count++;
+          planTypeBreakdown[plan].arr += rev;
+          if (!billingTypeBreakdown[billing]) billingTypeBreakdown[billing] = { count: 0, arr: 0 };
+          billingTypeBreakdown[billing].count++;
+          billingTypeBreakdown[billing].arr += rev;
+        });
+
+        const graduationsInMonth = allNonDemoClients.filter(c => {
+          const grad = c.graduation_date ? new Date(c.graduation_date) : null;
+          return grad && grad >= rangeStart && grad <= rangeEnd && !c.churned;
+        });
+
+        monthlyReport = {
+          month: reportMonth,
+          year: y,
+          monthName: monthNames[m - 1],
+          clientsAdded: clientsInMonth.length,
+          arrFromNewClients: Math.round(arrFromNewClients * 100) / 100,
+          clientsAddedList: clientsInMonth
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .map(c => ({
+              id: c.id,
+              name: c.name,
+              success_package: c.success_package || 'unknown',
+              plan_type: c.plan_type || 'unknown',
+              billing_type: normalizeBilling(c.billing_type),
+              revenue_amount: Number(c.revenue_amount) || 0,
+              created_at: c.created_at,
+            })),
+          packageBreakdown,
+          planTypeBreakdown,
+          billingTypeBreakdown,
+          graduationsInMonth: graduationsInMonth.length,
+          graduationsList: graduationsInMonth.map(c => {
+            const created = c.created_at;
+            const graduated = c.graduation_date ?? undefined;
+            let dur = businessDaysInclusive(created, graduated);
+            if (dur == null || dur < 0) {
+              const calendarDays = daysBetween(created, graduated);
+              dur = calendarDays != null && calendarDays >= 0 ? calendarDays : null;
+            }
+            return {
+              id: c.id,
+              name: c.name,
+              success_package: c.success_package || 'unknown',
+              billing_type: normalizeBilling(c.billing_type),
+              created_at: c.created_at,
+              graduation_date: c.graduation_date ?? '',
+              duration_days: dur,
+            };
+          }).sort((a, b) => (a.duration_days ?? 999) - (b.duration_days ?? 999)),
+        };
+      }
+    }
+
     return NextResponse.json({
       ...analytics,
       arr,
@@ -417,6 +542,7 @@ export async function GET(req: Request) {
       revenueLostToChurnedClients,
       revenueAtRiskChurn,
       arrByMonth,
+      monthlyReport,
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch analytics summary.' }, { status: 500 });
