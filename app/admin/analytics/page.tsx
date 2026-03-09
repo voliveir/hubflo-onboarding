@@ -350,24 +350,28 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     const safeClients = Array.isArray(clients) ? clients : [];
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg relative border border-gray-200">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl relative border border-gray-200">
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 text-2xl font-bold hover:text-gray-900">×</button>
           <h3 className="text-xl font-bold mb-4" style={{color: '#060520'}}>Churned Clients</h3>
-          <div className="overflow-y-auto max-h-[60vh]">
+          <div className="overflow-x-auto overflow-y-auto max-h-[60vh]">
             <table className="min-w-full">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Name</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Package</th>
+                  <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Revenue</th>
                   <th className="py-2 px-3 text-left" style={{color: '#060520'}}>Implementation Manager</th>
                 </tr>
               </thead>
               <tbody>
                 {safeClients.length === 0 ? (
-                  <tr><td colSpan={2} className="py-4 text-center text-gray-600">No churned clients.</td></tr>
+                  <tr><td colSpan={4} className="py-4 text-center text-gray-600">No churned clients.</td></tr>
                 ) : (
-                  safeClients.map((client, idx) => (
+                  safeClients.map((client) => (
                     <tr key={client.id} className="border-b border-gray-200 hover:bg-gray-50">
                       <td className="py-2 px-3" style={{color: '#060520'}}>{client.name}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>{client.success_package ?? '-'}</td>
+                      <td className="py-2 px-3" style={{color: '#64748b'}}>${(client.revenue_amount ?? 0).toLocaleString()}</td>
                       <td className="py-2 px-3" style={{color: '#64748b'}}>{client.implementation_manager ?? '-'}</td>
                     </tr>
                   ))
@@ -1274,6 +1278,23 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
             <div className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.churnRiskClients ?? '-'}</div>
           </Card>
         </div>
+
+        {/* Churn by package breakdown */}
+        {data.churnedByPackage && Object.keys(data.churnedByPackage).length > 0 && (
+          <Card className="bg-white shadow-lg p-6 border border-gray-200 rounded-2xl mt-6">
+            <h3 className="text-base font-semibold mb-3" style={{color: '#060520'}}>Churned clients by package</h3>
+            <div className="flex flex-wrap gap-4">
+              {Object.entries(data.churnedByPackage)
+                .sort(([, a], [, b]) => b - a)
+                .map(([pkg, count]) => (
+                  <div key={pkg} className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-600 capitalize">{pkg === 'unknown' ? 'Unknown' : pkg}</span>
+                    <span className="text-lg font-bold" style={{color: '#060520'}}>{count}</span>
+                  </div>
+                ))}
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* Modal for metric explanations */}

@@ -308,7 +308,18 @@ export async function GET(req: Request) {
     if (status) filteredChurnedClients = filteredChurnedClients.filter(c => c.status === status);
     
     const churnedClients = filteredChurnedClients.length;
-    const churnedClientList = filteredChurnedClients.map(c => ({ id: c.id, name: c.name, implementation_manager: c.implementation_manager }));
+    const churnedClientList = filteredChurnedClients.map(c => ({
+      id: c.id,
+      name: c.name,
+      implementation_manager: c.implementation_manager,
+      success_package: c.success_package ?? null,
+      revenue_amount: typeof c.revenue_amount === 'number' ? c.revenue_amount : Number(c.revenue_amount) || 0,
+    }));
+    const churnedByPackage: Record<string, number> = {};
+    filteredChurnedClients.forEach(c => {
+      const pkg = c.success_package || 'unknown';
+      churnedByPackage[pkg] = (churnedByPackage[pkg] || 0) + 1;
+    });
     const churnRate = allNonDemoClients.length > 0 ? (churnedClients / allNonDemoClients.length) * 100 : 0;
 
     // Revenue lost to churned clients
@@ -352,6 +363,7 @@ export async function GET(req: Request) {
       avgUsersPerClient,
       churnedClients,
       churnedClientList,
+      churnedByPackage,
       churnRate,
       churnRiskClients,
       churnRiskClientList,
