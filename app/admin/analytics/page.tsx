@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Download, RefreshCw, HelpCircle } from "lucide-react";
+import { Loader2, Download, RefreshCw, HelpCircle, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { PasswordProtection } from "@/components/password-protection";
@@ -1017,7 +1017,39 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
                 </TooltipProvider>
               </div>
             </div>
-            <div className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.growthRate}%</div>
+            <div className="flex items-center gap-2">
+              <span className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.growthRate}%</span>
+              {data.growthTrend30 === 'up' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TrendingUp className="w-6 h-6 text-emerald-600 cursor-help" aria-label="Trending up" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">More new clients than in the prior 30 days</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {data.growthTrend30 === 'down' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TrendingDown className="w-6 h-6 text-red-600 cursor-help" aria-label="Trending down" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Fewer new clients than in the prior 30 days</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {data.growthTrend30 === 'neutral' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Minus className="w-6 h-6 text-gray-400 cursor-help" aria-label="No change" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Same as the prior 30 days</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
           </Card>
           <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border border-gray-200 rounded-2xl">
             <div className="text-base mb-1 font-medium" style={{color: '#060520'}}>
@@ -1036,7 +1068,39 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
                 </TooltipProvider>
               </div>
             </div>
-            <div className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.growthRate60}%</div>
+            <div className="flex items-center gap-2">
+              <span className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.growthRate60}%</span>
+              {data.growthTrend60 === 'up' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TrendingUp className="w-6 h-6 text-emerald-600 cursor-help" aria-label="Trending up" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">More new clients than in the prior 60 days</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {data.growthTrend60 === 'down' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TrendingDown className="w-6 h-6 text-red-600 cursor-help" aria-label="Trending down" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Fewer new clients than in the prior 60 days</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {data.growthTrend60 === 'neutral' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Minus className="w-6 h-6 text-gray-400 cursor-help" aria-label="No change" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Same as the prior 60 days</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
           </Card>
           <Card className="bg-white shadow-lg p-6 flex flex-col items-center justify-center border border-gray-200 rounded-2xl">
             <div className="text-base mb-1 font-medium" style={{color: '#060520'}}>
@@ -1055,7 +1119,39 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
                 </TooltipProvider>
               </div>
             </div>
-            <div className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.growthRate90}%</div>
+            <div className="flex items-center gap-2">
+              <span className="text-3xl font-extrabold" style={{color: '#060520'}}>{data.growthRate90}%</span>
+              {data.growthTrend90 === 'up' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TrendingUp className="w-6 h-6 text-emerald-600 cursor-help" aria-label="Trending up" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">More new clients than in the prior 90 days</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {data.growthTrend90 === 'down' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TrendingDown className="w-6 h-6 text-red-600 cursor-help" aria-label="Trending down" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Fewer new clients than in the prior 90 days</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {data.growthTrend90 === 'neutral' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Minus className="w-6 h-6 text-gray-400 cursor-help" aria-label="No change" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900">Same as the prior 90 days</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
           </Card>
         </div>
       </div>

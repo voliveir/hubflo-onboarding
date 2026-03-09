@@ -2594,6 +2594,12 @@ export async function getAnalyticsOverview(startDate?: string, endDate?: string)
     let growthCount = 0;
     let growthCount60 = 0;
     let growthCount90 = 0;
+    let growthCount0_30 = 0;
+    let growthCount31_60 = 0;
+    let growthCount61_90 = 0;
+    let growthCount91_120 = 0;
+    let growthCount121_150 = 0;
+    let growthCount151_180 = 0;
 
     for (const client of clients) {
       // Count by package
@@ -2613,13 +2619,22 @@ export async function getAnalyticsOverview(startDate?: string, endDate?: string)
       } else {
         nonPayingClients++;
       }
-      // Growth: clients created in last 30, 60, 90 days
+      // Growth: clients created in last 30, 60, 90 days + buckets for trend comparison
       if (client.created_at) {
         const created = new Date(client.created_at);
         const diffDays = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
-        if (diffDays <= 30) growthCount++;
+        if (diffDays <= 30) { growthCount++; growthCount0_30++; }
         if (diffDays <= 60) growthCount60++;
         if (diffDays <= 90) growthCount90++;
+        if (diffDays > 30 && diffDays <= 60) growthCount31_60++;
+        if (diffDays > 60 && diffDays <= 90) growthCount61_90++;
+        if (diffDays > 90 && diffDays <= 120) growthCount91_120++;
+        if (diffDays > 120 && diffDays <= 150) growthCount121_150++;
+        if (diffDays > 150 && diffDays <= 180) growthCount151_180++;
+        else if (diffDays <= 90) growthCount61_90++;
+        else if (diffDays <= 120) growthCount91_120++;
+        else if (diffDays <= 150) growthCount121_150++;
+        else if (diffDays <= 180) growthCount151_180++;
       }
     }
     arr = mrr * 12;
@@ -2629,6 +2644,17 @@ export async function getAnalyticsOverview(startDate?: string, endDate?: string)
     const growthRate = totalClients > 0 ? (growthCount / totalClients) * 100 : 0;
     const growthRate60 = totalClients > 0 ? (growthCount60 / totalClients) * 100 : 0;
     const growthRate90 = totalClients > 0 ? (growthCount90 / totalClients) * 100 : 0;
+
+    // Growth trend: compare current period to prior period (up/down/neutral)
+    const current30 = growthCount0_30;
+    const prior30 = growthCount31_60;
+    const current60 = growthCount0_30 + growthCount31_60;
+    const prior60 = growthCount61_90 + growthCount91_120;
+    const current90 = growthCount0_30 + growthCount31_60 + growthCount61_90;
+    const prior90 = growthCount91_120 + growthCount121_150 + growthCount151_180;
+    const growthTrend30 = current30 > prior30 ? 'up' : current30 < prior30 ? 'down' : 'neutral';
+    const growthTrend60 = current60 > prior60 ? 'up' : current60 < prior60 ? 'down' : 'neutral';
+    const growthTrend90 = current90 > prior90 ? 'up' : current90 < prior90 ? 'down' : 'neutral';
 
     // Find top performing package
     const topPerformingPackage = Object.entries(clientsByPackage).sort(([,a],[,b]) => b - a)[0]?.[0] || "premium";
@@ -2645,6 +2671,9 @@ export async function getAnalyticsOverview(startDate?: string, endDate?: string)
       growthRate: Math.round(growthRate * 100) / 100,
       growthRate60: Math.round(growthRate60 * 100) / 100,
       growthRate90: Math.round(growthRate90 * 100) / 100,
+      growthTrend30,
+      growthTrend60,
+      growthTrend90,
       topPerformingPackage,
     };
   } catch (error) {
