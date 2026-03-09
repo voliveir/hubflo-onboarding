@@ -222,8 +222,6 @@ export default async function ClientPage({ params }: ClientPageProps) {
         <PortalNavLink href="#progress">Progress</PortalNavLink>
         <PortalNavLink href="#workflows">Workflows</PortalNavLink>
         <PortalNavLink href="#next-steps">Next Steps</PortalNavLink>
-        <PortalNavLink href="#integrations">Integrations</PortalNavLink>
-        <PortalNavLink href="#feedback">Features/Bugs/Requests</PortalNavLink>
         <PortalNavLink href="#apps">Apps</PortalNavLink>
       </PortalHeader>
 
