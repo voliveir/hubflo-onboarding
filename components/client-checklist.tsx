@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PrimaryButton, SecondaryButton } from "@/components/ui/button-variants"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Settings, FileText, Users, Calendar, Star, ExternalLink } from "lucide-react"
+import { CheckCircle, Settings, FileText, Users, Calendar, Star, ExternalLink, FileSignature, ClipboardList, Rocket } from "lucide-react"
 
 interface SupportLink {
   url: string
@@ -48,7 +48,8 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
       {
         id: "basic-setup",
         title: "Basic Setup",
-        description: "General user profile information and organization details. Absolute requirement to be filled.",
+        description:
+          "Complete your personal profile (name, photo, contact info) so clients and teammates know who they're working with. Then set up your organization details and branding — including your business name, logo, and naming conventions for projects or client folders. This information appears across Hubflo and helps keep everything consistent. These fields are required before you can go live.",
         subtasks: ["My Profile", "Organization & Branding"],
         completed: false,
         accountability: "Client",
@@ -75,7 +76,8 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
       {
         id: "invite-users",
         title: "Invite and Manage Users",
-        description: "Invite organizational team members to Hubflo platform",
+        description:
+          "Add your internal team members (colleagues, admins, contractors) to Hubflo so they can access workspaces, manage clients, and collaborate. You control who has access and what they can see. Invited users receive an email to set up their account and can start working right away.",
         completed: false,
         accountability: "Client",
         section: "Setup Basics & Foundations",
@@ -90,7 +92,8 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
       {
         id: "general-settings",
         title: "Setup General Settings/Domain",
-        description: "Configure your client portal settings and domain",
+        description:
+          "Customize the client-facing side of your portal. Set your subdomain (e.g. yourbusiness.hubflo.com) — the URL clients use to log in. Add a title, headline, and login welcome message so they know they're in the right place. Use Pinned Notes for announcements that stay visible, and customize the Client Invite Message so new clients receive a clear, on-brand invitation when you add them.",
         subtasks: [
           "Client Portal Subdomain (link clients will be redirect to in order to login. Ex. 'hubflo-onboarding.hubflo.com')",
           "Title",
@@ -118,7 +121,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         id: "global-items",
         title: "Configure Global Items",
         description:
-          "Global Items (circle at upper part of client portal which is applied to all portals and templates regardless of existing or new)",
+          "Global Items are the circular buttons or links that appear at the top of every client portal — they apply to all portals and templates, including new ones you create later. Use them for things clients always need: Contact Support, Submit a Request, View Policies, or links to key resources. Set them once and they appear everywhere, so you don't have to add them to each workspace manually.",
         completed: false,
         accountability: "Client",
         section: "Setup Basics & Foundations",
@@ -134,7 +137,8 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
       {
         id: "task-templates",
         title: "Create Task Template(s)",
-        description: "Create comprehensive task templates for your workflow",
+        description:
+          "Build reusable task templates that reflect your client workflow. Start with sections to group related work (e.g. Onboarding, Deliverables, Feedback). Add tasks and subtasks so clients know exactly what to do. Include lists or descriptions where helpful — for example, a checklist of documents to upload or steps to complete. Once built, these templates can be attached to any workspace so you're not recreating the same tasks from scratch.",
         subtasks: ["Create Sections", "Create Tasks", "Create Subtasks", "Optional: Add Lists/Descriptions"],
         completed: false,
         accountability: "Client",
@@ -154,7 +158,8 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
       {
         id: "workspace-templates",
         title: "Create Workspace Template(s)",
-        description: "This is a critical task item to cater towards your business needs.",
+        description:
+          "Workspace templates are the backbone of your client portals. Each template defines what a client sees when you add them — a title, subtitle, welcome message, and the tasks, links, folders, or embeds you've assembled. When you onboard a new client, you assign a template and they get a ready-made portal. Create templates for different service types (e.g. one for retainer clients, another for one-off projects) so each client gets the right experience from day one.",
         subtasks: ["Title", "Subtitle", "Welcome Message", "Tasks / Subtasks / Links", "Folders / Embeds"],
         completed: false,
         accountability: "Client",
@@ -185,6 +190,79 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
           },
         ],
       },
+      // Section: Setup Your Contract (If Needed)
+      {
+        id: "contract-pdf",
+        title: "Convert Your Contract Template to PDF",
+        description:
+          "Prepare your contract in Google Docs or Word. Leave blank space where clients will need to fill in details (name, address, etc.) and where you'll need dynamic text (e.g., terms, pricing). Export to PDF for upload — the whitespace ensures SmartDocs can place fields exactly where signees need to complete them.",
+        subtasks: ["Leave blank space for fields signees will fill out", "Leave blank space for sections that need dynamic replacement"],
+        completed: false,
+        accountability: "Client",
+        section: "Setup Your Contract (If Needed)",
+        supportLinks: [
+          {
+            url: "https://support.hubflo.com/en/articles/9455020-create-and-manage-smartdocs",
+            title: "Create and Manage SmartDocs",
+          },
+          {
+            url: "https://support.hubflo.com/en/collections/9572880-smartdocs",
+            title: "SmartDocs Help Center",
+          },
+        ],
+      },
+      {
+        id: "contract-upload-smartdoc",
+        title: "Upload Your Contract as a SmartDoc",
+        description:
+          "Head to SmartDocs in Hubflo and upload your PDF or Word document. SmartDocs lets you send contracts for signature or approval to clients — manually or automatically — with an experience familiar from tools like DocuSign. When you have a new client, you can send your main SmartDoc or duplicate it to create a fresh instance.",
+        completed: false,
+        accountability: "Client",
+        section: "Setup Your Contract (If Needed)",
+        supportLinks: [
+          {
+            url: "https://support.hubflo.com/en/articles/9455020-create-and-manage-smartdocs",
+            title: "Create and Manage SmartDocs",
+          },
+        ],
+      },
+      {
+        id: "contract-add-fields",
+        title: "Add Fields for Signees to Complete",
+        description:
+          "Drag & drop fields onto your SmartDoc where clients need to enter information: name, email, address, and any custom fields. For static text sections (like terms), use the heading field and type your content. Clients receive automatic reminders if they haven't completed their assigned SmartDoc.",
+        subtasks: ["Add name, email, address, and other signee fields", "Use heading fields for static sections like terms"],
+        completed: false,
+        accountability: "Client",
+        section: "Setup Your Contract (If Needed)",
+        supportLinks: [
+          {
+            url: "https://support.hubflo.com/en/articles/9455020-create-and-manage-smartdocs",
+            title: "Create and Manage SmartDocs",
+          },
+        ],
+      },
+      // Section: Setup Your First Form (If Needed)
+      {
+        id: "create-first-form",
+        title: "Create Your First Form",
+        description:
+          "Forms are one of the most powerful features of Hubflo. Assign forms to clients or display them in the portal. Clients receive automatic reminders and can fill at their own pace (auto-saves). Submissions are linked to their profile — no need to ask for email. Most clients start with an intake/onboarding form. Go to Forms → New Form, add your questions, then use Send to assign to a client, pin for portal visibility, or grab the link for your website.",
+        subtasks: [
+          "Go to Forms and click New Form",
+          "Add your questions (e.g., intake/onboarding fields)",
+          "Assign via Send, pin to portal, or share the form link",
+        ],
+        completed: false,
+        accountability: "Client",
+        section: "Setup Your First Form (If Needed)",
+        supportLinks: [
+          {
+            url: "https://support.hubflo.com/en/articles/10335671-create-and-manage-hubflo-forms",
+            title: "Create and Manage Hubflo Forms",
+          },
+        ],
+      },
     ]
 
     // Add project tasks if projects are enabled
@@ -195,7 +273,8 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         {
           id: "custom-fields",
           title: "Add Custom Fields To Your Project",
-          description: "Customize your project fields to match your workflow",
+          description:
+            "Define the data you want to track on each project — status, deadline, budget, client type, or anything else that matters to your workflow. Custom fields appear on project cards and in filters, so you can see at a glance what's in progress, overdue, or ready for handoff. Add fields that match how you actually work, not just the defaults.",
           completed: false,
           accountability: "Client",
           section: "Setup Your Project Board",
@@ -210,7 +289,8 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         {
           id: "configure-project-board",
           title: "Configure Your Project Board (Organize Internally)",
-          description: "Set up your project board organization and structure",
+          description:
+            "Organize your project board so your team can find and manage work efficiently. Set up columns or stages (e.g. Not Started, In Progress, Review, Complete) that mirror your process. Decide how projects are grouped, sorted, and filtered. This is your internal view — clients see their own workspaces; the project board is where you track everything across clients.",
           completed: false,
           accountability: "Client",
           section: "Setup Your Project Board",
@@ -319,6 +399,10 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         return "border-[#ECB22D] bg-yellow-50"
       case "Setup Workspaces & Tasks":
         return "border-[#ECB22D] bg-yellow-50"
+      case "Setup Your Contract (If Needed)":
+        return "border-[#ECB22D] bg-yellow-50"
+      case "Setup Your First Form (If Needed)":
+        return "border-[#ECB22D] bg-yellow-50"
       case "Schedule session with Success team":
         return "border-[#ECB22D] bg-yellow-50"
       default:
@@ -334,6 +418,10 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         return <FileText className="h-5 w-5 text-[#010124]" />
       case "Setup Workspaces & Tasks":
         return <Users className="h-5 w-5 text-[#010124]" />
+      case "Setup Your Contract (If Needed)":
+        return <FileSignature className="h-5 w-5 text-[#010124]" />
+      case "Setup Your First Form (If Needed)":
+        return <ClipboardList className="h-5 w-5 text-[#010124]" />
       case "Schedule session with Success team":
         return <Calendar className="h-5 w-5 text-[#010124]" />
       default:
@@ -456,7 +544,8 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
             const sectionProgress = sectionTotal > 0 ? Math.round((sectionCompleted / sectionTotal) * 100) : 0
 
             return (
-              <div key={sectionName} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
+              <div key={sectionName} className="space-y-8">
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-3">
                     <div className="w-14 h-14 rounded-xl flex items-center justify-center transition-colors" style={{ backgroundColor: 'rgba(236, 178, 45, 0.1)' }}>
@@ -625,6 +714,24 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
                     </div>
                   ))}
                 </div>
+              </div>
+              {sectionName === "Setup Your First Form (If Needed)" && (
+                <div className="bg-gradient-to-br from-brand-gold/5 to-brand-gold/10 rounded-2xl border-2 border-brand-gold/30 shadow-sm p-8">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-14 h-14 bg-brand-gold/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Rocket className="h-7 w-7 text-brand-gold" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold mb-2" style={{ color: '#060520' }}>
+                        You're ready to invite your first client
+                      </h3>
+                      <p className="text-base leading-relaxed" style={{ color: '#64748b' }}>
+                        If you've completed all the tasks above, you now have your minimal viable portal. Invite your first client and run a test to see everything in action — workspaces, tasks, and any forms or contracts you've set up.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               </div>
             )
           })}
