@@ -653,7 +653,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-4" style={{ color: '#060520' }}>Your Onboarding Checklist</h2>
           <p className="text-xl max-w-2xl mx-auto leading-relaxed" style={{ color: '#64748b' }}>
-            We recommend starting with Hubflo Labs to become a Hubflo expert. All our courses, tutorials, and in-depth education are there. This checklist covers the most basic steps required to go live with a minimal viable portal; Hubflo Labs expands on adding and mastering everything else. Each section builds on the previous for a smooth setup.
+            To reach your minimal viable portal (MVP), complete the tasks below. To become a Hubflo expert or learn more, Hubflo Labs is the go-to for courses and in-depth education.
           </p>
         </div>
 
