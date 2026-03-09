@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PrimaryButton, SecondaryButton } from "@/components/ui/button-variants"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Settings, FileText, Users, Calendar, Star, ExternalLink, FileSignature, ClipboardList, Rocket } from "lucide-react"
+import { CheckCircle, Settings, FileText, Users, Calendar, Star, ExternalLink, FileSignature, ClipboardList, Rocket, Target } from "lucide-react"
 
 interface SupportLink {
   url: string
@@ -318,6 +318,69 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
       })
     }
 
+    // Add Maximize client engagement (always last — after "ready to invite" for Light, after Schedule for higher packages)
+    baseTasks.push(
+      {
+        id: "portal-button-website",
+        title: "Add a Client Login Button to Your Website",
+        description:
+          "Once you have your customized Client Portal set up (Hubflo subdomain or custom domain), add a button on your website that links to your portal. On Wix or WordPress, this takes just a few clicks: go to Client Portal, click the Preview portal tab, grab your portal URL, then add that link to a button or navigation item on your site. The easier it is for clients to find the portal, the more they'll use it.",
+        subtasks: ["Go to Client Portal → Preview portal and grab your portal URL", "Add the link to a button or nav on your website"],
+        completed: false,
+        accountability: "Client",
+        section: "Maximize Client Engagement",
+        supportLinks: [
+          {
+            url: "https://support.hubflo.com/en/articles/9165051-add-a-client-portal-button-to-your-website",
+            title: "Add a Client Portal Button to Your Website",
+          },
+        ],
+      },
+      {
+        id: "portal-email-signature",
+        title: "Add a Link to Your Portal in Your Email Signature",
+        description:
+          "Include your Client Portal link in your email signature so every message you send reminds clients where they can log in. This creates a steady, low-friction touchpoint that keeps the portal top of mind without extra effort from you.",
+        completed: false,
+        accountability: "Client",
+        section: "Maximize Client Engagement",
+      },
+      {
+        id: "customize-invite-message",
+        title: "Customize Your Client Portal Email Invite",
+        description:
+          "Beyond the default invitation, you can craft a personalized message that explains how you'll use the portal and what's in it for clients. A clear, tailored message sets expectations and drives engagement — clients who understand the value are more likely to participate actively. Go to Settings → Client Portal → scroll down to customize your invite message.",
+        subtasks: ["Go to Settings → Client Portal → scroll down", "Write a message that explains your intent and the portal's value"],
+        completed: false,
+        accountability: "Client",
+        section: "Maximize Client Engagement",
+      },
+      {
+        id: "enable-mobile-app",
+        title: "Enable the Client Portal Mobile App (If Purchased)",
+        description:
+          "If you've purchased the mobile app add-on, enable it so clients can access their portal on the go. The Hubflo mobile app is available on iOS and Android, giving clients a familiar way to view workspaces, complete tasks, and stay updated.",
+        completed: false,
+        accountability: "Client",
+        section: "Maximize Client Engagement",
+        supportLinks: [
+          {
+            url: "https://support.hubflo.com/en/articles/8822311-hubflo-apps-for-mobile-desktop-chrome",
+            title: "Hubflo Apps for Mobile, Desktop & Chrome",
+          },
+        ],
+      },
+      {
+        id: "educate-clients-consistency",
+        title: "Educate Your Clients with Consistency",
+        description:
+          "Many clients are used to email or text for everything, so some will need reminders to use the portal until it becomes second nature. If a client keeps emailing you for files that are already in their portal — and you keep sending them via email — you're reinforcing their old habit instead of adoption. Stay consistent: direct them to the portal each time they ask for something that's already there. Within a few weeks, they'll learn to check the portal first, saving you hours of repetitive work.",
+        completed: false,
+        accountability: "Client",
+        section: "Maximize Client Engagement",
+      },
+    )
+
     return baseTasks
   }
 
@@ -405,6 +468,8 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         return "border-[#ECB22D] bg-yellow-50"
       case "Schedule session with Success team":
         return "border-[#ECB22D] bg-yellow-50"
+      case "Maximize Client Engagement":
+        return "border-[#ECB22D] bg-yellow-50"
       default:
         return "border-[#ECB22D] bg-yellow-50"
     }
@@ -424,6 +489,8 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         return <ClipboardList className="h-5 w-5 text-[#010124]" />
       case "Schedule session with Success team":
         return <Calendar className="h-5 w-5 text-[#010124]" />
+      case "Maximize Client Engagement":
+        return <Target className="h-5 w-5 text-[#010124]" />
       default:
         return <CheckCircle className="h-5 w-5 text-[#010124]" />
     }
@@ -569,6 +636,11 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
                     style={{ width: `${sectionProgress}%` }}
                   ></div>
                 </div>
+                {sectionName === "Maximize Client Engagement" && (
+                  <p className="mt-6 text-base leading-relaxed" style={{ color: '#64748b' }}>
+                    As with every app or website, the best way to drive your clients to your portal is to make it as easy as possible for them to access it and to ensure they understand how you'll use it.
+                  </p>
+                )}
                 <div className="space-y-6 mt-8">
                   {sectionTasks.map((task) => (
                     <div key={task.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col gap-2 transition-all duration-300 hover:shadow-lg hover:border-gray-300">
