@@ -298,6 +298,7 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
         case "manager": aVal = (a.implementation_manager || "").toLowerCase(); bVal = (b.implementation_manager || "").toLowerCase(); break
         case "created": aVal = a.created_at ? new Date(a.created_at).getTime() : 0; bVal = b.created_at ? new Date(b.created_at).getTime() : 0; break
         case "lastCall": aVal = getLastCallDate(a)?.getTime() ?? 0; bVal = getLastCallDate(b)?.getTime() ?? 0; break
+        case "graduation": aVal = a.graduation_date ? new Date(a.graduation_date).getTime() : 0; bVal = b.graduation_date ? new Date(b.graduation_date).getTime() : 0; break
         case "customApp": aVal = (a.custom_app || "").toLowerCase(); bVal = (b.custom_app || "").toLowerCase(); break
         default: return 0
       }
@@ -484,6 +485,7 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
       "Revenue Amount",
       "Implementation Manager",
       "Created At",
+      "Graduation Date",
       "Light Onboarding Call Date",
       "Premium First Call Date",
       "Premium Second Call Date", 
@@ -516,6 +518,7 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
         client.revenue_amount,
         client.implementation_manager,
         client.created_at ? new Date(client.created_at).toISOString().slice(0, 10) : "",
+        client.graduation_date ? new Date(client.graduation_date).toISOString().slice(0, 10) : "",
         client.light_onboarding_call_date ? new Date(client.light_onboarding_call_date).toISOString().slice(0, 10) : "",
         client.premium_first_call_date ? new Date(client.premium_first_call_date).toISOString().slice(0, 10) : "",
         client.premium_second_call_date ? new Date(client.premium_second_call_date).toISOString().slice(0, 10) : "",
@@ -996,6 +999,7 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                     <SortableHead column="manager" label="Manager" className="min-w-[140px]" />
                     <SortableHead column="created" label="Created" className="min-w-[110px]" />
                     <SortableHead column="lastCall" label="Last Call" className="min-w-[140px]" />
+                    <SortableHead column="graduation" label="Graduation" className="min-w-[110px]" />
                     <SortableHead column="customApp" label="Custom App" className="min-w-[100px]" />
                     <TableHead className="font-bold text-xs min-w-[180px] px-3 py-2" style={{color: '#060520'}}>Alerts</TableHead>
                     <TableHead className="font-bold text-xs min-w-[100px] px-3 py-2" style={{color: '#060520'}}>Actions</TableHead>
@@ -1170,6 +1174,9 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                           {lastCallDate ? formatDateUTC(lastCallDate) : "—"}
                         </TableCell>
                         <TableCell className="text-xs px-3 py-2" style={{color: '#64748b'}}>
+                          {client.graduation_date ? new Date(client.graduation_date).toISOString().slice(0, 10) : "—"}
+                        </TableCell>
+                        <TableCell className="text-xs px-3 py-2" style={{color: '#64748b'}}>
                           {client.custom_app && getCustomAppLabel(client.custom_app) !== "Not Applicable" ? (
                             <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs">
                               {getCustomAppLabel(client.custom_app)}
@@ -1234,7 +1241,7 @@ export function ClientsManager({ initialStatus, initialImplementationManager }: 
                   })}
                   {filteredClients.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={14} className="text-center py-8 px-3" style={{color: '#64748b'}}>
+                      <TableCell colSpan={15} className="text-center py-8 px-3" style={{color: '#64748b'}}>
                         No clients found.
                       </TableCell>
                     </TableRow>
