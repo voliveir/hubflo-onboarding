@@ -707,8 +707,23 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
             }
             if (sectionName === "Setup Your First Form" && !unlockedSections.form) {
               return (
-                <div key={sectionName}>
+                <div key={sectionName} className="space-y-8">
                   <LockCard section="form" question="Planning to use forms?" unlockTaskId="unlock-form" />
+                  <div className="bg-gradient-to-br from-brand-gold/5 to-brand-gold/10 rounded-2xl border-2 border-brand-gold/30 shadow-sm p-8">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-14 h-14 bg-brand-gold/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Rocket className="h-7 w-7 text-brand-gold" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold mb-2" style={{ color: '#060520' }}>
+                          You're ready to invite your first client
+                        </h3>
+                        <p className="text-base leading-relaxed" style={{ color: '#64748b' }}>
+                          If you've completed all the tasks above, you now have your minimal viable portal. Invite your first client and run a test to see everything in action — workspaces, tasks, and any forms or contracts you've set up.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )
             }
