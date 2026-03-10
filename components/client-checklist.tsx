@@ -141,27 +141,6 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
       },
       // Section 3: Setup Workspaces & Tasks
       {
-        id: "task-templates",
-        title: "Create Task Template(s)",
-        description:
-          "Build reusable task templates that reflect your client workflow. Start with sections to group related work (e.g. Onboarding, Deliverables, Feedback). Add tasks and subtasks so clients know exactly what to do. Include lists or descriptions where helpful — for example, a checklist of documents to upload or steps to complete. Once built, these templates can be attached to any workspace so you're not recreating the same tasks from scratch.",
-        subtasks: ["Create Sections", "Create Tasks", "Create Subtasks", "Optional: Add Lists/Descriptions"],
-        completed: false,
-        accountability: "Client",
-        section: "Setup Workspaces & Tasks",
-        videoUrls: ["https://www.tella.tv/video/streamline-projects-with-task-templates-8kcl"],
-        supportLinks: [
-          {
-            url: "https://support.hubflo.com/en/articles/6781917-getting-started-with-tasks",
-            title: "Getting Started with Tasks",
-          },
-          {
-            url: "https://support.hubflo.com/en/articles/8307170-organize-tasks-in-sections",
-            title: "Organize Tasks in Sections",
-          },
-        ],
-      },
-      {
         id: "workspace-templates",
         title: "Create Workspace Template(s)",
         description:
@@ -193,6 +172,27 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
           {
             url: "https://support.hubflo.com/en/articles/8967614-managing-files-uploaded-by-clients-in-the-portal",
             title: "Managing Files Uploaded by Clients in the Portal",
+          },
+        ],
+      },
+      {
+        id: "task-templates",
+        title: "Create Task Template(s) in Workspace Template(s)",
+        description:
+          "Build reusable task templates that reflect your client workflow. Start with sections to group related work (e.g. Onboarding, Deliverables, Feedback). Add tasks and subtasks so clients know exactly what to do. Include lists or descriptions where helpful — for example, a checklist of documents to upload or steps to complete. Once built, these templates can be attached to any workspace so you're not recreating the same tasks from scratch.",
+        subtasks: ["Create Sections", "Create Tasks", "Create Subtasks", "Optional: Add Lists/Descriptions"],
+        completed: false,
+        accountability: "Client",
+        section: "Setup Workspaces & Tasks",
+        videoUrls: ["https://youtu.be/3rVjN3C8tvQ"],
+        supportLinks: [
+          {
+            url: "https://support.hubflo.com/en/articles/6781917-getting-started-with-tasks",
+            title: "Getting Started with Tasks",
+          },
+          {
+            url: "https://support.hubflo.com/en/articles/8307170-organize-tasks-in-sections",
+            title: "Organize Tasks in Sections",
           },
         ],
       },
@@ -279,6 +279,26 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         section: "Setup Your Project Board",
         videoUrls: ["https://www.tella.tv/video/configuring-project-boards-1-8t4g"],
         supportLinks: [{ url: "https://support.hubflo.com/en/articles/11128526-getting-started-with-projects", title: "Getting Started with Projects" }],
+      },
+      {
+        id: "create-task-section-templates",
+        title: "Create Task Section Templates",
+        description:
+          "Save time by creating reusable section+task structures. These templates can be added to any new project in seconds. You can still edit each task's details once you've added them to your project (due date, assignee, tags, etc.). Task sections let you divide a project's task list into clear, structured groups — like project phases (Planning, Launch, Monitoring), task types (Admin, Design, Development), or teams/roles (Legal, Finance, Client).",
+        subtasks: [
+          "Go to Settings > Data > Templates > Sections & Tasks",
+          "Create section templates with tasks for phases, types, or roles",
+        ],
+        completed: false,
+        accountability: "Client",
+        section: "Setup Your Project Board",
+        videoUrls: ["https://www.tella.tv/video/streamline-projects-with-task-templates-8kcl"],
+        supportLinks: [
+          {
+            url: "https://support.hubflo.com/en/articles/8307170-organize-tasks-in-sections#h_f9da5ffc6f",
+            title: "Organize Tasks in Sections",
+          },
+        ],
       },
     ]
 
@@ -555,11 +575,20 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
     })
   }
 
-  const getTellaEmbedUrl = (url: string) => {
-    // Extract video ID from Tella URL
-    const match = url.match(/tella\.tv\/video\/([^/?]+)/)
-    if (match) {
-      return `https://www.tella.tv/video/${match[1]}/embed`
+  const getVideoEmbedUrl = (url: string) => {
+    // Tella: extract video ID and convert to embed
+    const tellaMatch = url.match(/tella\.tv\/video\/([^/?]+)/)
+    if (tellaMatch) {
+      return `https://www.tella.tv/video/${tellaMatch[1]}/embed`
+    }
+    // YouTube: youtu.be or youtube.com -> embed format
+    const ytShortMatch = url.match(/youtu\.be\/([^/?&]+)/)
+    if (ytShortMatch) {
+      return `https://www.youtube.com/embed/${ytShortMatch[1]}`
+    }
+    const ytMatch = url.match(/youtube\.com\/watch\?v=([^&]+)/)
+    if (ytMatch) {
+      return `https://www.youtube.com/embed/${ytMatch[1]}`
     }
     return url
   }
@@ -892,7 +921,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
                                       )}
                                       <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
                                         <iframe
-                                          src={getTellaEmbedUrl(videoUrl)}
+                                          src={getVideoEmbedUrl(videoUrl)}
                                           className="absolute top-0 left-0 w-full h-full rounded-lg"
                                           frameBorder="0"
                                           allowFullScreen
