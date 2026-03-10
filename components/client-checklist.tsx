@@ -149,9 +149,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         completed: false,
         accountability: "Client",
         section: "Setup Workspaces & Tasks",
-        videoUrls: [
-          "https://www.tella.tv/video/how-to-create-workspace-client-portals-from-workspace-templates-4-e6os",
-        ],
+        videoUrls: ["https://youtu.be/5532AUm1GgM"],
         supportLinks: [
           {
             url: "https://support.hubflo.com/en/articles/11101205-create-and-set-up-a-client-workspace",
@@ -208,6 +206,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         completed: false,
         accountability: "Client",
         section: "Setup Your Contract",
+        videoUrls: ["https://youtu.be/tlwaZOQZWFA"],
         supportLinks: [
           { url: "https://support.hubflo.com/en/articles/9455020-create-and-manage-smartdocs", title: "Create and Manage SmartDocs" },
           { url: "https://support.hubflo.com/en/collections/9572880-smartdocs", title: "SmartDocs Help Center" },
@@ -221,6 +220,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         completed: false,
         accountability: "Client",
         section: "Setup Your Contract",
+        videoUrls: ["https://youtu.be/tlwaZOQZWFA"],
         supportLinks: [{ url: "https://support.hubflo.com/en/articles/9455020-create-and-manage-smartdocs", title: "Create and Manage SmartDocs" }],
       },
       {
@@ -232,6 +232,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         completed: false,
         accountability: "Client",
         section: "Setup Your Contract",
+        videoUrls: ["https://youtu.be/tlwaZOQZWFA"],
         supportLinks: [{ url: "https://support.hubflo.com/en/articles/9455020-create-and-manage-smartdocs", title: "Create and Manage SmartDocs" }],
       },
     ]
@@ -250,6 +251,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         completed: false,
         accountability: "Client",
         section: "Setup Your First Form",
+        videoUrls: ["https://youtu.be/EaFcB7sdF4g"],
         supportLinks: [{ url: "https://support.hubflo.com/en/articles/10335671-create-and-manage-hubflo-forms", title: "Create and Manage Hubflo Forms" }],
       },
     ]
@@ -277,7 +279,7 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
         completed: false,
         accountability: "Client",
         section: "Setup Your Project Board",
-        videoUrls: ["https://www.tella.tv/video/configuring-project-boards-1-8t4g"],
+        videoUrls: ["https://www.tella.tv/video/configuring-project-boards-1-8t4g", "https://youtu.be/WZ3hTvi5Mfs"],
         supportLinks: [{ url: "https://support.hubflo.com/en/articles/11128526-getting-started-with-projects", title: "Getting Started with Projects" }],
       },
       {
@@ -713,6 +715,26 @@ export function ClientChecklist({ clientId, clientName, clientSlug, client }: Cl
                 <Star className="h-5 w-5 text-[#ECB22D]" />
                 <span>Let's get started with your Hubflo onboarding journey.</span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Welcome Video - Shown first */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-gray-300">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold mb-1" style={{ color: '#060520' }}>Get Started</h3>
+              <p className="text-sm" style={{ color: '#64748b' }}>Watch this short overview to kick off your setup</p>
+            </div>
+            <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+              <iframe
+                src={getVideoEmbedUrl("https://youtu.be/OgVqGmgymX8")}
+                className="absolute top-0 left-0 w-full h-full"
+                frameBorder="0"
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                title="Hubflo onboarding overview"
+              />
             </div>
           </div>
         </div>
