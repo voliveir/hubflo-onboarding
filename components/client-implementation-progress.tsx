@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle, Users, FileText, BookOpen, Zap, Database, MessageSquare, Clock } from "lucide-react"
 import { useReveal } from "@/hooks/useReveal"
 import { cn } from "@/lib/utils"
+import { countCompletedCalls } from "@/lib/database"
 import type { Client } from "@/lib/types"
 
 interface ClientImplementationProgressProps {
@@ -60,11 +61,11 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
   }, [client?.id])
 
   const calculateProgress = () => {
-    // Define package limits
+    // Define package limits (premium/gold/elite: first call is kickoff, doesn't count toward completed)
     const limits = {
       light: { calls: 1, forms: 0, smartdocs: 0, integrations: 0, migration: false, slack: false },
-      premium: { calls: 2, forms: 2, smartdocs: 2, integrations: 1, migration: false, slack: false },
-      gold: { calls: 3, forms: 4, smartdocs: 4, integrations: 2, migration: false, slack: false },
+      premium: { calls: 2, forms: 2, smartdocs: 2, integrations: 1, migration: false, slack: false }, // 2 total; first is kickoff
+      gold: { calls: 3, forms: 4, smartdocs: 4, integrations: 2, migration: false, slack: false },     // 3 total; first is kickoff
       elite: { calls: 999, forms: 999, smartdocs: 999, integrations: 999, migration: true, slack: true },
       starter: { calls: 1, forms: 1, smartdocs: 1, integrations: 0, migration: false, slack: false },
       professional: { calls: 3, forms: 5, smartdocs: 5, integrations: 3, migration: false, slack: true },
@@ -113,24 +114,42 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
     let totalTasks = 0
     let completedTasks = 0
 
-    // Count calls
+    // Count calls (first/kickoff call excluded for premium, gold, elite)
     if (packageLimits.calls > 0) {
-      // Only count calls as completed if their date is today or in the past
-      const callDates = [
-        client.light_onboarding_call_date,
+      const pkg = client.success_package
+      const countableCallDates: (string | null | undefined)[] = [
+        ...(pkg !== "elite" && pkg !== "enterprise" ? [] : []), // elite/enterprise: exclude light_onboarding (kickoff)
         client.premium_first_call_date,
         client.premium_second_call_date,
         client.gold_first_call_date,
         client.gold_second_call_date,
         client.gold_third_call_date,
         ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
-      ].filter((d): d is string => !!d).map((date) => parseLocalDate(date))
+      ]
+      // Exclude kickoff: premium/gold/elite first call does not count
+      if (pkg === "premium") countableCallDates[0] = null // exclude premium_first
+      else if (pkg === "gold") countableCallDates[2] = null // exclude gold_first
+      else if (pkg === "elite" || pkg === "enterprise") {
+        countableCallDates[0] = null // no light in list; premium_first is index 0 - for elite kickoff is light, so exclude light (not in this array - we need to not add it)
+        // For elite, kickoff is light_onboarding_call_date - we didn't add it to countableCallDates, so we're good. Just exclude premium_first for elite? No - for elite the order is light, premium_first, premium_second, gold_first, gold_second, gold_third. So light is kickoff. We're not including light in countableCallDates. Good.
+      }
+      // Actually for elite we use client.calls_* from DB. Let me simplify - for premium exclude premium_first, for gold exclude gold_first. Elite uses the 999 path.
+      const datesToCount = (pkg === "premium" ? [client.premium_second_call_date] : pkg === "gold" ? [client.gold_second_call_date, client.gold_third_call_date] : [
+        client.premium_first_call_date,
+        client.premium_second_call_date,
+        client.gold_first_call_date,
+        client.gold_second_call_date,
+        client.gold_third_call_date,
+        ...(Array.isArray(client.extra_call_dates) ? client.extra_call_dates : [])
+      ]).filter((d): d is string => !!d).map((date) => parseLocalDate(date))
       const now = new Date()
-      const completedCalls = callDates.filter(date => date <= now).length
-      totalTasks += packageLimits.calls === 999 ? Math.max(client.calls_scheduled, 1) : packageLimits.calls
+      const completedCalls = pkg === "elite" || pkg === "enterprise"
+        ? (client.calls_completed ?? 0)
+        : datesToCount.filter(date => date <= now).length
+      totalTasks += packageLimits.calls === 999 ? Math.max(client.calls_scheduled ?? 1, 1) : packageLimits.calls
       completedTasks += Math.min(
         completedCalls,
-        packageLimits.calls === 999 ? Math.max(client.calls_scheduled, 1) : packageLimits.calls,
+        packageLimits.calls === 999 ? Math.max(client.calls_scheduled ?? 1, 1) : packageLimits.calls,
       )
     }
 
@@ -230,7 +249,7 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
     return { text: "Pending", color: "text-white/60" }
   }
 
-  // Calculate completed calls for display (only those with date <= today)
+  // All call dates (for display—kickoff date still shown)
   const callDates = [
     client.light_onboarding_call_date,
     client.premium_first_call_date,
@@ -243,7 +262,13 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
   const now = new Date();
   const completedCallDates: Date[] = callDates.filter(date => date <= now).sort((a, b) => a.getTime() - b.getTime());
   const scheduledCallDates: Date[] = callDates.filter(date => date > now).sort((a, b) => a.getTime() - b.getTime());
-  const completedCallsForDisplay = completedCallDates.length;
+
+  // For premium/gold/elite/enterprise: use countCompletedCalls (kickoff excluded). For light/starter: use all completed dates.
+  const pkg = client.success_package;
+  const completedCallsForDisplay =
+    pkg === "premium" || pkg === "gold" || pkg === "elite" || pkg === "enterprise"
+      ? countCompletedCalls(client)
+      : completedCallDates.length;
   const callsStatus = getServiceStatus(
     // Only count calls as completed if their date is today or in the past
     completedCallsForDisplay,
@@ -252,6 +277,14 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
   const formsStatus = getServiceStatus(client.forms_setup, packageLimits.forms)
   const smartdocsStatus = getServiceStatus(client.smartdocs_setup, packageLimits.smartdocs)
   const integrationsStatus = getServiceStatus(client.zapier_integrations_setup, packageLimits.integrations)
+
+  // Kickoff completed (first call done — shown for awareness but not counted toward progress)
+  const kickoffDateStr =
+    pkg === "premium" ? client.premium_first_call_date
+    : pkg === "gold" ? client.gold_first_call_date
+    : (pkg === "elite" || pkg === "enterprise") ? client.light_onboarding_call_date
+    : null
+  const kickoffCompleted = !!kickoffDateStr && parseLocalDate(kickoffDateStr) <= now
 
   return (
     <div ref={ref} className={cn("space-y-6", isVisible && "animate-fade-in-up")}>
@@ -372,6 +405,11 @@ export function ClientImplementationProgress({ client }: ClientImplementationPro
                 }}
               />
             </div>
+            {kickoffCompleted && (
+              <p className="text-sm font-medium mt-2" style={{ color: '#64748b' }}>
+                Kick Off Completed 🎉!
+              </p>
+            )}
           </div>
           {/* Expandable Dates Section */}
           <div className="mt-2">

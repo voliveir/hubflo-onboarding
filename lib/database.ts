@@ -855,6 +855,7 @@ export async function getWebhookData(clientId?: string): Promise<TaskCompletion[
 }
 
 // Helper function to count completed calls based on call dates
+// For premium, gold, elite: first call (kickoff) does NOT count—it still shows the date but is excluded from progress
 export function countCompletedCalls(client: Client): number {
   let completedCalls = 0
   
@@ -862,15 +863,14 @@ export function countCompletedCalls(client: Client): number {
   if (client.success_package === 'light') {
     if (client.light_onboarding_call_date) completedCalls++
   } else if (client.success_package === 'premium') {
-    if (client.premium_first_call_date) completedCalls++
+    // First call is kickoff—don't count; only premium_second_call_date counts
     if (client.premium_second_call_date) completedCalls++
   } else if (client.success_package === 'gold') {
-    if (client.gold_first_call_date) completedCalls++
+    // First call is kickoff—don't count; only gold_second and gold_third count
     if (client.gold_second_call_date) completedCalls++
     if (client.gold_third_call_date) completedCalls++
   } else if (client.success_package === 'elite') {
-    // For elite, count all call dates that exist
-    if (client.light_onboarding_call_date) completedCalls++
+    // First call (light_onboarding_call_date) is kickoff—don't count
     if (client.premium_first_call_date) completedCalls++
     if (client.premium_second_call_date) completedCalls++
     if (client.gold_first_call_date) completedCalls++
@@ -883,8 +883,7 @@ export function countCompletedCalls(client: Client): number {
     if (client.premium_second_call_date) completedCalls++
     if (client.gold_first_call_date) completedCalls++
   } else if (client.success_package === 'enterprise') {
-    // For enterprise, count all call dates that exist
-    if (client.light_onboarding_call_date) completedCalls++
+    // First call (light_onboarding_call_date) is kickoff—don't count
     if (client.premium_first_call_date) completedCalls++
     if (client.premium_second_call_date) completedCalls++
     if (client.gold_first_call_date) completedCalls++
@@ -900,25 +899,24 @@ export function countCompletedCalls(client: Client): number {
   return completedCalls
 }
 
-// Helper function to get scheduled calls based on package type
+// Helper function to get scheduled calls based on package type (countable calls only—kickoff excluded for premium/gold/elite)
 // For elite and enterprise packages, calculates dynamically from call dates if client is provided
 export function getScheduledCallsForPackage(packageType: string, client?: Client): number {
   const packageLimits: Record<string, number> = {
     light: 1,
-    premium: 2,
-    gold: 3,
-    elite: 10, // Default for elite, but will be calculated dynamically if client is provided
+    premium: 2,  // 2 total; first is kickoff and doesn't count toward completed
+    gold: 3,     // 3 total; first is kickoff and doesn't count toward completed
+    elite: 10,   // Default for elite, calculated dynamically if client provided
     starter: 1,
     professional: 3,
-    enterprise: 10, // Default for enterprise, but will be calculated dynamically if client is provided
+    enterprise: 10, // Default for enterprise, calculated dynamically if client provided
   }
   
-  // For elite and enterprise packages, calculate dynamically from all call dates
+  // For elite and enterprise packages, calculate dynamically—exclude light_onboarding (kickoff)
   if (client && (packageType === 'elite' || packageType === 'enterprise')) {
     let scheduledCalls = 0
     
-    // Count all standard call dates
-    if (client.light_onboarding_call_date) scheduledCalls++
+    // Count standard call dates EXCEPT light_onboarding_call_date (kickoff)
     if (client.premium_first_call_date) scheduledCalls++
     if (client.premium_second_call_date) scheduledCalls++
     if (client.gold_first_call_date) scheduledCalls++
@@ -930,7 +928,6 @@ export function getScheduledCallsForPackage(packageType: string, client?: Client
       scheduledCalls += client.extra_call_dates.filter(date => date && date.trim() !== '').length
     }
     
-    // Return at least 1 to avoid division by zero, or the calculated value if higher
     return Math.max(scheduledCalls, 1)
   }
   
