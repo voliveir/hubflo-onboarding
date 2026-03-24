@@ -41,6 +41,14 @@ import {
   readLocalUniversityProgressForCourse,
 } from "@/lib/university-local-progress"
 
+function lecturesInCourse(course: UniversityCourse): UniversityLecture[] {
+  const list: UniversityLecture[] = []
+  course.sections?.forEach((section) => {
+    section.lectures?.forEach((lecture) => list.push(lecture))
+  })
+  return list
+}
+
 interface UniversityClientProps {
   /** Client portal: required for API-backed progress. Public Labs: omit when using local storage. */
   clientId?: string
@@ -97,6 +105,9 @@ export function UniversityClient({
       setLiveLocalProgress(readAllLocalUniversityProgress())
     }
   }, [progressStorage])
+
+  /** Public /labs: skip PortalSection whileInView motion so scrolling is not delayed vs trackpad. */
+  const enableSectionEntrance = progressStorage !== "local"
 
   // Create progress map
   const progressMap = new Map(
@@ -253,14 +264,21 @@ export function UniversityClient({
     }
   }, [schools, courses, fullCoursesData, effectiveProgress, loadingCourses])
 
-  // Calculate course progress
-  const getCourseProgress = (courseId: string) => {
-    const courseProgress = effectiveProgress.filter(p => p.course_id === courseId)
-    if (courseProgress.length === 0) return 0
-    
-    const totalProgress = courseProgress.reduce((sum, p) => sum + p.progress_percentage, 0)
-    return Math.round(totalProgress / courseProgress.length)
-  }
+  // Match CourseDetailView: % = completed lectures / total lectures (not average of stored progress_percentage rows).
+  const getCourseProgress = useCallback(
+    (courseId: string) => {
+      const fullCourse = fullCoursesData.get(courseId)
+      if (!fullCourse) return 0
+      const allLectures = lecturesInCourse(fullCourse)
+      if (allLectures.length === 0) return 0
+      const completedCount = allLectures.filter((lecture) => {
+        const p = effectiveProgress.find((pr) => pr.lecture_id === lecture.id)
+        return p?.is_completed === true
+      }).length
+      return Math.round((completedCount / allLectures.length) * 100)
+    },
+    [fullCoursesData, effectiveProgress]
+  )
 
   // Check if course is completed (simplified check for display)
   const isCourseCompleted = (courseId: string) => {
@@ -403,7 +421,7 @@ export function UniversityClient({
   // If no schools or courses exist, show coming soon
   if (schools.length === 0 && courses.length === 0) {
     return (
-      <PortalSection gradient={true} className="text-white scroll-mt-32 mt-40 bg-transparent relative overflow-hidden !py-24 min-h-[60vh]">
+      <PortalSection enableEntranceAnimation={enableSectionEntrance} gradient={true} className="text-white scroll-mt-32 mt-40 bg-transparent relative overflow-hidden !py-24 min-h-[60vh]">
         <div className="absolute inset-0 gradient-portal opacity-30" />
         <div className="relative z-10 text-center flex flex-col justify-center min-h-[50vh]">
           <GraduationCap className="h-24 w-24 text-brand-gold mx-auto mb-6" />
@@ -428,6 +446,7 @@ export function UniversityClient({
         school={selectedSchool}
         courses={courses.filter(c => c.school_id === selectedSchool.id)}
         clientProgress={effectiveProgress}
+        enableEntranceAnimation={enableSectionEntrance}
         getCourseProgress={getCourseProgress}
         isCourseCompleted={isCourseCompleted}
         onBack={() => window.history.back()}
@@ -460,7 +479,7 @@ export function UniversityClient({
         </div>
       )}
       {/* Hero Section – same dark navy as header/badges (#010124) */}
-      <PortalSection gradient={false} className="text-white scroll-mt-32 mt-40 relative overflow-hidden !py-24 min-h-[40vh] !bg-[#010124]">
+      <PortalSection enableEntranceAnimation={enableSectionEntrance} gradient={false} className="text-white scroll-mt-32 mt-40 relative overflow-hidden !py-24 min-h-[40vh] !bg-[#010124]">
         <div className="absolute inset-0 gradient-portal opacity-20" />
         <div className="relative z-10 text-center flex flex-col justify-center">
           <GraduationCap className="h-16 w-16 text-brand-gold mx-auto mb-6" />
@@ -475,7 +494,7 @@ export function UniversityClient({
 
       {/* Pokemon-style badge holder: all programs in a row, collected = gold, uncollected = black silhouette */}
       {schools.length > 0 && (
-        <PortalSection gradient={false} className="relative overflow-hidden p-0">
+        <PortalSection enableEntranceAnimation={enableSectionEntrance} gradient={false} className="relative overflow-hidden p-0">
           <div className="w-full py-5" style={{ backgroundColor: "#010124" }}>
             <div className="max-w-6xl mx-auto px-4">
             <p className="text-white/70 text-sm font-medium text-center mb-4">Program badges</p>
@@ -519,7 +538,7 @@ export function UniversityClient({
 
       {/* Certificates Section */}
       {certificates.length > 0 && (
-        <PortalSection gradient={false} className="relative overflow-hidden bg-white">
+        <PortalSection enableEntranceAnimation={enableSectionEntrance} gradient={false} className="relative overflow-hidden bg-white">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8">
               <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
@@ -730,7 +749,7 @@ export function UniversityClient({
           )
         }
         return (
-          <PortalSection gradient={false} className="relative overflow-hidden bg-white">
+          <PortalSection enableEntranceAnimation={enableSectionEntrance} gradient={false} className="relative overflow-hidden bg-white">
             <div className="max-w-6xl mx-auto px-4">
               <div className="text-center mb-10 pt-4">
                 <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/30 rounded-full px-6 py-2 mb-4">
@@ -806,7 +825,7 @@ export function UniversityClient({
       )}
 
       {/* Programs Section */}
-      <PortalSection gradient={false} className="relative overflow-hidden bg-white">
+      <PortalSection enableEntranceAnimation={enableSectionEntrance} gradient={false} className="relative overflow-hidden bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center space-x-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-6">
@@ -927,7 +946,7 @@ export function UniversityClient({
 
       {/* Redo onboarding – show at bottom only when no recommended section (link is in recommended section otherwise) */}
       {onboarding?.completed_at && onboardingQuestions.length > 0 && !hasRecommendations && (
-        <PortalSection gradient={false} className="relative overflow-hidden bg-gray-50/80">
+        <PortalSection enableEntranceAnimation={enableSectionEntrance} gradient={false} className="relative overflow-hidden bg-gray-50/80">
           <div className="max-w-6xl mx-auto py-6 text-center">
             <Button
               type="button"
@@ -950,6 +969,7 @@ function SchoolDetailView({
   school,
   courses,
   clientProgress,
+  enableEntranceAnimation = true,
   getCourseProgress,
   isCourseCompleted,
   onBack,
@@ -958,6 +978,7 @@ function SchoolDetailView({
   school: UniversitySchool
   courses: UniversityCourse[]
   clientProgress: UniversityClientProgress[]
+  enableEntranceAnimation?: boolean
   getCourseProgress: (courseId: string) => number
   isCourseCompleted: (courseId: string) => boolean
   onBack: () => void
@@ -965,7 +986,7 @@ function SchoolDetailView({
 }) {
   return (
     <div className="min-h-screen">
-      <PortalSection gradient={false} className="relative overflow-hidden bg-white">
+      <PortalSection enableEntranceAnimation={enableEntranceAnimation} gradient={false} className="relative overflow-hidden bg-white">
         <div className="max-w-6xl mx-auto">
           <Button
             onClick={onBack}
@@ -1283,7 +1304,7 @@ function CourseDetailView({
   if (loading) {
     return (
       <div className="min-h-screen">
-        <PortalSection gradient={false} className="relative overflow-hidden bg-white">
+        <PortalSection enableEntranceAnimation={progressStorage !== "local"} gradient={false} className="relative overflow-hidden bg-white">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
@@ -1399,7 +1420,7 @@ function CourseDetailView({
 
   return (
     <div className="min-h-screen">
-      <PortalSection gradient={false} className="relative overflow-hidden bg-white">
+      <PortalSection enableEntranceAnimation={progressStorage !== "local"} gradient={false} className="relative overflow-hidden bg-white">
         <div className="max-w-6xl mx-auto">
           <Button
             onClick={onBack}
