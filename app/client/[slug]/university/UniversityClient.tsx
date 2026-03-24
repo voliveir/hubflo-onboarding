@@ -36,11 +36,18 @@ import type {
 import { PortalSection } from "@/components/ui/PortalSection"
 import { formatCourseDuration } from "@/lib/utils"
 import { LectureViewer } from "./LectureViewer"
+import {
+  readAllLocalUniversityProgress,
+  readLocalUniversityProgressForCourse,
+} from "@/lib/university-local-progress"
 
 interface UniversityClientProps {
-  clientId: string
-  clientSlug: string
-  clientName: string
+  /** Client portal: required for API-backed progress. Public Labs: omit when using local storage. */
+  clientId?: string
+  clientSlug?: string
+  clientName?: string
+  /** "server" (default) = portal progress API; "local" = browser-only progress on /labs. */
+  progressStorage?: "server" | "local"
   schools: UniversitySchool[]
   courses: UniversityCourse[]
   clientProgress: UniversityClientProgress[]
@@ -53,6 +60,7 @@ export function UniversityClient({
   clientId,
   clientSlug,
   clientName,
+  progressStorage = "server",
   schools,
   courses,
   clientProgress,
@@ -73,9 +81,26 @@ export function UniversityClient({
   const [redoOnboarding, setRedoOnboarding] = useState(false)
   const hasLectureSelectedRef = useRef(false)
 
+  const [liveLocalProgress, setLiveLocalProgress] = useState<UniversityClientProgress[]>([])
+
+  useEffect(() => {
+    if (progressStorage === "local") {
+      setLiveLocalProgress(readAllLocalUniversityProgress())
+    }
+  }, [progressStorage])
+
+  const effectiveProgress =
+    progressStorage === "local" ? liveLocalProgress : clientProgress
+
+  const refreshLocalProgress = useCallback(() => {
+    if (progressStorage === "local") {
+      setLiveLocalProgress(readAllLocalUniversityProgress())
+    }
+  }, [progressStorage])
+
   // Create progress map
   const progressMap = new Map(
-    clientProgress.map(p => [p.lecture_id || p.course_id, p])
+    effectiveProgress.map(p => [p.lecture_id || p.course_id, p])
   )
 
   // Scroll to top when entering Hubflo Labs or switching to school/course view so the view doesn’t start mid-page
@@ -177,12 +202,12 @@ export function UniversityClient({
 
     // Check if all lectures are completed
     const allCompleted = allLectures.every((lecture) => {
-      const progress = clientProgress.find((p) => p.lecture_id === lecture.id)
+      const progress = effectiveProgress.find((p) => p.lecture_id === lecture.id)
       return progress?.is_completed === true
     })
 
     return allCompleted
-  }, [fullCoursesData, clientProgress])
+  }, [fullCoursesData, effectiveProgress])
 
   // Check if a school/program is fully completed (all courses completed)
   const isSchoolCompleted = useCallback((schoolId: string): boolean => {
@@ -217,7 +242,7 @@ export function UniversityClient({
 
           // Check if all lectures are completed
           return allLectures.every((lecture) => {
-            const progress = clientProgress.find((p) => p.lecture_id === lecture.id)
+            const progress = effectiveProgress.find((p) => p.lecture_id === lecture.id)
             return progress?.is_completed === true
           })
         })
@@ -226,11 +251,11 @@ export function UniversityClient({
     } else {
       setCompletedSchools([])
     }
-  }, [schools, courses, fullCoursesData, clientProgress, loadingCourses])
+  }, [schools, courses, fullCoursesData, effectiveProgress, loadingCourses])
 
   // Calculate course progress
   const getCourseProgress = (courseId: string) => {
-    const courseProgress = clientProgress.filter(p => p.course_id === courseId)
+    const courseProgress = effectiveProgress.filter(p => p.course_id === courseId)
     if (courseProgress.length === 0) return 0
     
     const totalProgress = courseProgress.reduce((sum, p) => sum + p.progress_percentage, 0)
@@ -250,6 +275,7 @@ export function UniversityClient({
 
   const handleOnboardingSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault()
+    if (!clientSlug) return
     setOnboardingSubmitting(true)
     try {
       const res = await fetch(`/api/client/${clientSlug}/university/onboarding`, {
@@ -401,8 +427,7 @@ export function UniversityClient({
       <SchoolDetailView
         school={selectedSchool}
         courses={courses.filter(c => c.school_id === selectedSchool.id)}
-        clientId={clientId}
-        clientProgress={clientProgress}
+        clientProgress={effectiveProgress}
         getCourseProgress={getCourseProgress}
         isCourseCompleted={isCourseCompleted}
         onBack={() => window.history.back()}
@@ -416,7 +441,9 @@ export function UniversityClient({
       <CourseDetailView
         course={selectedCourse}
         clientId={clientId}
-        clientProgress={clientProgress}
+        clientProgress={effectiveProgress}
+        progressStorage={progressStorage}
+        onProgressChanged={refreshLocalProgress}
         onBack={() => window.history.back()}
         hasLectureSelectedRef={hasLectureSelectedRef}
       />
@@ -425,6 +452,13 @@ export function UniversityClient({
 
   return (
     <div className="min-h-screen">
+      {progressStorage === "local" && (
+        <div className="bg-[#010124] border-b border-white/10 px-4 py-3 text-center">
+          <p className="text-sm text-white/80 max-w-2xl mx-auto">
+            Progress is saved only on this browser. Clearing site data or using another device will not show your completions here.
+          </p>
+        </div>
+      )}
       {/* Hero Section – same dark navy as header/badges (#010124) */}
       <PortalSection gradient={false} className="text-white scroll-mt-32 mt-40 relative overflow-hidden !py-24 min-h-[40vh] !bg-[#010124]">
         <div className="absolute inset-0 gradient-portal opacity-20" />
@@ -915,7 +949,6 @@ export function UniversityClient({
 function SchoolDetailView({
   school,
   courses,
-  clientId,
   clientProgress,
   getCourseProgress,
   isCourseCompleted,
@@ -924,7 +957,6 @@ function SchoolDetailView({
 }: {
   school: UniversitySchool
   courses: UniversityCourse[]
-  clientId: string
   clientProgress: UniversityClientProgress[]
   getCourseProgress: (courseId: string) => number
   isCourseCompleted: (courseId: string) => boolean
@@ -1086,12 +1118,16 @@ function CourseDetailView({
   course,
   clientId,
   clientProgress,
+  progressStorage,
+  onProgressChanged,
   onBack,
   hasLectureSelectedRef,
 }: {
   course: UniversityCourse
-  clientId: string
+  clientId?: string
   clientProgress: UniversityClientProgress[]
+  progressStorage: "server" | "local"
+  onProgressChanged?: () => void
   onBack: () => void
   hasLectureSelectedRef: React.MutableRefObject<boolean>
 }) {
@@ -1101,6 +1137,10 @@ function CourseDetailView({
   const [localProgress, setLocalProgress] = useState<UniversityClientProgress[]>(() =>
     clientProgress.filter((p) => p.course_id === course.id)
   )
+
+  useEffect(() => {
+    setLocalProgress(clientProgress.filter((p) => p.course_id === course.id))
+  }, [clientProgress, course.id])
   const [fullCourse, setFullCourse] = useState<UniversityCourse | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -1181,14 +1221,26 @@ function CourseDetailView({
   }
 
   const handleLectureComplete = async () => {
-    // Refresh progress from server so progress bar and checkmarks update immediately
+    if (progressStorage === "local") {
+      const freshProgress = readLocalUniversityProgressForCourse(course.id)
+      setLocalProgress(freshProgress)
+      onProgressChanged?.()
+
+      const currentIndex = selectedLecture ? allLectures.findIndex((l) => l.id === selectedLecture.id) : -1
+      if (currentIndex >= 0 && currentIndex < allLectures.length - 1) {
+        setSelectedLecture(allLectures[currentIndex + 1])
+      }
+      return
+    }
+
+    if (!clientId) return
+
     const response = await fetch(`/api/university/progress?clientId=${clientId}&courseId=${course.id}`)
     if (response.ok) {
       const json = await response.json()
       const freshProgress = Array.isArray(json.data) ? json.data : []
       setLocalProgress(freshProgress)
 
-      // Use fresh data for completion check (state won't have updated yet)
       const allComplete =
         allLectures.length > 0 &&
         allLectures.every((lecture) => {
@@ -1211,7 +1263,6 @@ function CourseDetailView({
         }
       }
 
-      // Navigate to the next lecture (so "Complete and continue" advances to next step)
       const currentIndex = selectedLecture ? allLectures.findIndex((l) => l.id === selectedLecture.id) : -1
       if (currentIndex >= 0 && currentIndex < allLectures.length - 1) {
         setSelectedLecture(allLectures[currentIndex + 1])
@@ -1334,6 +1385,7 @@ function CourseDetailView({
               lecture={selectedLecture}
               clientId={clientId}
               courseId={courseData.id}
+              progressStorage={progressStorage}
               onBack={() => setSelectedLecture(null)}
               onComplete={handleLectureComplete}
               embeddedLayout

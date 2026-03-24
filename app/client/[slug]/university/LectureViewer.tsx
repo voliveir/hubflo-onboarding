@@ -25,11 +25,18 @@ import type { UniversityLecture, UniversityQuiz } from "@/lib/types"
 import { toast } from "@/hooks/use-toast"
 import DOMPurify from "dompurify"
 import { ClickthroughDemo } from "@/components/ClickthroughDemo"
+import {
+  getLocalLectureProgress,
+  upsertLocalLectureProgress,
+} from "@/lib/university-local-progress"
 
 interface LectureViewerProps {
   lecture: UniversityLecture
-  clientId: string
+  /** Required when progressStorage is "server" (client portal). Ignored when progressStorage is "local". */
+  clientId?: string
   courseId: string
+  /** "server" = persist via API; "local" = browser localStorage only (public Labs). */
+  progressStorage?: "server" | "local"
   onBack: () => void
   onComplete: () => void
   /** When true, render only the lecture content (no full-page chrome) for sidebar layout */
@@ -38,7 +45,16 @@ interface LectureViewerProps {
   markCompleteRef?: React.MutableRefObject<(() => void) | null>
 }
 
-export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete, embeddedLayout = false, markCompleteRef }: LectureViewerProps) {
+export function LectureViewer({
+  lecture,
+  clientId,
+  courseId,
+  onBack,
+  onComplete,
+  embeddedLayout = false,
+  markCompleteRef,
+  progressStorage = "server",
+}: LectureViewerProps) {
   const [progress, setProgress] = useState(0)
   const [isCompleted, setIsCompleted] = useState(false)
   const [quiz, setQuiz] = useState<UniversityQuiz | null>(null)
@@ -67,10 +83,26 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
     loadProgress()
 
     return () => clearInterval(interval)
-  }, [lecture.id, clientId, courseId])
+  }, [lecture.id, clientId, courseId, progressStorage])
 
   const loadProgress = async () => {
     try {
+      if (progressStorage === "local") {
+        const row = getLocalLectureProgress(courseId, lecture.id)
+        if (row) {
+          setProgress(row.progress_percentage || 0)
+          setIsCompleted(row.is_completed === true)
+        } else {
+          setProgress(0)
+          setIsCompleted(false)
+        }
+        return
+      }
+      if (!clientId) {
+        setProgress(0)
+        setIsCompleted(false)
+        return
+      }
       const response = await fetch(`/api/university/progress?clientId=${clientId}&courseId=${courseId}`)
       if (response.ok) {
         const data = await response.json()
@@ -108,6 +140,20 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
 
   const updateProgress = async (newProgress: number, completed: boolean = false) => {
     try {
+      if (progressStorage === "local") {
+        upsertLocalLectureProgress(courseId, lecture.id, {
+          progress_percentage: newProgress,
+          is_completed: completed,
+          time_spent_minutes: timeSpent,
+        })
+        setProgress(newProgress)
+        setIsCompleted(completed)
+        if (completed) {
+          onComplete()
+        }
+        return
+      }
+      if (!clientId) return
       const response = await fetch("/api/university/progress", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -168,12 +214,21 @@ export function LectureViewer({ lecture, clientId, courseId, onBack, onComplete,
       const response = await fetch("/api/university/quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clientId,
-          quizId: quiz.id,
-          answers: quizAnswers,
-          timeTakenMinutes: timeSpent,
-        }),
+        body: JSON.stringify(
+          progressStorage === "local"
+            ? {
+                gradeOnly: true,
+                quizId: quiz.id,
+                answers: quizAnswers,
+                timeTakenMinutes: timeSpent,
+              }
+            : {
+                clientId,
+                quizId: quiz.id,
+                answers: quizAnswers,
+                timeTakenMinutes: timeSpent,
+              }
+        ),
       })
 
       if (response.ok) {
