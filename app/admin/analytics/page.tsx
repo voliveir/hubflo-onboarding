@@ -670,6 +670,42 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
     };
   });
 
+  // Velocity data: last 12 months of implementation starts and graduations
+  const velocityData = (() => {
+    const months: { month: string; started: number; graduated: number }[] = [];
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = d.getFullYear();
+      const month = d.getMonth();
+      const label = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+      const started = (data.clients || []).filter((c: any) => {
+        if (!c.created_at) return false;
+        const cd = new Date(c.created_at);
+        return cd.getFullYear() === year && cd.getMonth() === month;
+      }).length;
+      const graduated = (data.clients || []).filter((c: any) => {
+        if (!c.graduation_date) return false;
+        const gd = new Date(c.graduation_date);
+        return gd.getFullYear() === year && gd.getMonth() === month;
+      }).length;
+      months.push({ month: label, started, graduated });
+    }
+    return months;
+  })();
+
+  // Active implementation age: non-demo, non-graduated, non-churned clients sorted by days elapsed
+  const activeProjectAges = (data.clients || [])
+    .filter((c: any) => !c.graduation_date && !c.churned && !c.is_demo)
+    .map((c: any) => ({
+      name: c.name,
+      days: Math.round((new Date().getTime() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24)),
+      package: c.success_package || 'unknown',
+      implementation_manager: c.implementation_manager || 'unassigned',
+    }))
+    .sort((a: any, b: any) => b.days - a.days)
+    .slice(0, 25);
+
   // Section 3: Funnel Chart live data
   // Calculate funnel stages based on onboarding call/graduation fields
   const funnelStages = [
@@ -941,6 +977,93 @@ const AnalyticsDashboard = ({ lastUpdated }: { lastUpdated: string }): ReactElem
             )}
           </Card>
         </div>
+      </div>
+
+      {/* SECTION: Implementation Velocity */}
+      <div className="py-10">
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2" style={{color: '#060520'}}>
+          <span>📈 Implementation Velocity</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="w-5 h-5 text-brand-gold cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="bg-white border border-gray-200 text-gray-900 max-w-sm">
+                Shows how many projects are being started and completed each month, and which active implementations have been in-flight the longest.
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <Card className="bg-white shadow-lg p-6 border border-gray-200 rounded-2xl">
+            <h3 className="text-lg font-semibold mb-1" style={{color: '#060520'}}>Monthly Graduation Velocity</h3>
+            <p className="text-sm text-gray-500 mb-4">Clients completing implementation per month (last 12 months)</p>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={velocityData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                  <YAxis allowDecimals={false} />
+                  <RechartsTooltip formatter={(val: number) => [`${val} client${val !== 1 ? 's' : ''}`, "Graduated"]} />
+                  <Bar dataKey="graduated" fill="#F2C94C" radius={[4, 4, 0, 0]} name="Graduated" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card className="bg-white shadow-lg p-6 border border-gray-200 rounded-2xl">
+            <h3 className="text-lg font-semibold mb-1" style={{color: '#060520'}}>New Clients vs. Graduations</h3>
+            <p className="text-sm text-gray-500 mb-4">Inflow vs. completion rate per month (last 12 months)</p>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={velocityData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                  <YAxis allowDecimals={false} />
+                  <RechartsTooltip />
+                  <Legend />
+                  <Bar dataKey="started" fill="#0a0b1a" radius={[4, 4, 0, 0]} name="Started" />
+                  <Bar dataKey="graduated" fill="#F2C94C" radius={[4, 4, 0, 0]} name="Graduated" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        </div>
+
+        <Card className="bg-white shadow-lg p-6 border border-gray-200 rounded-2xl">
+          <h3 className="text-lg font-semibold mb-1" style={{color: '#060520'}}>Active Implementations by Age</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            Currently active clients by days in implementation —{" "}
+            <span className="text-yellow-500 font-medium">yellow</span> = under 30 days,{" "}
+            <span className="text-orange-500 font-medium">orange</span> = 30–60 days,{" "}
+            <span className="text-red-500 font-medium">red</span> = 60+ days
+          </p>
+          {activeProjectAges.length > 0 ? (
+            <div style={{ height: Math.max(200, activeProjectAges.length * 38) }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={activeProjectAges} layout="vertical" margin={{ top: 5, right: 70, left: 140, bottom: 5 }}>
+                  <XAxis type="number" unit=" days" tick={{ fontSize: 11 }} />
+                  <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
+                  <RechartsTooltip
+                    formatter={(val: number, _name: string, props: any) => [
+                      `${val} days`,
+                      `${props.payload.package} · ${props.payload.implementation_manager}`,
+                    ]}
+                  />
+                  <Bar dataKey="days" radius={[0, 4, 4, 0]} name="Days in implementation">
+                    {activeProjectAges.map((_entry: any, index: number) => (
+                      <Cell
+                        key={index}
+                        fill={activeProjectAges[index].days > 60 ? '#ef4444' : activeProjectAges[index].days > 30 ? '#F2994A' : '#F2C94C'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-32 flex items-center justify-center text-gray-500">No active implementations.</div>
+          )}
+        </Card>
       </div>
 
       {/* SECTION A: Business Overview */}
