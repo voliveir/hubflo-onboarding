@@ -9,9 +9,13 @@ interface CardHoverProps {
   children: ReactNode
   className?: string
   title?: string
+  /** Rendered between title and description (e.g. price or “Included”). */
+  price?: ReactNode
   description?: string
   icon?: ReactNode
   badge?: ReactNode
+  /** Places the badge centered at the top of the card (e.g. pricing tiers). */
+  centerBadge?: boolean
   delay?: number
 }
 
@@ -19,9 +23,11 @@ export function CardHover({
   children, 
   className, 
   title, 
+  price,
   description, 
   icon, 
   badge, 
+  centerBadge = false,
   delay = 0 
 }: CardHoverProps) {
   return (
@@ -39,10 +45,15 @@ export function CardHover({
         "hover:shadow-lg hover:border-gray-300",
         className
       )}>
-        {(title || description || icon || badge) && (
-          <CardHeader className="relative">
+        {(title || description || icon || badge || price) && (
+          <CardHeader className={cn("relative", badge && centerBadge && "pt-14")}>
             {badge && (
-              <div className="absolute top-4 right-4">
+              <div
+                className={cn(
+                  "absolute top-4 z-10",
+                  centerBadge ? "left-1/2 -translate-x-1/2" : "right-4"
+                )}
+              >
                 {badge}
               </div>
             )}
@@ -56,8 +67,9 @@ export function CardHover({
                 {title}
               </CardTitle>
             )}
+            {price && <div className="mt-2">{price}</div>}
             {description && (
-              <CardDescription className="text-base" style={{ color: '#64748b' }}>
+              <CardDescription className="text-base mt-2" style={{ color: '#64748b' }}>
                 {description}
               </CardDescription>
             )}

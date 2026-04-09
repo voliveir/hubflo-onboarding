@@ -1,10 +1,8 @@
 'use client'
 
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Users, Zap, FileText, Settings, Play, ExternalLink, CheckCircle, Star, ArrowRight, Clock, Shield, Award, TrendingUp, Sparkles, Trophy, Crown, HelpCircle, MessageSquare, GraduationCap } from "lucide-react"
+import { Users, Zap, FileText, Settings, Play, ExternalLink, CheckCircle, Star, ArrowRight, Clock, Shield, Award, TrendingUp, HelpCircle, MessageSquare, GraduationCap } from "lucide-react"
 import Image from "next/image"
 import { Header } from "@/components/ui/header"
 import { Hero } from "@/components/ui/hero"
@@ -162,127 +160,137 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto relative z-10">
-            {/* Light Package */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto relative z-10">
+            {/* Light */}
             <CardHover
-              title="Light Package"
-              description="Perfect for small teams getting started"
-              icon={<Sparkles className="h-8 w-8 text-brand-gold" />}
+              title="Light"
+              price={<span className="text-lg font-bold text-green-600">Included</span>}
+              description="Everything you need to get started on your own with support when you need it."
               delay={0.1}
-              badge={<Badge className="bg-gray-100 text-gray-700 border-0">Starter</Badge>}
             >
               <div className="flex flex-col flex-grow">
                 <ul className="space-y-3 text-sm flex-grow" style={{ color: '#060520' }}>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>1 Zoom Call</span>
+                    <CheckCircle className="h-5 w-5 text-brand-gold mr-3 flex-shrink-0 mt-0.5" />
+                    <span>One Zoom call with a product specialist</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Video Tutorials</span>
+                    <CheckCircle className="h-5 w-5 text-brand-gold mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Help setting up a few forms &amp; templates during your onboarding call</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Chat Support</span>
+                    <CheckCircle className="h-5 w-5 text-brand-gold mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Access to video tutorials</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Standard Support</span>
+                    <CheckCircle className="h-5 w-5 text-brand-gold mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Chat &amp; email support</span>
                   </li>
                 </ul>
               </div>
             </CardHover>
 
-            {/* Premium Package */}
+            {/* Premium */}
             <CardHover
-              title="Premium Package"
-              description="Most popular for growing businesses"
-              icon={<Star className="h-8 w-8 text-brand-gold" />}
+              title="Premium"
+              price={
+                <span>
+                  <span className="text-2xl font-bold" style={{ color: '#060520' }}>
+                    $490
+                  </span>{' '}
+                  <span className="text-sm font-normal text-brand-slate-text">one-time</span>
+                </span>
+              }
+              description="Perfect for teams who want expert guidance and a fast-track setup."
               delay={0.2}
-              badge={<Badge className="bg-brand-gold text-brand-DEFAULT border-0 font-semibold">Most Popular</Badge>}
+              centerBadge
+              badge={
+                <Badge className="bg-brand-gold text-brand-DEFAULT border-0 font-semibold uppercase tracking-wide">
+                  Most popular
+                </Badge>
+              }
+              className="border-2 border-brand-gold shadow-md"
             >
               <div className="flex flex-col flex-grow">
                 <ul className="space-y-3 text-sm flex-grow" style={{ color: '#060520' }}>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>2 Zoom Calls</span>
+                    <CheckCircle className="h-5 w-5 text-brand-gold mr-3 flex-shrink-0 mt-0.5" />
+                    <span>2 Zoom calls with a product specialist</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Basic Zapier Setup</span>
+                    <CheckCircle className="h-5 w-5 text-brand-gold mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Workflow mapping &amp; workspace structuring</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Up to 2 Forms/SmartDocs</span>
+                    <CheckCircle className="h-5 w-5 text-brand-gold mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Up to 3 simple workflows or automations with external apps</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Priority Support</span>
+                    <CheckCircle className="h-5 w-5 text-brand-gold mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Setup of your forms, SmartDocs &amp; workspace templates (up to 3)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-brand-gold mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Simple data imports</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-brand-gold mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Priority support during onboarding</span>
                   </li>
                 </ul>
               </div>
             </CardHover>
 
-            {/* Gold Package */}
+            {/* Elite */}
             <CardHover
-              title="Gold Package"
-              description="Advanced features for scaling teams"
-              icon={<Trophy className="h-8 w-8 text-brand-gold" />}
+              title="Elite"
+              price={
+                <span>
+                  <span className="text-sm text-brand-slate-text">Starting from </span>
+                  <span className="text-2xl font-bold text-brand-DEFAULT">$1,200</span>
+                  <span className="text-sm text-brand-slate-text"> · custom</span>
+                </span>
+              }
+              description="Best for teams migrating from another tool or needing fully personalized setup."
               delay={0.3}
-              badge={<Badge className="bg-amber-50 text-amber-700 border-0">Advanced</Badge>}
             >
               <div className="flex flex-col flex-grow">
                 <ul className="space-y-3 text-sm flex-grow" style={{ color: '#060520' }}>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Up to 3 Zoom Calls</span>
+                    <CheckCircle className="h-5 w-5 text-gray-500 mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Everything in Premium, plus:</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Advanced Zapier Setup</span>
+                    <CheckCircle className="h-5 w-5 text-gray-500 mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Migration assistance (contacts, workspaces, clients)</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Up to 4 Forms/SmartDocs</span>
+                    <CheckCircle className="h-5 w-5 text-gray-500 mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Custom integration setup (via API or partner tools)</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Priority Support</span>
-                  </li>
-                </ul>
-              </div>
-            </CardHover>
-
-            {/* Elite Package */}
-            <CardHover
-              title="Elite Package"
-              description="Complete white-glove service"
-              icon={<Crown className="h-8 w-8 text-brand-gold" />}
-              delay={0.4}
-              badge={<Badge className="bg-purple-50 text-purple-700 border-0">Elite</Badge>}
-            >
-              <div className="flex flex-col flex-grow">
-                <ul className="space-y-3 text-sm flex-grow" style={{ color: '#060520' }}>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Unlimited Onboarding Calls</span>
+                    <CheckCircle className="h-5 w-5 text-gray-500 mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Full onboarding project managed by our team</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Full Migration Assistance</span>
+                    <CheckCircle className="h-5 w-5 text-gray-500 mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Advanced external integrations &amp; workflows</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Custom Integrations</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span>Dedicated Manager</span>
+                    <CheckCircle className="h-5 w-5 text-gray-500 mr-3 flex-shrink-0 mt-0.5" />
+                    <span>Direct access to your account manager via Slack</span>
                   </li>
                 </ul>
               </div>
             </CardHover>
           </div>
+
+          <p
+            className="text-center text-base mt-12 max-w-3xl mx-auto relative z-10"
+            style={{ color: '#64748b' }}
+          >
+            Implementation covers your first few weeks until you&apos;re fully set up.
+          </p>
         </Section>
 
         {/* Launch Process Section */}
