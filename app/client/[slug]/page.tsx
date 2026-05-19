@@ -48,6 +48,7 @@ import { WhiteLabelProgress } from "@/components/WhiteLabelProgress"
 import { getImplementationManagerById } from '@/lib/implementationManagers'
 import { clsx } from "clsx"
 import { PinnedNoteDisplay } from "@/components/pinned-note-display"
+import { getPackageDefinition, getRecommendedUpgrade, getUpgradeOptions } from "@/lib/success-packages"
 
 interface ClientPageProps {
   params: Promise<{
@@ -114,10 +115,9 @@ export default async function ClientPage({ params }: ClientPageProps) {
   const videoUrl = client?.video_url || null
   const projectsEnabled = client?.projects_enabled ?? false
   const customAppLabel = getCustomAppLabel(client?.custom_app)
-  const packageDisplayName =
-    successPackage && successPackage.length > 0
-      ? successPackage.charAt(0).toUpperCase() + successPackage.slice(1)
-      : "Premium"
+  const packageDef = getPackageDefinition(successPackage)
+  const packageDisplayName = packageDef.displayName
+  const upgradeOptions = getUpgradeOptions(successPackage)
 
   const getPackageColor = (pkg: string) => {
     switch (pkg.toLowerCase()) {
@@ -126,7 +126,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       case "premium":
         return "bg-yellow-200 text-yellow-900"
       case "gold":
-        return "bg-yellow-300 text-yellow-900"
+        return "bg-yellow-200 text-yellow-900"
       case "elite":
         return "bg-yellow-400 text-yellow-900"
       case "starter":
@@ -134,30 +134,9 @@ export default async function ClientPage({ params }: ClientPageProps) {
       case "professional":
         return "bg-yellow-200 text-yellow-900"
       case "enterprise":
-        return "bg-yellow-300 text-yellow-900"
+        return "bg-yellow-400 text-yellow-900"
       default:
         return "bg-yellow-200 text-yellow-900"
-    }
-  }
-
-  const getPackageEmoji = (pkg: string) => {
-    switch (pkg.toLowerCase()) {
-      case "light":
-        return "🟢"
-      case "premium":
-        return "🔵"
-      case "gold":
-        return "🟡"
-      case "elite":
-        return "🔴"
-      case "starter":
-        return "⚪"
-      case "professional":
-        return "🟣"
-      case "enterprise":
-        return "🟦"
-      default:
-        return "🔵"
     }
   }
 
@@ -285,7 +264,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
             <span className="text-brand-gold font-medium text-sm">Your Package</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-4" style={{ color: '#060520' }}>
-            Your <span className="text-brand-gold">{getPackageEmoji(successPackage)} {packageDisplayName}</span> Package Includes
+            Your <span className="text-brand-gold">{packageDef.emoji} {packageDisplayName}</span> Package Includes
           </h2>
           <p className="text-xl max-w-2xl mx-auto leading-relaxed" style={{ color: '#64748b' }}>
             {"Here's everything included in your success package to ensure a smooth onboarding experience."}
@@ -686,7 +665,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       </PortalSection>
 
       {/* Upsell Section - only render upsell cards here, based on current package */}
-      {["light", "premium", "gold"].includes(successPackage.toLowerCase()) && (
+      {upgradeOptions.length > 0 && (
         <PortalSection gradient={true} className="relative overflow-hidden mt-16">
           <UpgradePackageSection 
             clientId={client.id}
@@ -730,82 +709,12 @@ function UpgradePackageSection({
   currentPackage,
   calendarUpgradeConsultation,
 }: { clientId: string; clientName: string; currentPackage: string; calendarUpgradeConsultation: string }) {
-  // Define all packages
-  const allPackages = [
-    {
-      name: "Light",
-      emoji: "🟢",
-      price: "Contact for pricing",
-      description: "Essential onboarding support",
-      features: ["1 Onboarding Call", "Video Tutorials", "Chat Support", "Standard Support", "Email Support"],
-      level: 1,
-    },
-    {
-      name: "Premium",
-      emoji: "🔵",
-      price: "Contact for pricing",
-      description: "Perfect for growing businesses",
-      features: [
-        "2 Onboarding Calls",
-        "Up to 2 Forms/SmartDocs",
-        "Basic Zapier Integration",
-        "Priority Support",
-        "Email Support",
-      ],
-      level: 2,
-    },
-    {
-      name: "Gold",
-      emoji: "🟡",
-      price: "Contact for pricing",
-      description: "Advanced features for scaling teams",
-      features: [
-        "Up to 3 Onboarding Calls",
-        "Up to 4 Forms/SmartDocs",
-        "Advanced Zapier Workflows",
-        "Priority Support",
-        "Email Support",
-      ],
-      level: 3,
-    },
-    {
-      name: "Elite",
-      emoji: "🔴",
-      price: "Contact for pricing",
-      description: "Complete solution for enterprise",
-      features: [
-        "Unlimited Onboarding Calls",
-        "Unlimited Forms/SmartDocs",
-        "Custom API Integrations",
-        "Full Data Migration",
-        "Dedicated Account Manager",
-        "Direct Slack Access",
-      ],
-      level: 4,
-    },
-  ]
+  const availableUpgrades = getUpgradeOptions(currentPackage)
+  const recommended = getRecommendedUpgrade(currentPackage)
 
-  // Get current package level
-  const currentPackageLevel =
-    allPackages.find((pkg) => pkg.name.toLowerCase() === currentPackage.toLowerCase())?.level || 1
-
-  // Filter packages to show only those above the current level
-  const availableUpgrades = allPackages.filter((pkg) => pkg.level > currentPackageLevel)
-
-  // Don't render if no upgrades available
   if (availableUpgrades.length === 0) {
     return null
   }
-
-  // Determine which package should be marked as popular
-  const getPopularPackage = () => {
-    if (currentPackageLevel === 1) return "Premium" // Light -> Premium popular
-    if (currentPackageLevel === 2) return "Gold" // Premium -> Gold popular
-    if (currentPackageLevel === 3) return "Elite" // Gold -> Elite popular
-    return null
-  }
-
-  const popularPackage = getPopularPackage()
 
   return (
     <div className="px-2 sm:px-4 pt-10 pb-4">
@@ -821,13 +730,13 @@ function UpgradePackageSection({
         <div className={`flex flex-col gap-8 md:flex-row md:gap-12 justify-center items-stretch`}>
           {availableUpgrades.map((pkg) => (
             <Card
-              key={pkg.name}
+              key={pkg.id}
               className={
                 `flex flex-col rounded-2xl border border-brand-gold/30 bg-[#10122b]/90 text-white shadow-lg px-8 py-8 items-center justify-between min-w-[260px] max-w-xs mx-auto transition-all duration-300 hover:shadow-xl hover:border-brand-gold/60` +
-                (pkg.name === popularPackage ? ' ring-2 ring-brand-gold/60' : '')
+                (recommended?.id === pkg.id ? ' ring-2 ring-brand-gold/60' : '')
               }
             >
-              {pkg.name === popularPackage && (
+              {recommended?.id === pkg.id && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                   <div className="bg-[#F2C94C] text-[#010124] px-4 py-2 rounded-full text-sm font-semibold flex items-center">
                     <Star className="h-4 w-4 mr-1" />
@@ -837,8 +746,11 @@ function UpgradePackageSection({
               )}
               <CardHeader className="text-center pb-4">
                 <div className="text-4xl mb-2">{pkg.emoji}</div>
-                <CardTitle className="text-2xl text-white">{pkg.name} Package</CardTitle>
+                <CardTitle className="text-2xl text-white">{pkg.displayName} Package</CardTitle>
                 <CardDescription className="text-white/80">{pkg.description}</CardDescription>
+                {pkg.priceLabel && (
+                  <p className="text-brand-gold font-semibold mt-2">{pkg.priceLabel}</p>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-3">

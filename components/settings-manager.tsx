@@ -312,7 +312,6 @@ export function SettingsManager() {
                 >
                   <option value="light">Light</option>
                   <option value="premium">Premium</option>
-                  <option value="gold">Gold</option>
                   <option value="elite">Elite</option>
                 </select>
               </div>

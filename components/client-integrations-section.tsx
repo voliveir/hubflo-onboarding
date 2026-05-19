@@ -315,7 +315,7 @@ export function ClientIntegrationsSection({
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center transition-all duration-300 hover:shadow-lg hover:border-gray-300">
               <h3 className="text-xl font-semibold mb-4" style={{ color: '#060520' }}>Need More Help?</h3>
               <p className="mb-6 leading-relaxed" style={{ color: '#64748b' }}>
-                If you need hands-on help setting up integrations, you'll need to upgrade your success package to <strong>Premium</strong>, <strong>Gold</strong>, or <strong>Elite</strong>.
+                If you need hands-on help setting up integrations, you&apos;ll need to upgrade your success package to <strong>Premium</strong> or <strong>Elite</strong>.
               </p>
               <p className="text-sm mb-6" style={{ color: '#64748b' }}>
                 <strong>Contact support</strong> to discuss upgrading and unlocking advanced onboarding support.
@@ -328,7 +328,7 @@ export function ClientIntegrationsSection({
                 Our implementation team can help configure these integrations during your onboarding calls.
               </p>
               <p className="text-sm mb-6" style={{ color: '#64748b' }}>
-                <strong>Note:</strong> Advanced integration setup is included with Premium, Gold, and Elite packages.
+                <strong>Note:</strong> Workflow and integration setup is included with Premium and Elite packages.
               </p>
               <Button className="bg-brand-gold hover:bg-brand-gold/90 text-brand-DEFAULT transition-all duration-200 hover:scale-105" asChild>
                 <a

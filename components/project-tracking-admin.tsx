@@ -26,6 +26,12 @@ import {
   getScheduledCallsForPackage,
 } from "@/lib/database"
 import type { Client } from "@/lib/types"
+import {
+  calculateImplementationProgress,
+  getPackageLimits,
+  getTemplatesCompleted,
+  isUnlimited,
+} from "@/lib/success-packages"
 
 interface ProjectTrackingAdminProps {
   client: Client
@@ -104,59 +110,7 @@ export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
 
   // Calculate overall progress manually since calculateProjectCompletion is async
   const calculateOverallProgress = (client: Client) => {
-    const packageLimits = {
-      light: { calls: 1, forms: 0, smartdocs: 0, integrations: 0, migration: false, slack: false },
-      premium: { calls: 2, forms: 2, smartdocs: 2, integrations: 1, migration: false, slack: false },
-      gold: { calls: 3, forms: 4, smartdocs: 4, integrations: 2, migration: false, slack: false },
-      elite: { calls: 999, forms: 999, smartdocs: 999, integrations: 999, migration: true, slack: true },
-      starter: { calls: 1, forms: 1, smartdocs: 1, integrations: 0, migration: false, slack: false },
-      professional: { calls: 3, forms: 5, smartdocs: 5, integrations: 3, migration: false, slack: true },
-      enterprise: { calls: 999, forms: 999, smartdocs: 999, integrations: 999, migration: true, slack: true },
-    }
-
-    const limits = packageLimits[client.success_package] || packageLimits.premium
-    let totalTasks = 0
-    let completedTasks = 0
-
-    // Count calls
-    if (limits.calls > 0) {
-      totalTasks += limits.calls === 999 ? Math.max(client.calls_scheduled, 1) : limits.calls
-      completedTasks += Math.min(
-        client.calls_completed,
-        limits.calls === 999 ? Math.max(client.calls_scheduled, 1) : limits.calls,
-      )
-    }
-
-    // Count forms
-    if (limits.forms > 0) {
-      totalTasks += limits.forms === 999 ? Math.max(client.forms_setup, 1) : limits.forms
-      completedTasks += Math.min(client.forms_setup, limits.forms === 999 ? Math.max(client.forms_setup, 1) : limits.forms)
-    }
-
-    // Count smartdocs
-    if (limits.smartdocs > 0) {
-      totalTasks += limits.smartdocs === 999 ? Math.max(client.smartdocs_setup, 1) : limits.smartdocs
-      completedTasks += Math.min(client.smartdocs_setup, limits.smartdocs === 999 ? Math.max(client.smartdocs_setup, 1) : limits.smartdocs)
-    }
-
-    // Count integrations
-    if (limits.integrations > 0) {
-      totalTasks += limits.integrations === 999 ? Math.max(client.zapier_integrations_setup, 1) : limits.integrations
-      completedTasks += Math.min(client.zapier_integrations_setup, limits.integrations === 999 ? Math.max(client.zapier_integrations_setup, 1) : limits.integrations)
-    }
-
-    // Count elite features
-    if (limits.migration) {
-      totalTasks += 1
-      if (client.migration_completed) completedTasks += 1
-    }
-
-    if (limits.slack) {
-      totalTasks += 1
-      if (client.slack_access_granted) completedTasks += 1
-    }
-
-    return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+    return calculateImplementationProgress(client, client.calls_completed ?? 0).overall
   }
 
   if (!client) {
@@ -167,11 +121,32 @@ export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
     )
   }
 
-  // Calculate progress for mini cards
-  const callsProgress = getProgressStatus(tracking.calls_completed, Math.max(tracking.calls_scheduled, 1))
-  const formsProgress = getProgressStatus(tracking.forms_setup, 4) // Assuming 4 is a good target
-  const smartdocsProgress = getProgressStatus(tracking.smartdocs_setup, 4) // Assuming 4 is a good target
-  const integrationsProgress = getProgressStatus(tracking.zapier_integrations_setup, 2) // Assuming 2 is a good target
+  const limits = getPackageLimits(client.success_package)
+  const templatesMax = limits.templatesCombined
+  const templatesCompleted = getTemplatesCompleted(updatedClient)
+  const formsTarget =
+    templatesMax ??
+    (isUnlimited(limits.forms) ? Math.max(tracking.forms_setup, 1) : limits.forms)
+  const smartdocsTarget =
+    templatesMax ??
+    (isUnlimited(limits.smartdocs) ? Math.max(tracking.smartdocs_setup, 1) : limits.smartdocs)
+  const integrationsTarget = isUnlimited(limits.integrations)
+    ? Math.max(tracking.zapier_integrations_setup, 1)
+    : limits.integrations
+  const callsTarget = isUnlimited(limits.countableCalls)
+    ? Math.max(tracking.calls_scheduled, 1)
+    : limits.countableCalls
+
+  const callsProgress = getProgressStatus(tracking.calls_completed, callsTarget)
+  const formsProgress = getProgressStatus(
+    templatesMax != null ? templatesCompleted : tracking.forms_setup,
+    formsTarget,
+  )
+  const smartdocsProgress = getProgressStatus(
+    templatesMax != null ? templatesCompleted : tracking.smartdocs_setup,
+    smartdocsTarget,
+  )
+  const integrationsProgress = getProgressStatus(tracking.zapier_integrations_setup, integrationsTarget)
 
   const overallProgress = calculateOverallProgress(updatedClient)
 
@@ -237,11 +212,17 @@ export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
         <Card className="bg-[#10122b]/90 rounded-xl border border-[#F2C94C]/20 p-4 shadow-[#F2C94C]/5">
           <CardContent className="p-0 text-center">
             <div className={`text-3xl font-bold ${formsProgress.color}`}>
-              {tracking.forms_setup}/4
+              {templatesMax != null ? templatesCompleted : tracking.forms_setup}/
+              {templatesMax ?? (isUnlimited(limits.forms) ? "∞" : limits.forms)}
             </div>
-            <div className="text-sm text-white/60 mb-3">Forms</div>
-            <Progress 
-              value={getProgressPercentage(tracking.forms_setup, 4)} 
+            <div className="text-sm text-white/60 mb-3">
+              {templatesMax != null ? "Forms & SmartDocs" : "Forms"}
+            </div>
+            <Progress
+              value={getProgressPercentage(
+                templatesMax != null ? templatesCompleted : tracking.forms_setup,
+                formsTarget,
+              )} 
               className="h-1 bg-slate-700"
               style={{
                 '--progress-background': '#F2C94C',
@@ -258,11 +239,15 @@ export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
         <Card className="bg-[#10122b]/90 rounded-xl border border-[#F2C94C]/20 p-4 shadow-[#F2C94C]/5">
           <CardContent className="p-0 text-center">
             <div className={`text-3xl font-bold ${smartdocsProgress.color}`}>
-              {tracking.smartdocs_setup}/4
+              {templatesMax != null ? templatesCompleted : tracking.smartdocs_setup}/
+              {templatesMax ?? (isUnlimited(limits.smartdocs) ? "∞" : limits.smartdocs)}
             </div>
             <div className="text-sm text-white/60 mb-3">SmartDocs</div>
-            <Progress 
-              value={getProgressPercentage(tracking.smartdocs_setup, 4)} 
+            <Progress
+              value={getProgressPercentage(
+                templatesMax != null ? templatesCompleted : tracking.smartdocs_setup,
+                smartdocsTarget,
+              )}
               className="h-1 bg-slate-700"
               style={{
                 '--progress-background': '#F2C94C',
@@ -279,11 +264,12 @@ export function ProjectTrackingAdmin({ client }: ProjectTrackingAdminProps) {
         <Card className="bg-[#10122b]/90 rounded-xl border border-[#F2C94C]/20 p-4 shadow-[#F2C94C]/5">
           <CardContent className="p-0 text-center">
             <div className={`text-3xl font-bold ${integrationsProgress.color}`}>
-              {tracking.zapier_integrations_setup}/2
+              {tracking.zapier_integrations_setup}/
+              {isUnlimited(limits.integrations) ? "∞" : limits.integrations}
             </div>
             <div className="text-sm text-white/60 mb-3">Integrations</div>
-            <Progress 
-              value={getProgressPercentage(tracking.zapier_integrations_setup, 2)} 
+            <Progress
+              value={getProgressPercentage(tracking.zapier_integrations_setup, integrationsTarget)}
               className="h-1 bg-slate-700"
               style={{
                 '--progress-background': '#F2C94C',

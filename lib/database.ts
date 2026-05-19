@@ -1,4 +1,5 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
+import { calculateImplementationProgress, getPackageLimits, isUnlimited } from "@/lib/success-packages"
 import type {
   Client,
   PlatformSettings,
@@ -863,7 +864,7 @@ export function countCompletedCalls(client: Client): number {
   if (client.success_package === 'light') {
     if (client.light_onboarding_call_date) completedCalls++
   } else if (client.success_package === 'premium') {
-    // First call is kickoff—don't count; only premium_second_call_date counts
+    if (client.premium_first_call_date) completedCalls++
     if (client.premium_second_call_date) completedCalls++
   } else if (client.success_package === 'gold') {
     // First call is kickoff—don't count; only gold_second and gold_third count
@@ -902,18 +903,10 @@ export function countCompletedCalls(client: Client): number {
 // Helper function to get scheduled calls based on package type (countable calls only—kickoff excluded for premium/gold/elite)
 // For elite and enterprise packages, calculates dynamically from call dates if client is provided
 export function getScheduledCallsForPackage(packageType: string, client?: Client): number {
-  const packageLimits: Record<string, number> = {
-    light: 1,
-    premium: 2,  // 2 total; first is kickoff and doesn't count toward completed
-    gold: 3,     // 3 total; first is kickoff and doesn't count toward completed
-    elite: 10,   // Default for elite, calculated dynamically if client provided
-    starter: 1,
-    professional: 3,
-    enterprise: 10, // Default for enterprise, calculated dynamically if client provided
-  }
-  
+  const limits = getPackageLimits(packageType)
+
   // For elite and enterprise packages, calculate dynamically—exclude light_onboarding (kickoff)
-  if (client && (packageType === 'elite' || packageType === 'enterprise')) {
+  if (client && isUnlimited(limits.totalCalls)) {
     let scheduledCalls = 0
     
     // Count standard call dates EXCEPT light_onboarding_call_date (kickoff)
@@ -931,7 +924,7 @@ export function getScheduledCallsForPackage(packageType: string, client?: Client
     return Math.max(scheduledCalls, 1)
   }
   
-  return packageLimits[packageType] || 2 // Default to premium (2 calls)
+  return limits.totalCalls > 0 ? limits.totalCalls : 2
 }
 
 export async function updateProjectTracking(clientId: string, tracking: any): Promise<Client> {
@@ -1082,57 +1075,8 @@ export async function calculateProjectCompletion(clientId: string): Promise<void
     const client = await getClientById(clientId)
     if (!client) return
 
-    // Calculate completion based on package limits
-    const limits = {
-      light: { calls: 1, forms: 0, zapier: 0, migration: false, slack: false },
-      premium: { calls: 2, forms: 2, zapier: 1, migration: false, slack: false },
-      gold: { calls: 3, forms: 4, zapier: 2, migration: false, slack: false },
-      elite: { calls: 999, forms: 999, zapier: 999, migration: true, slack: true },
-      starter: { calls: 1, forms: 1, zapier: 0, migration: false, slack: false },
-      professional: { calls: 3, forms: 5, zapier: 3, migration: false, slack: true },
-      enterprise: { calls: 999, forms: 999, zapier: 999, migration: true, slack: true },
-    }
-
-    const packageLimits = limits[client.success_package] || limits.premium
-    let totalTasks = 0
-    let completedTasks = 0
-
-    // Count calls
-    if (packageLimits.calls > 0) {
-      totalTasks += packageLimits.calls === 999 ? client.calls_scheduled : packageLimits.calls
-      completedTasks += Math.min(
-        client.calls_completed,
-        packageLimits.calls === 999 ? client.calls_scheduled : packageLimits.calls,
-      )
-    }
-
-    // Count forms and smartdocs
-    if (packageLimits.forms > 0) {
-      totalTasks += packageLimits.forms * 2 // forms + smartdocs
-      completedTasks += Math.min(client.forms_setup + client.smartdocs_setup, packageLimits.forms * 2)
-    }
-
-    // Count zapier integrations
-    if (packageLimits.zapier > 0) {
-      totalTasks += packageLimits.zapier === 999 ? Math.max(client.zapier_integrations_setup, 1) : packageLimits.zapier
-      completedTasks += Math.min(
-        client.zapier_integrations_setup,
-        packageLimits.zapier === 999 ? Math.max(client.zapier_integrations_setup, 1) : packageLimits.zapier,
-      )
-    }
-
-    // Count elite features
-    if (packageLimits.migration) {
-      totalTasks += 1
-      if (client.migration_completed) completedTasks += 1
-    }
-
-    if (packageLimits.slack) {
-      totalTasks += 1
-      if (client.slack_access_granted) completedTasks += 1
-    }
-
-    const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+    const completedCalls = countCompletedCalls(client)
+    const { overall: percentage } = calculateImplementationProgress(client, completedCalls)
 
     await supabase.from("clients").update({ project_completion_percentage: percentage }).eq("id", clientId)
   } catch (error) {

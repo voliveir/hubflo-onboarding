@@ -13,6 +13,7 @@ import { checkSlugAvailability } from "@/lib/database"
 import { Loader2, Check, X, Palette, Settings, Package, Calendar, Users, DollarSign } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { getImplementationManagers, ImplementationManager } from "@/lib/implementationManagers"
+import { getPackageDefinition } from "@/lib/success-packages"
 
 // Helper function to extract error message from various error types
 const extractErrorMessage = (error: any): string => {
@@ -225,35 +226,7 @@ export default function CreateClientForm() {
         'Chat support',
       ];
     }
-    const features = {
-      light: ["One Zoom call with a product specialist", "Video tutorials", "Chat support"],
-      premium: [
-        "2 Zoom calls with a product specialist",
-        "Workflow mapping & workspace structuring",
-        "Setup of a basic Zapier integration",
-        "Help setting up workspace templates",
-        "Up to 2 forms and/or SmartDocs setup",
-        "Priority support during onboarding",
-      ],
-      gold: [
-        "Includes everything in Premium, plus:",
-        "Up to 3 Zoom calls with a product specialist",
-        "Advanced Zapier integrations & workflows",
-        "Up to 4 forms and/or SmartDocs setup",
-        "Direct access to your account manager via Slack",
-      ],
-      elite: [
-        "Includes everything in Gold, plus:",
-        "Unlimited Onboarding Calls",
-        "Unlimited Forms",
-        "Unlimited SmartDocs",
-        "Unlimited integrations",
-        "Migration assistance (contacts, workspaces, clients)",
-        "Custom integration setup (via API or partner tools)",
-        "Full onboarding project managed by our team",
-      ],
-    }
-    return features[pkg as keyof typeof features] || features.premium
+    return getPackageDefinition(pkg).features
   }
 
   return (
@@ -494,7 +467,7 @@ export default function CreateClientForm() {
           <p className="text-sm text-slate-300">Choose the appropriate success package for this client</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {["light", "premium", "gold", "elite", "no_success"].map((pkg) => (
+            {["light", "premium", "elite", "no_success"].map((pkg) => (
               <div
                 key={pkg}
                 className={`border rounded-lg p-4 cursor-pointer transition-all ${
