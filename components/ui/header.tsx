@@ -10,7 +10,8 @@ import Link from "next/link"
 
 const navItems = [
   { href: "#welcome", label: "Welcome" },
-  { href: "#packages", label: "Packages" },
+  // Packages temporarily hidden — confuses clients
+  // { href: "#packages", label: "Packages" },
   { href: "#launch-process", label: "Launch Process" },
   { href: "#kickoff-prep", label: "Kickoff Prep" },
   { href: "#integrations", label: "Integrations" },

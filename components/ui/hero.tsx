@@ -81,9 +81,9 @@ export function Hero() {
               </span>
             </button>
           </Link>
-          <Link href="#packages" passHref legacyBehavior>
+          <Link href="#launch-process" passHref legacyBehavior>
             <button className="text-white bg-transparent border border-white/80 hover:border-brand-gold hover:text-brand-gold font-semibold text-lg px-10 py-4 rounded-full transition-all duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand-gold/40">
-              Explore Packages
+              See Launch Process
             </button>
           </Link>
         </div>

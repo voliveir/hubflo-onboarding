@@ -13,6 +13,9 @@ import { HorizontalTimeline } from "@/components/ui/horizontal-timeline"
 import { Timeline } from "@/components/ui/timeline"
 import { MedianOnboardingStat } from "@/components/median-onboarding-stat"
 
+// Temporarily hidden — package comparison confuses clients on the public homepage
+const SHOW_PACKAGES_SECTION = false
+
 export default function HomePage() {
   console.log("HomePage rendered")
   return (
@@ -144,7 +147,8 @@ export default function HomePage() {
           </div>
         </Section>
 
-        {/* Packages Section */}
+        {/* Packages Section — temporarily hidden */}
+        {SHOW_PACKAGES_SECTION && (
         <Section id="packages" className="relative overflow-hidden bg-white">
           
           <div className="relative z-10 text-center mb-20">
@@ -292,6 +296,7 @@ export default function HomePage() {
             Implementation covers your first few weeks until you&apos;re fully set up.
           </p>
         </Section>
+        )}
 
         {/* Launch Process Section */}
         <Section id="launch-process" className="relative overflow-hidden bg-white">
